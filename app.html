@@ -1034,21 +1034,56 @@
   <div class="tab-panel" id="tab-insight">
     <div style="margin-bottom:20px">
       <h3 style="font-size:1.1rem;color:var(--accent);margin-bottom:6px;font-weight:700">回答生成</h3>
-      <p style="font-size:0.82rem;color:var(--text-muted);line-height:1.6">あなたの問題意識を入力すると、CLA（因果階層分析）やシナリオプランニングのデータを基に、多角的な分析と回答を生成します。</p>
+      <p style="font-size:0.82rem;color:var(--text-muted);line-height:1.6">問題意識を入力し、参考情報やリサーチを追加することで、CLA・シナリオプランニングのデータと合わせて多角的な分析・回答を生成します。</p>
     </div>
-    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px">
-      <div style="margin-bottom:12px">
-        <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:6px">問題意識・質問</label>
-        <textarea id="insightQuestion" style="width:100%;min-height:120px;padding:12px;border:1px solid var(--border);border-radius:8px;font-size:0.9rem;line-height:1.7;resize:vertical;background:var(--bg);color:var(--text);font-family:inherit" placeholder="例: AIの急速な普及が雇用構造にどのような影響を与えるか？私たちの組織はどう備えるべきか？"></textarea>
+
+    <!-- Step 1: Question input -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <label style="font-size:0.9rem;font-weight:700;color:var(--accent)">1. 問題意識・質問</label>
+        <button onclick="refineQuestion()" class="btn" style="font-size:0.78rem;padding:5px 14px" id="refineBtn">質問を整える</button>
       </div>
-      <div style="display:flex;gap:8px;align-items:center">
+      <textarea id="insightQuestion" style="width:100%;min-height:100px;padding:12px;border:1px solid var(--border);border-radius:8px;font-size:0.9rem;line-height:1.7;resize:vertical;background:var(--bg);color:var(--text);font-family:inherit" placeholder="例: AIの急速な普及が雇用構造にどのような影響を与えるか？私たちの組織はどう備えるべきか？"></textarea>
+      <div id="refineStatus" style="font-size:0.78rem;color:var(--text-muted);margin-top:4px"></div>
+    </div>
+
+    <!-- Step 2: Reference URL / Notion -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px">
+      <label style="font-size:0.9rem;font-weight:700;color:var(--accent);display:block;margin-bottom:10px">2. 参考情報を追加（任意）</label>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <input type="text" id="refUrlInput" style="flex:1;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;background:var(--bg);color:var(--text)" placeholder="NotionページURLまたは任意のWebページURL">
+        <button onclick="fetchRefUrl()" class="btn btn-accent" style="font-size:0.82rem;padding:8px 16px;white-space:nowrap" id="fetchUrlBtn">読み込み</button>
+      </div>
+      <div id="fetchUrlStatus" style="font-size:0.78rem;color:var(--text-muted);margin-bottom:8px"></div>
+      <textarea id="refTextInput" style="width:100%;min-height:80px;padding:12px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;line-height:1.6;resize:vertical;background:var(--bg);color:var(--text);font-family:inherit" placeholder="または、参考情報をここに直接貼り付け（Notionからコピーしたテキスト等）"></textarea>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button onclick="addRefToContext()" class="btn" style="font-size:0.78rem;padding:5px 14px">文脈に追加</button>
+        <span style="font-size:0.75rem;color:var(--text-muted);line-height:2">追加した情報は回答生成時の文脈として使用されます</span>
+      </div>
+    </div>
+
+    <!-- Step 3: Research context -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <label style="font-size:0.9rem;font-weight:700;color:var(--accent)">3. リサーチ文脈</label>
+        <span style="font-size:0.75rem;color:var(--text-muted)" id="contextCount">0件の文脈情報</span>
+      </div>
+      <div id="contextList" style="margin-bottom:8px"></div>
+      <p style="font-size:0.75rem;color:var(--text-muted)">参考情報を追加するか、ブックマークした記事の内容が自動的に文脈に含まれます。文脈はFirestoreに保存され、次回以降も利用できます。</p>
+    </div>
+
+    <!-- Step 4: Generate -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px">
+      <label style="font-size:0.9rem;font-weight:700;color:var(--accent);display:block;margin-bottom:10px">4. 回答を生成</label>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         <button onclick="generateInsight()" class="btn btn-accent" id="insightGenBtn" style="font-size:0.9rem;padding:10px 24px">分析・回答を生成</button>
         <span id="insightStatus" style="font-size:0.8rem;color:var(--text-muted)"></span>
       </div>
-      <div style="margin-top:12px">
+      <div style="margin-top:10px">
         <p style="font-size:0.75rem;color:var(--text-muted)">初回利用時はAPIキーの設定が必要な場合があります。<a href="#" onclick="promptInsightApiKey();return false" style="color:var(--accent)">APIキーを設定</a></p>
       </div>
     </div>
+
     <div id="insightResult"></div>
     <div id="insightHistory"></div>
   </div>
@@ -1831,7 +1866,7 @@ async function loadHeavyData(v) {
 }
 
 // initApp is called by the auth guard after successful authentication
-function initApp() { loadData(); loadBookmarks(); loadSharedApiKey(); }
+function initApp() { loadData(); loadBookmarks(); loadSharedApiKey(); loadResearchContexts(); }
 
 // === BOOKMARKS ===
 let userBookmarks = [];
@@ -1945,6 +1980,155 @@ function promptInsightApiKey() {
   if (key !== null) { localStorage.setItem('ANTHROPIC_API_KEY', key); showToast('APIキーを保存しました'); }
 }
 
+// === RESEARCH CONTEXT ===
+let researchContexts = [];
+
+async function loadResearchContexts() {
+  if (!currentUser) return;
+  try {
+    const snap = await db.collection('users').doc(currentUser.uid).collection('researchContext').orderBy('createdAt', 'desc').get();
+    researchContexts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderContextList();
+  } catch(e) { console.warn('Context load failed:', e); }
+}
+
+function renderContextList() {
+  const el = document.getElementById('contextList');
+  const countEl = document.getElementById('contextCount');
+  if (!el) return;
+  if (countEl) countEl.textContent = `${researchContexts.length}件の文脈情報`;
+  if (researchContexts.length === 0) {
+    el.innerHTML = '<div style="font-size:0.82rem;color:var(--text-muted);padding:8px 0">まだ文脈情報がありません。</div>';
+    return;
+  }
+  el.innerHTML = researchContexts.map(ctx => {
+    const preview = (ctx.text || '').substring(0, 100) + ((ctx.text || '').length > 100 ? '...' : '');
+    const checked = ctx.enabled !== false ? 'checked' : '';
+    return `<div style="display:flex;gap:8px;align-items:start;padding:8px 0;border-bottom:1px solid var(--border)">
+      <input type="checkbox" ${checked} onchange="toggleContext('${ctx.id}',this.checked)" style="margin-top:4px;accent-color:var(--accent)">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:0.82rem;font-weight:600">${esc(ctx.title || '無題')}</div>
+        <div style="font-size:0.75rem;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(preview)}</div>
+      </div>
+      <button onclick="removeContext('${ctx.id}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:0.9rem;padding:0 4px">&times;</button>
+    </div>`;
+  }).join('');
+}
+
+async function toggleContext(id, enabled) {
+  const ctx = researchContexts.find(c => c.id === id);
+  if (ctx) ctx.enabled = enabled;
+  if (currentUser) db.collection('users').doc(currentUser.uid).collection('researchContext').doc(id).update({ enabled }).catch(() => {});
+}
+
+async function removeContext(id) {
+  if (currentUser) await db.collection('users').doc(currentUser.uid).collection('researchContext').doc(id).delete();
+  researchContexts = researchContexts.filter(c => c.id !== id);
+  renderContextList();
+  showToast('文脈情報を削除しました');
+}
+
+async function addRefToContext() {
+  const text = document.getElementById('refTextInput').value.trim();
+  if (!text) { showToast('テキストを入力してください'); return; }
+  const title = text.substring(0, 40).replace(/\n/g, ' ') + (text.length > 40 ? '...' : '');
+  if (currentUser) {
+    const doc = await db.collection('users').doc(currentUser.uid).collection('researchContext').add({
+      title, text, enabled: true, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    researchContexts.unshift({ id: doc.id, title, text, enabled: true });
+  }
+  document.getElementById('refTextInput').value = '';
+  renderContextList();
+  showToast('文脈に追加しました');
+}
+
+// === URL / Notion FETCH ===
+async function fetchRefUrl() {
+  const url = document.getElementById('refUrlInput').value.trim();
+  if (!url) { showToast('URLを入力してください'); return; }
+  const statusEl = document.getElementById('fetchUrlStatus');
+  const btn = document.getElementById('fetchUrlBtn');
+  btn.disabled = true;
+  statusEl.textContent = '読み込み中...';
+
+  try {
+    // Use allorigins proxy for CORS
+    const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+    const resp = await fetch(proxyUrl);
+    if (!resp.ok) throw new Error('読み込みに失敗しました');
+    const html = await resp.text();
+
+    // Extract readable text from HTML
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    // Remove script, style, nav, footer
+    doc.querySelectorAll('script,style,nav,footer,header,.sidebar,#sidebar').forEach(el => el.remove());
+    let text = (doc.body?.innerText || '').trim();
+    // Clean up: collapse whitespace
+    text = text.replace(/\n{3,}/g, '\n\n').replace(/[ \t]+/g, ' ').trim();
+
+    if (text.length < 20) throw new Error('コンテンツを取得できませんでした');
+    // Truncate if too long
+    if (text.length > 8000) text = text.substring(0, 8000) + '\n\n[...以下省略]';
+
+    document.getElementById('refTextInput').value = text;
+    statusEl.textContent = `${text.length}文字を取得しました。「文脈に追加」で保存できます。`;
+  } catch(e) {
+    statusEl.textContent = 'エラー: ' + e.message + ' - テキストを直接貼り付けてください。';
+  }
+  btn.disabled = false;
+}
+
+// === QUESTION REFINEMENT ===
+async function refineQuestion() {
+  const textarea = document.getElementById('insightQuestion');
+  const raw = textarea.value.trim();
+  if (!raw) { showToast('まず問題意識を入力してください'); return; }
+  const apiKey = getInsightApiKey();
+  if (!apiKey) { promptInsightApiKey(); return; }
+
+  const btn = document.getElementById('refineBtn');
+  const statusEl = document.getElementById('refineStatus');
+  btn.disabled = true;
+  statusEl.textContent = '質問を整理中...';
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: `以下のテキストを、戦略的未来洞察のための明確な問い（リサーチクエスチョン）に整えてください。
+
+要件:
+- 元の意図を保持しつつ、より構造化された質問文にする
+- 背景、問いの核心、求める分析の方向性が明確になるようにする
+- 1つのメインの問いと、2-3のサブクエスチョンで構成する
+- 日本語で出力する
+- 余計な説明は不要。整理された質問文のみ出力する
+
+テキスト:
+${raw}` }]
+      })
+    });
+    if (!resp.ok) throw new Error('API error');
+    const data = await resp.json();
+    const refined = data.content?.[0]?.text || raw;
+    textarea.value = refined;
+    statusEl.textContent = '質問を整理しました。内容を確認・編集してください。';
+  } catch(e) {
+    statusEl.textContent = 'エラー: ' + e.message;
+  }
+  btn.disabled = false;
+}
+
 function getInsightApiKey() {
   return localStorage.getItem('ANTHROPIC_API_KEY') || getApiKey() || '';
 }
@@ -1960,8 +2144,28 @@ async function generateInsight() {
   btn.disabled = true;
   status.textContent = '分析中...（30秒ほどかかります）';
 
-  // Build context from CLA, scenarios, signals
+  // Build context from research contexts, CLA, scenarios, signals
   let context = '';
+
+  // Include user's research contexts
+  const activeContexts = researchContexts.filter(c => c.enabled !== false);
+  if (activeContexts.length > 0) {
+    context += '【ユーザーの参考情報・リサーチ文脈】\n';
+    activeContexts.forEach(ctx => {
+      context += `\n[${ctx.title || '参考情報'}]\n${(ctx.text || '').substring(0, 3000)}\n`;
+    });
+    context += '\n';
+  }
+
+  // Include bookmarked articles as additional context
+  if (userBookmarks.length > 0) {
+    context += '【ブックマークした記事】\n';
+    userBookmarks.slice(0, 10).forEach(bm => {
+      context += `- [${bm.category || ''}] ${bm.title}\n`;
+    });
+    context += '\n';
+  }
+
   if (AI_DATA && AI_DATA.cla) {
     context += '【因果階層分析（CLA）データ】\n';
     for (const [cat, data] of Object.entries(AI_DATA.cla)) {
