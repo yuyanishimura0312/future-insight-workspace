@@ -15,5 +15,9 @@ service cloud.firestore {
     match /users/{userId}/{subcollection}/{docId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
+    // Config collection - read-only for authenticated users
+    match /config/{docId} {
+      allow read: if request.auth != null;
+    }
   }
 }
