@@ -1866,7 +1866,7 @@ async function loadHeavyData(v) {
 }
 
 // initApp is called by the auth guard after successful authentication
-function initApp() { loadData(); loadBookmarks(); loadSharedApiKey(); loadResearchContexts(); }
+function initApp() { loadData(); loadBookmarks(); loadSharedApiKey(); loadResearchContexts(); loadNotionToken(); }
 
 // === BOOKMARKS ===
 let userBookmarks = [];
@@ -2044,6 +2044,18 @@ async function addRefToContext() {
 }
 
 // === URL / Notion FETCH ===
+let _notionToken = '';
+async function loadNotionToken() {
+  try { const doc = await db.collection('config').doc('notion').get(); if (doc.exists) _notionToken = doc.data().token || ''; } catch(e) {}
+}
+
+function extractNotionPageId(url) {
+  // Match Notion URLs like notion.so/xxx-{32hexid} or notion.so/{32hexid}
+  const m = url.match(/([a-f0-9]{32})/);
+  if (m) return m[1].replace(/(.{8})(.{4})(.{4})(.{4})(.{12})/, '$1-$2-$3-$4-$5');
+  return null;
+}
+
 async function fetchRefUrl() {
   const url = document.getElementById('refUrlInput').value.trim();
   if (!url) { showToast('URLを入力してください'); return; }
@@ -2052,30 +2064,74 @@ async function fetchRefUrl() {
   btn.disabled = true;
   statusEl.textContent = '読み込み中...';
 
+  const isNotion = url.includes('notion.so') || url.includes('notion.site');
+
   try {
-    // Use allorigins proxy for CORS
-    const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
-    const resp = await fetch(proxyUrl);
-    if (!resp.ok) throw new Error('読み込みに失敗しました');
-    const html = await resp.text();
+    let text = '';
 
-    // Extract readable text from HTML
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-    // Remove script, style, nav, footer
-    doc.querySelectorAll('script,style,nav,footer,header,.sidebar,#sidebar').forEach(el => el.remove());
-    let text = (doc.body?.innerText || '').trim();
-    // Clean up: collapse whitespace
-    text = text.replace(/\n{3,}/g, '\n\n').replace(/[ \t]+/g, ' ').trim();
+    if (isNotion) {
+      // Try Notion API
+      if (!_notionToken) await loadNotionToken();
+      if (!_notionToken) throw new Error('Notion APIトークンが未設定です');
 
-    if (text.length < 20) throw new Error('コンテンツを取得できませんでした');
-    // Truncate if too long
+      const pageId = extractNotionPageId(url);
+      if (!pageId) throw new Error('NotionページIDを取得できませんでした');
+
+      // Fetch page blocks via Notion API (through CORS proxy)
+      const notionUrl = `https://api.notion.com/v1/blocks/${pageId}/children?page_size=100`;
+      const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(notionUrl);
+      const resp = await fetch(proxyUrl, {
+        headers: { 'Authorization': `Bearer ${_notionToken}`, 'Notion-Version': '2022-06-28' }
+      });
+      if (!resp.ok) {
+        const errText = await resp.text().catch(() => '');
+        throw new Error('Notion API エラー - ページが共有されているか確認してください');
+      }
+      const data = await resp.json();
+      // Extract text from blocks
+      text = (data.results || []).map(block => {
+        const type = block.type;
+        const content = block[type];
+        if (!content) return '';
+        if (content.rich_text) return content.rich_text.map(t => t.plain_text).join('');
+        if (content.caption) return content.caption.map(t => t.plain_text).join('');
+        if (type === 'child_page') return '[ページ: ' + (content.title || '') + ']';
+        return '';
+      }).filter(Boolean).join('\n');
+
+    } else {
+      // General URL - try multiple CORS proxies
+      const proxies = [
+        'https://corsproxy.io/?' + encodeURIComponent(url),
+        'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
+      ];
+      let html = '';
+      for (const proxyUrl of proxies) {
+        try {
+          const resp = await fetch(proxyUrl, { signal: AbortSignal.timeout(10000) });
+          if (resp.ok) { html = await resp.text(); break; }
+        } catch(e) { continue; }
+      }
+      if (!html) throw new Error('ページを取得できませんでした');
+
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      doc.querySelectorAll('script,style,nav,footer,header,.sidebar,#sidebar,iframe').forEach(el => el.remove());
+      text = (doc.body?.innerText || '').trim();
+      text = text.replace(/\n{3,}/g, '\n\n').replace(/[ \t]+/g, ' ').trim();
+    }
+
+    if (text.length < 10) throw new Error('コンテンツを取得できませんでした。Notionの場合はページ内容をコピーして下のテキスト欄に貼り付けてください。');
     if (text.length > 8000) text = text.substring(0, 8000) + '\n\n[...以下省略]';
 
     document.getElementById('refTextInput').value = text;
     statusEl.textContent = `${text.length}文字を取得しました。「文脈に追加」で保存できます。`;
   } catch(e) {
-    statusEl.textContent = 'エラー: ' + e.message + ' - テキストを直接貼り付けてください。';
+    if (isNotion) {
+      statusEl.innerHTML = 'Notionの読み込みに失敗しました。<br>Notionでページを開き、内容をコピー（Cmd+A → Cmd+C）して下のテキスト欄に貼り付けてください。';
+    } else {
+      statusEl.textContent = 'エラー: ' + e.message;
+    }
   }
   btn.disabled = false;
 }
