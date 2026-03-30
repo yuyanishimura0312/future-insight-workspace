@@ -1,1148 +1,1705 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Future Insight Workspace</title>
-  <style>
-    :root {
-      --bg: #1a1a2e;
-      --bg-card: #16213e;
-      --bg-card2: #1c2a4a;
-      --accent: #4a90d9;
-      --accent2: #27ae60;
-      --text: #e0e0e0;
-      --text-muted: #8899aa;
-      --border: #2a3a5a;
-      --danger: #e74c3c;
-      --warning: #f39c12;
-      --political: #e74c3c;
-      --economic: #e67e22;
-      --social: #27ae60;
-      --technological: #3498db;
-      --legal: #9b59b6;
-      --environmental: #1abc9c;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Future Insight Workspace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@300;400;500;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f0e9e1;
+    --card: #ffffff;
+    --card-hover: #faf5f0;
+    --accent: #783c28;
+    --accent-light: #a0503c;
+    --accent-warm: #c87864;
+    --text: #292929;
+    --text-muted: #8c6d5e;
+    --border: #e0d5cc;
+    --highlight: #fc4545;
+    --P: #b92a38; --E: #cd8a32; --S: #4a8c5c; --T: #2c8acc; --L: #7c5a96; --En: #3a8c78;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: "M PLUS 1p", "Noto Sans JP", "Hiragino Kaku Gothic ProN", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  /* Header */
+  header {
+    background: linear-gradient(135deg, #783c28 0%, #a0503c 50%, #c87864 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 32px;
+    padding-top: max(20px, env(safe-area-inset-top));
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #ffffff;
+  }
+
+  header h1 { font-size: 1.3rem; font-weight: 700; color: #ffffff; }
+  header h1 span { color: #ffe8d7; }
+  .header-sub { font-size: 0.75rem; color: #ffe8d7; margin-top: 2px; opacity: 0.85; }
+  .header-actions { display: flex; gap: 8px; align-items: center; }
+
+  .btn {
+    padding: 8px 16px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--card); color: var(--text); font-size: 0.8rem; cursor: pointer;
+    transition: all 0.15s; text-decoration: none;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent-light); }
+  .btn-accent { background: var(--accent); border-color: var(--accent); color: white; }
+  .btn-accent:hover { background: var(--accent-light); }
+
+  /* Layout */
+  .container { max-width: 1400px; margin: 0 auto; padding: 20px 24px; }
+
+  /* Tabs */
+  .tab-nav {
+    display: flex; gap: 0; margin-bottom: 24px;
+    border-bottom: 2px solid var(--border);
+  }
+  .tab-btn {
+    padding: 12px 24px; border: none; background: none;
+    font-size: 0.85rem; color: var(--text-muted); cursor: pointer;
+    border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* Stats */
+  .stats-row {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px; margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px 20px;
+  }
+  .stat-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat-value { font-size: 1.6rem; font-weight: 700; color: var(--accent); margin-top: 4px; }
+  .stat-sub { font-size: 0.7rem; color: var(--text-muted); }
+
+  /* PESTLE Grid */
+  .pestle-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(min(420px, 100%), 1fr));
+    gap: 16px; margin-bottom: 24px;
+  }
+
+  .pestle-section {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    overflow: hidden; transition: box-shadow 0.15s;
+  }
+  .pestle-section:hover { box-shadow: 0 4px 16px rgba(120,60,40,0.08); }
+  .pestle-header {
+    padding: 14px 18px; font-weight: 700; font-size: 0.9rem;
+    display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid var(--border);
+    color: #fff;
+  }
+  .pestle-badge {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    background: rgba(255,255,255,0.8);
+  }
+  .pestle-count {
+    margin-left: auto; font-size: 0.75rem; color: rgba(255,255,255,0.85); font-weight: 400;
+  }
+
+  /* PESTLE dimension filter */
+  .pestle-dim-filters { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .pestle-dim-btn {
+    padding: 5px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 600;
+    cursor: pointer; transition: all 0.15s; border: 2px solid;
+  }
+  .pestle-dim-btn.active { color: #fff; }
+  .pestle-dim-btn:not(.active) { background: var(--card); }
+
+  .article-list { max-height: 400px; overflow-y: auto; }
+  .article-item {
+    padding: 10px 18px; border-bottom: 1px solid var(--border);
+    cursor: pointer; transition: background 0.1s;
+  }
+  .article-item:hover { background: var(--card-hover); }
+  .article-item:last-child { border-bottom: none; }
+  .article-title { font-size: 0.82rem; font-weight: 500; line-height: 1.4; }
+  .article-snippet {
+    font-size: 0.73rem; color: var(--text-muted); margin-top: 3px;
+    line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .article-meta {
+    font-size: 0.7rem; color: var(--text-muted); margin-top: 3px;
+    display: flex; gap: 8px; align-items: center;
+  }
+  .article-source { color: var(--accent); font-weight: 500; }
+  .article-relevance {
+    display: inline-flex; align-items: center; gap: 3px;
+    font-size: 0.65rem; color: var(--text-muted);
+  }
+  .article-relevance-bar {
+    width: 40px; height: 4px; border-radius: 2px; background: var(--border); overflow: hidden;
+  }
+  .article-relevance-fill { height: 100%; border-radius: 2px; }
+  .lang-badge {
+    font-size: 0.6rem; padding: 1px 5px; border-radius: 3px;
+    background: #ffe8d7; color: var(--accent);
+  }
+
+  /* Papers */
+  .papers-stats-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px; margin-bottom: 20px;
+  }
+  .papers-stat-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px; position: relative; overflow: hidden;
+    transition: box-shadow 0.15s, transform 0.15s; cursor: pointer;
+  }
+  .papers-stat-card:hover { box-shadow: 0 4px 12px rgba(120,60,40,0.1); transform: translateY(-1px); }
+  .papers-stat-card.active { border-color: var(--accent); box-shadow: 0 2px 8px rgba(120,60,40,0.15); }
+  .papers-stat-card::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+  }
+  .papers-stat-label { font-size: 0.68rem; color: var(--text-muted); letter-spacing: 0.03em; }
+  .papers-stat-value { font-size: 1.4rem; font-weight: 700; margin-top: 2px; }
+  .papers-stat-bar {
+    margin-top: 6px; height: 3px; border-radius: 2px; background: var(--border);
+    overflow: hidden;
+  }
+  .papers-stat-bar-fill { height: 100%; border-radius: 2px; transition: width 0.5s ease; }
+
+  .papers-toolbar {
+    display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center;
+  }
+  .papers-search-wrap {
+    flex: 1; min-width: 200px; position: relative;
+  }
+  .papers-search-wrap .search-icon {
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    color: var(--text-muted); font-size: 0.85rem; pointer-events: none;
+  }
+  .papers-search-wrap input {
+    width: 100%; padding: 10px 36px 10px 36px; border-radius: 10px;
+    border: 1px solid var(--border); background: var(--card); font-size: 0.85rem;
+    color: var(--text); transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .papers-search-wrap input:focus {
+    outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(120,60,40,0.08);
+  }
+  .papers-search-clear {
+    position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; color: var(--text-muted); cursor: pointer;
+    font-size: 1rem; display: none; padding: 2px 4px;
+  }
+  .papers-search-clear.show { display: block; }
+  .papers-filter-select {
+    padding: 10px 32px 10px 12px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--card); font-size: 0.82rem; color: var(--text);
+    appearance: none; -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238c6d5e' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center;
+    cursor: pointer; transition: border-color 0.15s;
+  }
+  .papers-filter-select:focus { outline: none; border-color: var(--accent); }
+  .papers-sort-btn {
+    padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border);
+    background: var(--card); font-size: 0.78rem; color: var(--text-muted);
+    cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .papers-sort-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .papers-sort-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .papers-result-count {
+    font-size: 0.78rem; color: var(--text-muted); padding: 4px 0 8px;
+  }
+
+  .papers-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(min(420px, 100%), 1fr));
+    gap: 16px;
+  }
+  .paper-section {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    overflow: hidden; transition: box-shadow 0.15s;
+  }
+  .paper-section:hover { box-shadow: 0 4px 16px rgba(120,60,40,0.08); }
+  .paper-header {
+    padding: 14px 18px; font-weight: 700; font-size: 0.9rem;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 10px;
+    background: linear-gradient(90deg, rgba(250,245,240,0.5) 0%, var(--card) 100%);
+  }
+  .paper-item {
+    padding: 12px 18px; border-bottom: 1px solid var(--border); transition: all 0.15s;
+    cursor: pointer; position: relative;
+  }
+  .paper-item:last-child { border-bottom: none; }
+  .paper-item:hover { background: var(--card-hover); padding-left: 22px; }
+  .paper-item-top { display: flex; align-items: flex-start; gap: 8px; }
+  .paper-title { font-size: 0.84rem; font-weight: 500; line-height: 1.5; flex: 1; }
+  .paper-lang-badge {
+    font-size: 0.6rem; padding: 1px 6px; border-radius: 3px; flex-shrink: 0;
+    background: #e8f0ff; color: #2c68a0; font-weight: 600; margin-top: 2px;
+  }
+  .paper-lang-badge.ja { background: #fde8e8; color: #b92a38; }
+  .paper-meta {
+    display: flex; align-items: center; gap: 8px; margin-top: 4px; flex-wrap: wrap;
+  }
+  .paper-authors { font-size: 0.72rem; color: var(--text-muted); }
+  .paper-date { font-size: 0.68rem; color: var(--text-muted); opacity: 0.8; }
+  .paper-subfield-tag {
+    font-size: 0.62rem; padding: 1px 6px; border-radius: 3px;
+    background: #f5f0eb; color: var(--text-muted); border: 1px solid var(--border);
+  }
+  .paper-summary-preview {
+    font-size: 0.73rem; color: var(--text-muted); margin-top: 4px;
+    line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .paper-field-badge {
+    font-size: 0.65rem; padding: 3px 10px; border-radius: 6px;
+    background: var(--accent); color: white; font-weight: 500;
+  }
+  .paper-load-more {
+    padding: 12px 18px; text-align: center; color: var(--accent);
+    font-size: 0.82rem; cursor: pointer; transition: background 0.15s;
+    border-top: 1px solid var(--border); font-weight: 500;
+  }
+  .paper-load-more:hover { background: var(--card-hover); }
+  .papers-empty {
+    text-align: center; padding: 48px 20px; color: var(--text-muted);
+  }
+  .papers-empty-icon { font-size: 2rem; opacity: 0.3; margin-bottom: 8px; }
+  .papers-empty-text { font-size: 0.9rem; }
+  .papers-empty-sub { font-size: 0.78rem; margin-top: 4px; }
+
+  /* Search */
+  .search-bar {
+    display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;
+  }
+  .search-input {
+    flex: 1; min-width: 200px; padding: 10px 16px;
+    background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text); font-size: 0.85rem;
+  }
+  .search-input:focus { outline: none; border-color: var(--accent); }
+  .search-input::placeholder { color: var(--text-muted); }
+
+  /* Detail Modal */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(41,29,23,0.5);
+    z-index: 1000; justify-content: center; align-items: center; padding: 20px;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    max-width: 640px; width: 100%; max-height: 80vh; overflow-y: auto; padding: 28px;
+  }
+  .modal h2 { font-size: 1.1rem; margin-bottom: 16px; color: var(--accent); }
+  .modal-field { margin-bottom: 12px; }
+  .modal-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 2px; }
+  .modal-value { font-size: 0.85rem; }
+  .modal-value a { color: #2c8acc; text-decoration: none; }
+  .modal-value a:hover { text-decoration: underline; }
+  .modal-close {
+    float: right; background: none; border: none; color: var(--text-muted);
+    font-size: 1.2rem; cursor: pointer;
+  }
+  .modal-close:hover { color: var(--text); }
+  .modal-swipe-handle {
+    display: none; width: 36px; height: 4px; background: var(--border);
+    border-radius: 2px; margin: 0 auto 12px;
+  }
+  @media (max-width: 480px) {
+    .modal-swipe-handle { display: block; }
+  }
+
+  /* CLA */
+  .cla-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(420px, 100%), 1fr)); gap: 16px; margin-bottom: 24px; }
+  .cla-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+  .cla-cat-header { font-size: 0.95rem; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .cla-layer { margin-bottom: 12px; padding-left: 14px; border-left: 3px solid var(--border); }
+  .cla-layer-label { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+  .cla-layer-text { font-size: 0.82rem; line-height: 1.6; }
+  .cla-layer.litany { border-color: var(--accent-warm); }
+  .cla-layer.systemic { border-color: var(--accent-light); }
+  .cla-layer.worldview { border-color: var(--accent); }
+  .cla-layer.myth { border-color: #2c8acc; }
+  .cla-tension { font-size: 0.8rem; color: var(--highlight); margin-top: 8px; font-style: italic; }
+  .cla-narrative { font-size: 0.8rem; color: var(--accent); margin-top: 4px; }
+
+  /* Weak Signals */
+  .signals-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(380px, 100%), 1fr)); gap: 14px; }
+  .signal-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; transition: box-shadow 0.15s; }
+  .signal-card:hover { box-shadow: 0 4px 12px rgba(120,60,40,0.1); }
+  .signal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+  .signal-name { font-size: 0.9rem; font-weight: 700; color: var(--accent); }
+  .signal-impact { font-size: 0.65rem; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+  .signal-impact.high { background: #fde8e8; color: #b92a38; }
+  .signal-impact.medium { background: #fff3e0; color: #cd8a32; }
+  .signal-impact.low { background: #e8f5e9; color: #4a8c5c; }
+  .signal-desc { font-size: 0.82rem; color: var(--text); margin-bottom: 8px; line-height: 1.6; }
+  .signal-meta { display: flex; gap: 6px; flex-wrap: wrap; font-size: 0.7rem; }
+  .signal-horizon { background: #ffe8d7; color: var(--accent); padding: 2px 8px; border-radius: 4px; }
+  .signal-counter { font-size: 0.75rem; color: var(--text-muted); margin-top: 6px; font-style: italic; }
+
+  /* Translation toggle */
+  .translate-btn { font-size: 0.7rem; padding: 2px 8px; border-radius: 4px; background: #ffe8d7; color: var(--accent); border: none; cursor: pointer; }
+  .translate-btn:hover { background: var(--accent); color: white; }
+  .translated-text { font-size: 0.78rem; color: var(--text-muted); margin-top: 3px; font-style: italic; display: none; }
+  .translated-text.show { display: block; }
+
+  /* Alerts */
+  .alerts-panel {
+    margin-bottom: 24px;
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    overflow: hidden;
+  }
+  .alerts-panel-header {
+    padding: 14px 18px; font-weight: 700; font-size: 0.95rem;
+    display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(90deg, #fdf0e8 0%, var(--card) 100%);
+  }
+  .alerts-panel-header .alert-total-badge {
+    margin-left: auto; font-size: 0.7rem; font-weight: 600;
+    padding: 2px 10px; border-radius: 10px;
+    background: var(--highlight); color: white;
+  }
+  .alert-list { max-height: 480px; overflow-y: auto; }
+  .alert-item {
+    padding: 12px 18px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: flex-start; gap: 12px;
+    transition: background 0.1s;
+  }
+  .alert-item:hover { background: var(--card-hover); }
+  .alert-item:last-child { border-bottom: none; }
+  .alert-icon {
+    flex-shrink: 0; width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.9rem;
+  }
+  .alert-icon.emergence { background: #fde8e8; }
+  .alert-icon.surge { background: #fff3e0; }
+  .alert-icon.crossover { background: #e8f0ff; }
+  .alert-body { flex: 1; min-width: 0; }
+  .alert-topic {
+    font-size: 0.88rem; font-weight: 700; color: var(--accent);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .alert-type-badge {
+    font-size: 0.6rem; padding: 1px 6px; border-radius: 4px;
+    font-weight: 600; text-transform: uppercase;
+  }
+  .alert-type-badge.emergence { background: #fde8e8; color: #b92a38; }
+  .alert-type-badge.surge { background: #fff3e0; color: #cd8a32; }
+  .alert-type-badge.crossover { background: #e8f0ff; color: #2c68a0; }
+  .alert-desc { font-size: 0.78rem; color: var(--text-muted); margin-top: 3px; line-height: 1.5; }
+  .alert-cats { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 5px; }
+  .alert-cat-tag {
+    font-size: 0.6rem; padding: 1px 6px; border-radius: 3px;
+    background: #ffe8d7; color: var(--accent);
+  }
+
+  /* Alert badge on PESTLE headers */
+  .pestle-alert-badge {
+    font-size: 0.6rem; padding: 1px 6px; border-radius: 8px;
+    background: rgba(255,255,255,0.9); color: var(--highlight); font-weight: 600;
+    animation: alert-pulse 2s ease-in-out infinite;
+  }
+  @keyframes alert-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #d5c4b8; border-radius: 3px; }
+
+  /* Responsive - tablet */
+  @media (max-width: 900px) {
+    .pestle-grid, .papers-grid, .cla-grid, .signals-grid { grid-template-columns: 1fr; }
+    header { flex-direction: column; gap: 10px; }
+  }
+
+  /* Responsive - mobile */
+  @media (max-width: 480px) {
+    body { -webkit-text-size-adjust: 100%; }
+    header { padding: 12px 16px; }
+    header h1 { font-size: 1rem; }
+    .header-sub { font-size: 0.6rem; display: none; }
+    .header-actions { gap: 6px; }
+    #lastUpdated { font-size: 0.65rem !important; }
+    .container { padding: 12px 10px; }
+    .tab-nav {
+      overflow-x: auto; -webkit-overflow-scrolling: touch;
+      scrollbar-width: none; white-space: nowrap;
+      gap: 4px; flex-wrap: nowrap;
+      border-bottom: none;
+      padding-bottom: 8px;
+      margin-bottom: 16px;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-
-    /* Header */
-    .header { background: var(--bg-card); border-bottom: 1px solid var(--border); padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
-    .header h1 { font-size: 1.1rem; color: var(--accent); }
-    .header-right { display: flex; align-items: center; gap: 16px; font-size: 0.85rem; }
-    .header-right a { color: var(--text-muted); text-decoration: none; cursor: pointer; }
-    .header-right a:hover { color: var(--text); }
-    .user-name { color: var(--text-muted); }
-
-    /* Tabs */
-    .tabs { background: var(--bg-card); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; gap: 0; overflow-x: auto; }
-    .tab { padding: 12px 20px; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; font-size: 0.9rem; white-space: nowrap; transition: all 0.2s; }
-    .tab:hover { color: var(--text); background: var(--bg-card2); }
-    .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
-    .tab.workspace-tab { color: var(--accent2); }
-    .tab.workspace-tab.active { color: var(--accent2); border-bottom-color: var(--accent2); }
-
-    /* Main */
-    .main { max-width: 1400px; margin: 0 auto; padding: 24px; }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-
-    /* Cards */
-    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 16px; }
-    .card h3 { font-size: 1rem; margin-bottom: 12px; color: var(--text); }
-    .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
-
-    /* Stats */
-    .stats-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-bottom: 24px; }
-    .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; text-align: center; }
-    .stat-card .label { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; }
-    .stat-card .value { font-size: 1.5rem; font-weight: bold; }
-
-    /* PESTLE colors */
-    .pestle-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
-    .pestle-Political { background: var(--political); color: #fff; }
-    .pestle-Economic { background: var(--economic); color: #fff; }
-    .pestle-Social { background: var(--social); color: #fff; }
-    .pestle-Technological { background: var(--technological); color: #fff; }
-    .pestle-Legal { background: var(--legal); color: #fff; }
-    .pestle-Environmental { background: var(--environmental); color: #fff; }
-
-    /* Article list */
-    .article-item { padding: 12px 0; border-bottom: 1px solid var(--border); }
-    .article-item:last-child { border-bottom: none; }
-    .article-title { font-size: 0.95rem; color: var(--text); margin-bottom: 4px; }
-    .article-title a { color: var(--accent); text-decoration: none; }
-    .article-title a:hover { text-decoration: underline; }
-    .article-meta { font-size: 0.8rem; color: var(--text-muted); display: flex; gap: 12px; flex-wrap: wrap; }
-    .article-summary { font-size: 0.85rem; color: var(--text-muted); margin-top: 6px; line-height: 1.5; }
-    .relevance { color: var(--warning); font-weight: 600; }
-
-    /* CLA */
-    .cla-layer { margin-bottom: 12px; }
-    .cla-layer-label { font-size: 0.8rem; color: var(--accent); font-weight: 600; margin-bottom: 4px; text-transform: uppercase; }
-    .cla-layer-text { font-size: 0.9rem; line-height: 1.6; color: var(--text-muted); }
-
-    /* Scenarios */
-    .scenario-matrix { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
-    .scenario-card { background: var(--bg-card2); border: 1px solid var(--border); border-radius: 8px; padding: 16px; cursor: pointer; transition: border-color 0.2s; }
-    .scenario-card:hover { border-color: var(--accent); }
-    .scenario-card h4 { font-size: 0.95rem; margin-bottom: 8px; }
-    .scenario-card p { font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; }
-    .axis-label { text-align: center; font-size: 0.85rem; color: var(--text-muted); padding: 8px; }
-
-    /* Signals */
-    .signal-item { padding: 16px; background: var(--bg-card2); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; }
-    .signal-item h4 { font-size: 0.95rem; margin-bottom: 6px; }
-    .signal-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
-    .badge { padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; background: var(--bg-card); border: 1px solid var(--border); }
-    .badge.high { border-color: var(--danger); color: var(--danger); }
-    .badge.medium { border-color: var(--warning); color: var(--warning); }
-
-    /* Workspace */
-    .workspace-nav { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
-    .ws-nav-btn { padding: 8px 16px; background: var(--bg-card2); border: 1px solid var(--border); border-radius: 4px; color: var(--text-muted); cursor: pointer; font-size: 0.85rem; }
-    .ws-nav-btn:hover { border-color: var(--accent2); color: var(--text); }
-    .ws-nav-btn.active { background: var(--accent2); color: #fff; border-color: var(--accent2); }
-    .ws-section { display: none; }
-    .ws-section.active { display: block; }
-
-    /* Bookmark button */
-    .bookmark-btn { background: none; border: 1px solid var(--border); color: var(--text-muted); padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
-    .bookmark-btn:hover { border-color: var(--accent2); color: var(--accent2); }
-    .bookmark-btn.bookmarked { background: var(--accent2); color: #fff; border-color: var(--accent2); }
-
-    /* Forms */
-    .form-group { margin-bottom: 16px; }
-    .form-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 4px; }
-    .form-group input, .form-group textarea, .form-group select {
-      width: 100%; padding: 10px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-size: 0.9rem; font-family: inherit;
+    .tab-nav::-webkit-scrollbar { display: none; }
+    .tab-btn {
+      padding: 8px 14px; font-size: 0.75rem; flex-shrink: 0;
+      border-radius: 20px; border-bottom: none; margin-bottom: 0;
+      background: var(--card); border: 1px solid var(--border);
     }
-    .form-group textarea { min-height: 100px; resize: vertical; }
-    .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--accent); }
-    .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
-    .btn-primary { background: var(--accent); color: #fff; }
-    .btn-primary:hover { background: #3a7bc8; }
-    .btn-success { background: var(--accent2); color: #fff; }
-    .btn-success:hover { background: #219a52; }
-    .btn-danger { background: var(--danger); color: #fff; }
-    .btn-danger:hover { background: #c0392b; }
-    .btn-sm { padding: 4px 12px; font-size: 0.8rem; }
-
-    /* DF Sliders */
-    .slider-group { display: flex; align-items: center; gap: 12px; }
-    .slider-group input[type=range] { flex: 1; accent-color: var(--accent); }
-    .slider-value { min-width: 24px; text-align: center; font-weight: bold; }
-
-    /* Modal */
-    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 200; align-items: center; justify-content: center; }
-    .modal-overlay.active { display: flex; }
-    .modal { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 24px; max-width: 700px; width: 90%; max-height: 80vh; overflow-y: auto; }
-    .modal h3 { margin-bottom: 16px; }
-    .modal-close { float: right; background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; }
-
-    /* Scenario builder */
-    .matrix-preview { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 16px 0; }
-    .matrix-cell { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; min-height: 120px; }
-    .matrix-cell textarea { width: 100%; min-height: 80px; background: transparent; border: none; color: var(--text); font-size: 0.85rem; resize: vertical; }
-    .matrix-cell textarea:focus { outline: none; }
-    .matrix-cell h5 { font-size: 0.85rem; color: var(--accent); margin-bottom: 8px; }
-
-    /* Responsive */
-    @media (max-width: 768px) {
-      .header { padding: 12px 16px; }
-      .tabs { padding: 0 8px; }
-      .tab { padding: 10px 14px; font-size: 0.8rem; }
-      .main { padding: 16px; }
-      .scenario-matrix { grid-template-columns: 1fr; }
-      .card-grid { grid-template-columns: 1fr; }
+    .tab-btn.active {
+      background: var(--accent); color: white;
+      border-color: var(--accent); border-bottom-color: var(--accent);
     }
+    .pestle-grid, .papers-grid, .cla-grid, .signals-grid { grid-template-columns: 1fr; gap: 10px; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 16px; }
+    .stat-card { padding: 10px 12px; border-radius: 8px; }
+    .stat-value { font-size: 1.2rem; }
+    .stat-label { font-size: 0.65rem; }
+    .pestle-section { border-radius: 10px; }
+    .pestle-header { padding: 12px 14px; font-size: 0.85rem; }
+    .article-list { max-height: 300px; }
+    .article-item { padding: 12px 14px; min-height: 44px; }
+    .article-title { font-size: 0.82rem; line-height: 1.5; }
+    .article-meta { font-size: 0.68rem; margin-top: 4px; }
+    .papers-stats-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 14px; }
+    .papers-stat-card { padding: 10px 12px; }
+    .papers-stat-value { font-size: 1.1rem; }
+    .papers-stat-label { font-size: 0.6rem; }
+    .papers-toolbar { gap: 6px; }
+    .papers-search-wrap { min-width: 100%; }
+    .papers-filter-select { flex: 1; font-size: 0.78rem; padding: 8px 28px 8px 10px; }
+    .papers-sort-btn { padding: 8px 10px; font-size: 0.72rem; }
+    .paper-section { border-radius: 10px; }
+    .paper-header { padding: 12px 14px; }
+    .paper-item { padding: 12px 14px; min-height: 44px; }
+    .paper-title { font-size: 0.82rem; line-height: 1.5; }
+    .paper-authors { font-size: 0.68rem; }
+    .paper-summary-preview { display: none; }
+    .cla-card { padding: 14px; border-radius: 10px; }
+    .cla-cat-header { font-size: 0.88rem; margin-bottom: 10px; }
+    .cla-layer { padding-left: 10px; margin-bottom: 10px; }
+    .cla-layer-text { font-size: 0.8rem; }
+    .signal-card { padding: 14px; border-radius: 10px; }
+    .signal-name { font-size: 0.85rem; }
+    .signal-desc { font-size: 0.8rem; }
+    .search-bar { gap: 8px; flex-direction: column; }
+    .search-input {
+      min-width: 0; width: 100%; padding: 12px 14px;
+      font-size: 16px;
+      border-radius: 10px;
+    }
+    .modal-overlay { padding: 0; align-items: flex-end; }
+    .modal {
+      padding: 20px 16px; border-radius: 16px 16px 0 0;
+      max-height: 92vh; width: 100%; max-width: 100%;
+    }
+    .modal h2 { font-size: 1rem; margin-bottom: 12px; padding-right: 30px; }
+    .modal-value { font-size: 0.82rem; line-height: 1.6; }
+    .modal-close { font-size: 1.5rem; padding: 8px; }
+    .alerts-panel { border-radius: 10px; }
+    .alerts-panel-header { padding: 12px 14px; font-size: 0.88rem; }
+    .alert-list { max-height: 360px; }
+    .alert-item { padding: 12px 14px; gap: 10px; min-height: 44px; }
+    .alert-icon { width: 28px; height: 28px; font-size: 0.8rem; }
+    .alert-topic { font-size: 0.82rem; }
+    .alert-desc { font-size: 0.75rem; }
+    .btn { padding: 8px 14px; font-size: 0.75rem; min-height: 36px; }
+    .translate-btn { padding: 4px 10px; min-height: 28px; }
+    h3[style] { font-size: 0.85rem !important; }
+    .article-list, .alert-list { -webkit-overflow-scrolling: touch; }
+  }
 
-    /* Loading */
-    .loading { text-align: center; padding: 40px; color: var(--text-muted); }
-    .spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .empty-state { text-align: center; padding: 40px; color: var(--text-muted); font-size: 0.9rem; }
-  </style>
+  /* Extra small screens (iPhone SE etc.) */
+  @media (max-width: 360px) {
+    header h1 { font-size: 0.9rem; }
+    .tab-btn { padding: 7px 10px; font-size: 0.7rem; }
+    .stat-card { padding: 8px 10px; }
+    .stat-value { font-size: 1.1rem; }
+    .container { padding: 10px 8px; }
+  }
+
+  /* ===== Scenario Planning ===== */
+  .sc-meta-bar {
+    display: flex; flex-wrap: wrap; gap: 16px; align-items: center;
+    padding: 14px 20px; background: var(--card); border-radius: 12px;
+    border: 1px solid var(--border); font-size: 0.8rem; color: var(--text-muted);
+    box-shadow: 0 1px 6px rgba(120,60,40,0.04);
+  }
+  .sc-meta-bar strong { color: var(--text); }
+  .sc-meta-bar span { display: inline-flex; align-items: center; gap: 4px; }
+
+  .sc-axes-legend {
+    display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;
+    padding: 12px 16px; background: var(--bg); border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+  .sc-axes-legend-item {
+    font-size: 0.8rem; color: var(--text-muted);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .sc-axes-legend-item strong { color: var(--accent); font-weight: 700; }
+  .sc-axes-legend-arrow { color: var(--accent-warm); font-weight: 500; }
+
+  .sc-matrix-wrapper {
+    position: relative; max-width: 680px; margin: 0 auto;
+    padding: 12px 16px 12px 16px;
+  }
+  .sc-matrix {
+    display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
+    gap: 12px;
+  }
+  .sc-quadrant {
+    padding: 22px 18px; border-radius: 14px; cursor: pointer; min-height: 130px;
+    border: 2px solid var(--border); background: var(--card);
+    transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+    display: flex; flex-direction: column; justify-content: center;
+    position: relative; z-index: 1; overflow: hidden;
+  }
+  .sc-quadrant::before {
+    content: ''; position: absolute; inset: 0; border-radius: 14px;
+    opacity: 0; transition: opacity 0.25s;
+    background: linear-gradient(135deg, currentColor 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .sc-quadrant:hover {
+    transform: translateY(-3px) scale(1.01);
+    box-shadow: 0 8px 24px rgba(120,60,40,0.12);
+  }
+  .sc-quadrant:hover::before { opacity: 0.04; }
+  .sc-quadrant.active {
+    border-width: 2.5px;
+    box-shadow: 0 8px 28px rgba(120,60,40,0.18);
+    transform: translateY(-2px);
+  }
+  .sc-quadrant.active::before { opacity: 0.06; }
+  .sc-quadrant-name {
+    font-size: 0.95rem; font-weight: 700; margin-bottom: 8px; line-height: 1.4;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .sc-quadrant-sub { font-size: 0.75rem; color: var(--text-muted); line-height: 1.4;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .sc-quadrant-position {
+    position: absolute; top: 8px; right: 10px; font-size: 0.6rem; font-weight: 600;
+    color: var(--text-muted); opacity: 0.5; letter-spacing: 0.02em;
+  }
+
+  .sc-axis-label {
+    position: absolute; font-size: 0.7rem; font-weight: 600;
+    color: var(--accent); text-align: center;
+    max-width: 45%; line-height: 1.4;
+    letter-spacing: 0.02em;
+  }
+  .sc-axis-x-pos { display: none; }
+  .sc-axis-x-neg { display: none; }
+  .sc-axis-y-pos { display: none; }
+  .sc-axis-y-neg { display: none; }
+
+  .sc-detail-wrapper {
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    padding: 0; overflow: hidden; box-shadow: 0 2px 12px rgba(120,60,40,0.06);
+  }
+  .sc-detail-header {
+    padding: 20px 24px 16px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 14px;
+  }
+  .sc-detail-header-color {
+    width: 5px; height: 48px; border-radius: 3px; flex-shrink: 0;
+  }
+  .sc-detail-header-text h4 { font-size: 1.05rem; font-weight: 700; margin-bottom: 2px; }
+  .sc-detail-header-text p { font-size: 0.78rem; color: var(--text-muted); line-height: 1.4; }
+  .sc-detail-body { padding: 0 24px 24px; }
+
+  .sc-detail-tabs {
+    display: flex; gap: 0; margin-bottom: 0; border-bottom: 2px solid var(--border);
+    overflow-x: auto; -webkit-overflow-scrolling: touch;
+    background: linear-gradient(to bottom, var(--bg), transparent);
+    padding: 0 8px;
+  }
+  .sc-detail-tab {
+    padding: 12px 16px; font-size: 0.8rem; font-weight: 500; white-space: nowrap;
+    border: none; background: none; cursor: pointer; color: var(--text-muted);
+    border-bottom: 2.5px solid transparent; margin-bottom: -2px; transition: all 0.2s;
+    flex-shrink: 0; max-width: 200px; overflow: hidden; text-overflow: ellipsis;
+  }
+  .sc-detail-tab:hover { color: var(--text); background: rgba(120,60,40,0.03); }
+  .sc-detail-tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 700; }
+
+  .sc-narrative {
+    font-size: 1rem; line-height: 2; padding: 24px 0 20px;
+    border-bottom: 1px solid var(--border); margin-bottom: 24px;
+    color: var(--text);
+  }
+
+  .sc-cla-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+  .sc-cla-card {
+    padding: 16px 18px; border-radius: 12px; border-left: 4px solid;
+    background: var(--card); font-size: 0.83rem; line-height: 1.7;
+    border: 1px solid var(--border); border-left-width: 4px;
+    transition: box-shadow 0.2s;
+  }
+  .sc-cla-card:hover { box-shadow: 0 2px 12px rgba(120,60,40,0.08); }
+  .sc-cla-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; margin-bottom: 6px; letter-spacing: 0.05em; }
+
+  .sc-timeline { position: relative; padding-left: 28px; margin-bottom: 24px; }
+  .sc-timeline::before {
+    content: ''; position: absolute; left: 9px; top: 4px; bottom: 4px;
+    width: 2px; background: linear-gradient(to bottom, var(--accent-warm), var(--border));
+    border-radius: 1px;
+  }
+  .sc-timeline-item { position: relative; padding: 10px 0; }
+  .sc-timeline-item::before {
+    content: ''; position: absolute; left: -23px; top: 16px;
+    width: 10px; height: 10px; border-radius: 50%; background: var(--accent);
+    box-shadow: 0 0 0 3px rgba(120,60,40,0.12);
+  }
+  .sc-timeline-year { font-size: 0.78rem; font-weight: 700; color: var(--accent); }
+  .sc-timeline-event { font-size: 0.85rem; margin-top: 3px; line-height: 1.6; }
+
+  .sc-signpost-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; margin-bottom: 16px; border-radius: 10px; overflow: hidden; }
+  .sc-signpost-table th { text-align: left; padding: 10px 12px; background: var(--bg); font-weight: 700;
+    font-size: 0.72rem; color: var(--text-muted); border-bottom: 1px solid var(--border); text-transform: uppercase; letter-spacing: 0.04em; }
+  .sc-signpost-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .sc-signpost-table tr:last-child td { border-bottom: none; }
+  .sc-signpost-table tr:hover td { background: rgba(120,60,40,0.02); }
+
+  .sc-section-title {
+    font-size: 0.82rem; font-weight: 700; color: var(--accent);
+    margin: 28px 0 14px; padding-bottom: 6px;
+    border-bottom: 2px solid var(--border);
+    letter-spacing: 0.03em; text-transform: uppercase;
+  }
+
+  .sc-implications { padding-left: 18px; }
+  .sc-implications li { padding: 5px 0; font-size: 0.85rem; line-height: 1.6; }
+  .sc-implications li::marker { color: var(--accent-warm); }
+
+  .sc-wildcards { padding: 14px 18px; background: #fff8f0; border-radius: 10px;
+    border-left: 4px solid var(--highlight); font-size: 0.83rem; margin-bottom: 16px; line-height: 1.6; }
+
+  .sc-df-map {
+    position: relative; width: 100%; max-width: 600px; margin: 0 auto;
+    aspect-ratio: 1; background: var(--card); border-radius: 14px;
+    border: 1px solid var(--border); overflow: hidden;
+    box-shadow: 0 2px 12px rgba(120,60,40,0.06);
+  }
+  .sc-df-dot {
+    position: absolute; border-radius: 50%; cursor: pointer;
+    transition: transform 0.2s cubic-bezier(0.4,0,0.2,1), box-shadow 0.2s;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.65rem; font-weight: 700; color: white;
+  }
+  .sc-df-dot:hover { transform: scale(1.35); z-index: 10; box-shadow: 0 4px 16px rgba(0,0,0,0.2); }
+  .sc-df-tooltip {
+    display: none; position: absolute; background: var(--text); color: white;
+    padding: 10px 14px; border-radius: 10px; font-size: 0.78rem; max-width: 280px;
+    z-index: 20; pointer-events: none; line-height: 1.5;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  }
+  .sc-df-map-axis { position: absolute; font-size: 0.7rem; color: var(--text-muted); font-weight: 500; }
+  .sc-df-map-line { position: absolute; background: var(--border); opacity: 0.6; }
+
+  .sc-no-regret {
+    padding: 20px 24px; background: var(--card); border-radius: 14px;
+    border: 1px solid var(--border); margin-top: 24px;
+    box-shadow: 0 2px 12px rgba(120,60,40,0.06);
+  }
+  .sc-no-regret li { padding: 5px 0; font-size: 0.85rem; line-height: 1.6; }
+  .sc-no-regret li::marker { color: var(--accent-warm); }
+
+  .sc-custom-panel {
+    padding: 16px; background: var(--card); border-radius: 10px;
+    border: 1px solid var(--border); margin-bottom: 16px;
+  }
+  .sc-custom-panel summary {
+    cursor: pointer; font-size: 0.88rem; font-weight: 600; color: var(--accent);
+    list-style: none; display: flex; align-items: center; gap: 6px;
+  }
+  .sc-custom-panel summary::-webkit-details-marker { display: none; }
+  .sc-custom-panel summary::before { content: '\25B6'; font-size: 0.7rem; transition: transform 0.2s; }
+  .sc-custom-panel[open] summary::before { transform: rotate(90deg); }
+  .sc-custom-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    margin-top: 12px;
+  }
+  @media (max-width: 600px) { .sc-custom-grid { grid-template-columns: 1fr; } }
+  .sc-custom-grid label { font-size: 0.78rem; font-weight: 500; color: var(--text-muted); display: block; margin-bottom: 4px; }
+  .sc-custom-grid select, .sc-custom-apikey input {
+    width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--bg); color: var(--text); font-size: 0.82rem;
+  }
+  .sc-custom-apikey { margin-top: 12px; }
+  .sc-custom-apikey label { font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 4px; }
+  .sc-custom-actions { margin-top: 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .sc-custom-btn {
+    padding: 8px 20px; border: none; border-radius: 8px; font-size: 0.82rem;
+    font-weight: 600; cursor: pointer; transition: all 0.15s;
+  }
+  .sc-custom-btn-primary { background: var(--accent); color: white; }
+  .sc-custom-btn-primary:hover { filter: brightness(1.1); }
+  .sc-custom-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .sc-custom-btn-reset { background: var(--border); color: var(--text); }
+  .sc-custom-btn-reset:hover { background: var(--text-muted); color: white; }
+  .sc-custom-status { font-size: 0.78rem; color: var(--text-muted); }
+  .sc-custom-status.error { color: #b92a38; }
+  .sc-custom-pole {
+    margin-top: 4px; font-size: 0.72rem; color: var(--text-muted); line-height: 1.4;
+  }
+  .sc-add-df { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+  .sc-add-df summary {
+    cursor: pointer; font-size: 0.8rem; font-weight: 500; color: var(--text-muted);
+    list-style: none; display: flex; align-items: center; gap: 4px;
+  }
+  .sc-add-df summary::-webkit-details-marker { display: none; }
+  .sc-add-df summary::before { content: '+'; font-weight: 700; font-size: 0.9rem; color: var(--accent); }
+  .sc-add-df-form { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+  .sc-add-df-form input, .sc-add-df-form textarea {
+    width: 100%; padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--bg); color: var(--text); font-size: 0.82rem; font-family: inherit;
+    box-sizing: border-box;
+  }
+  .sc-add-df-form textarea { resize: vertical; min-height: 40px; }
+  .sc-add-df-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  @media (max-width: 600px) { .sc-add-df-row { grid-template-columns: 1fr; } }
+  .sc-add-df-form label { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 2px; display: block; }
+  .sc-apikey-link { font-size: 0.72rem; color: var(--text-muted); cursor: pointer; text-decoration: underline; }
+  .sc-apikey-link:hover { color: var(--accent); }
+  .sc-df-history { margin-top: 10px; }
+  .sc-df-history-item {
+    display: flex; align-items: center; gap: 8px; padding: 6px 10px;
+    border: 1px solid var(--border); border-radius: 8px; margin-bottom: 4px;
+    font-size: 0.78rem; background: var(--bg);
+  }
+  .sc-df-history-item:hover { border-color: var(--accent); }
+  .sc-df-history-name { flex: 1; font-weight: 500; }
+  .sc-df-history-poles { font-size: 0.7rem; color: var(--text-muted); flex: 2; }
+  .sc-df-history-btn {
+    padding: 3px 10px; border: 1px solid var(--accent); border-radius: 6px;
+    background: none; color: var(--accent); font-size: 0.72rem; cursor: pointer;
+    white-space: nowrap; flex-shrink: 0;
+  }
+  .sc-df-history-btn:hover { background: var(--accent); color: white; }
+  .sc-df-history-del {
+    padding: 3px 6px; border: none; background: none; color: var(--text-muted);
+    font-size: 0.8rem; cursor: pointer; flex-shrink: 0;
+  }
+  .sc-df-history-del:hover { color: #b92a38; }
+  @media (max-width: 600px) {
+    .sc-df-history-item { flex-wrap: wrap; }
+    .sc-df-history-poles { flex-basis: 100%; order: 3; }
+  }
+
+  @media (max-width: 900px) {
+    .sc-matrix-wrapper { padding: 28px 8px 32px; }
+    .sc-cla-grid { grid-template-columns: 1fr; }
+    .sc-detail-body { padding: 0 16px 20px; }
+    .sc-detail-header { padding: 16px; }
+  }
+  @media (max-width: 480px) {
+    .sc-matrix-wrapper { padding: 24px 4px 32px; }
+    .sc-matrix { gap: 8px; }
+    .sc-quadrant { padding: 14px 12px; min-height: 100px; }
+    .sc-quadrant-name { font-size: 0.82rem; }
+    .sc-axis-label { font-size: 0.62rem; }
+    .sc-detail-tab { padding: 10px 12px; font-size: 0.75rem; max-width: 140px; }
+    .sc-narrative { font-size: 0.92rem; line-height: 1.85; }
+    .sc-df-map { aspect-ratio: auto; min-height: 300px; }
+    .sc-axes-legend { flex-direction: column; gap: 8px; }
+    .sc-detail-body { padding: 0 12px 16px; }
+  }
+</style>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js?v=2"></script>
 </head>
 <body>
-  <!-- Header -->
-  <div class="header">
-    <h1>Future Insight Workspace</h1>
-    <div class="header-right">
-      <span class="user-name" id="userName"></span>
-      <a id="adminLink" style="display:none;" href="admin.html">管理画面</a>
-      <a onclick="logout()">ログアウト</a>
+
+<header>
+  <div>
+    <h1><span>&#9670;</span> <span data-i18n="app_title">Future Insight Workspace</span></h1>
+    <div class="header-sub" data-i18n="app_sub">Future Insight Support — PESTLE × Academic Papers × CLA</div>
+  </div>
+  <div class="header-actions">
+    <span id="lastUpdated" style="font-size:0.75rem;color:#ffe8d7;opacity:0.85"></span>
+    <button class="btn" style="background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);color:white;font-size:0.75rem" onclick="toggleLang()" id="langToggleBtn">EN</button>
+    <a id="adminLink" href="admin.html" style="display:none;background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);color:white;font-size:0.75rem" class="btn">管理画面</a>
+    <button onclick="auth.signOut().then(()=>location.href='index.html')" class="btn" style="background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);color:white;font-size:0.75rem">ログアウト</button>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="tab-nav">
+    <button class="tab-btn active" onclick="switchTab('overview')" data-i18n="tab_overview">概要</button>
+    <button class="tab-btn" onclick="switchTab('pestle')" data-i18n="tab_pestle">PESTLEニュース</button>
+    <button class="tab-btn" onclick="switchTab('papers')" data-i18n="tab_papers">学術論文</button>
+    <button class="tab-btn" onclick="switchTab('cla')" data-i18n="tab_cla">CLA分析</button>
+    <button class="tab-btn" onclick="switchTab('scenarios')" data-i18n="tab_scenarios">シナリオ</button>
+    <button class="tab-btn" onclick="switchTab('signals')" data-i18n="tab_signals">ウィークシグナル</button>
+    <button class="tab-btn" onclick="switchTab('search')" data-i18n="tab_search">横断検索</button>
+  </div>
+
+  <!-- ===== OVERVIEW ===== -->
+  <div class="tab-panel active" id="tab-overview">
+    <div class="stats-row" id="overviewStats"></div>
+    <div id="alertsPanel"></div>
+    <h3 style="font-size:0.9rem;color:var(--text-muted);margin-bottom:14px" data-i18n="pestle_summary">PESTLEサマリー</h3>
+    <div class="pestle-grid" id="overviewPestle"></div>
+    <h3 style="font-size:0.9rem;color:var(--text-muted);margin:24px 0 14px" data-i18n="featured_papers">注目の学術論文</h3>
+    <div class="papers-grid" id="overviewPapers"></div>
+  </div>
+
+  <!-- ===== PESTLE ===== -->
+  <div class="tab-panel" id="tab-pestle">
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+      <input class="search-input" id="pestleSearch" data-i18n-placeholder="search_news" placeholder="ニュースを検索..." oninput="renderPestle()" style="flex:1;min-width:180px">
+      <select id="pestleYearFilter" onchange="renderPestle()" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card);font-size:0.85rem">
+        <option value="latest">最新（当日）</option>
+        <option value="all">全期間</option>
+      </select>
+      <span id="pestleTotalCount" style="font-size:0.78rem;color:var(--text-muted)"></span>
     </div>
+    <div class="pestle-dim-filters" id="pestleDimFilters" style="margin-bottom:16px"></div>
+    <div class="pestle-grid" id="pestleGrid"></div>
   </div>
 
-  <!-- Tabs -->
-  <div class="tabs">
-    <div class="tab active" data-tab="dashboard">ダッシュボード</div>
-    <div class="tab" data-tab="pestle">PESTLE</div>
-    <div class="tab" data-tab="cla">CLA分析</div>
-    <div class="tab" data-tab="scenarios">シナリオ</div>
-    <div class="tab" data-tab="signals">弱いシグナル</div>
-    <div class="tab workspace-tab" data-tab="workspace">マイワークスペース</div>
-  </div>
-
-  <!-- Content -->
-  <div class="main">
-    <!-- Dashboard -->
-    <div class="tab-content active" id="tab-dashboard">
-      <div class="stats-row" id="dashboardStats"></div>
-      <div class="card-grid">
-        <div class="card">
-          <h3>最新PESTLEニュース</h3>
-          <div id="dashboardNews"><div class="loading"><div class="spinner"></div></div></div>
-        </div>
-        <div class="card">
-          <h3>マイワークスペース</h3>
-          <div id="dashboardWorkspace"><div class="loading"><div class="spinner"></div></div></div>
-        </div>
+  <!-- ===== PAPERS ===== -->
+  <div class="tab-panel" id="tab-papers">
+    <div class="papers-stats-grid" id="papersStatsGrid"></div>
+    <div class="papers-toolbar">
+      <div class="papers-search-wrap">
+        <span class="search-icon">&#x1F50D;</span>
+        <input id="papersSearch" data-i18n-placeholder="search_papers" placeholder="論文を検索..." oninput="onPapersSearchInput()">
+        <button class="papers-search-clear" id="papersSearchClear" onclick="clearPapersSearch()">&times;</button>
       </div>
+      <select class="papers-filter-select" id="papersDecade" onchange="renderPapers()">
+        <option value="" data-i18n="papers_all_decades">全年代</option>
+        <option value="2020">2020s</option><option value="2010">2010s</option><option value="2000">2000s</option><option value="1990">1990s</option>
+      </select>
+      <select class="papers-filter-select" id="papersField" onchange="renderPapers()">
+        <option value="" data-i18n="papers_all_fields">全分野</option>
+        <option value="人文学" data-i18n="field_humanities">人文学</option>
+        <option value="社会科学" data-i18n="field_social">社会科学</option>
+        <option value="自然科学" data-i18n="field_natural">自然科学</option>
+        <option value="工学" data-i18n="field_engineering">工学</option>
+        <option value="芸術" data-i18n="field_arts">芸術</option>
+      </select>
+      <select class="papers-filter-select" id="papersLang" onchange="renderPapers()">
+        <option value="" data-i18n="papers_all_langs">全言語</option>
+        <option value="en" data-i18n="papers_lang_en">英語</option>
+        <option value="ja" data-i18n="papers_lang_ja">日本語</option>
+      </select>
+      <button class="papers-sort-btn" id="papersTransFilter" onclick="toggleTransFilter()" data-i18n="papers_ja_only">日本語訳のみ</button>
+      <button class="papers-sort-btn active" id="papersSortDate" onclick="setPapersSort('date')" data-i18n="papers_sort_date">新しい順</button>
+      <button class="papers-sort-btn" id="papersSortTitle" onclick="setPapersSort('title')" data-i18n="papers_sort_title">タイトル順</button>
     </div>
-
-    <!-- PESTLE -->
-    <div class="tab-content" id="tab-pestle">
-      <div id="pestleContent"><div class="loading"><div class="spinner"></div></div></div>
-    </div>
-
-    <!-- CLA -->
-    <div class="tab-content" id="tab-cla">
-      <div id="claContent"><div class="loading"><div class="spinner"></div></div></div>
-    </div>
-
-    <!-- Scenarios -->
-    <div class="tab-content" id="tab-scenarios">
-      <div id="scenariosContent"><div class="loading"><div class="spinner"></div></div></div>
-    </div>
-
-    <!-- Signals -->
-    <div class="tab-content" id="tab-signals">
-      <div id="signalsContent"><div class="loading"><div class="spinner"></div></div></div>
-    </div>
-
-    <!-- Workspace -->
-    <div class="tab-content" id="tab-workspace">
-      <div class="workspace-nav">
-        <div class="ws-nav-btn active" data-ws="bookmarks">ブックマーク</div>
-        <div class="ws-nav-btn" data-ws="observations">観察ジャーナル</div>
-        <div class="ws-nav-btn" data-ws="driving-forces">ドライビングフォース</div>
-        <div class="ws-nav-btn" data-ws="my-scenarios">マイシナリオ</div>
-        <div class="ws-nav-btn" data-ws="signal-tracking">シグナル追跡</div>
-      </div>
-      <div class="ws-section active" id="ws-bookmarks"></div>
-      <div class="ws-section" id="ws-observations"></div>
-      <div class="ws-section" id="ws-driving-forces"></div>
-      <div class="ws-section" id="ws-my-scenarios"></div>
-      <div class="ws-section" id="ws-signal-tracking"></div>
-    </div>
+    <div class="papers-result-count" id="papersResultCount"></div>
+    <div class="papers-grid" id="papersGrid"></div>
   </div>
 
-  <!-- Modal -->
-  <div class="modal-overlay" id="modalOverlay">
-    <div class="modal">
-      <button class="modal-close" onclick="closeModal()">&times;</button>
-      <h3 id="modalTitle"></h3>
-      <div id="modalBody"></div>
+  <!-- ===== CLA ===== -->
+  <div class="tab-panel" id="tab-cla">
+    <div style="margin-bottom:16px">
+      <h3 style="font-size:1rem;color:var(--accent);margin-bottom:4px" data-i18n="cla_title">因果階層分析（CLA）</h3>
+      <p style="font-size:0.8rem;color:var(--text-muted)" data-i18n="cla_desc">PESTLE各分野のニュースを4つの深度で分析: リタニー（表層）→ 社会的原因 → 世界観 → 神話/メタファー</p>
     </div>
+    <div id="claGrid"></div>
   </div>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-  <script src="js/firebase-config.js?v=2"></script>
+  <!-- ===== SCENARIOS ===== -->
+  <div class="tab-panel" id="tab-scenarios">
+    <div style="margin-bottom:20px">
+      <h3 style="font-size:1.1rem;color:var(--accent);margin-bottom:6px;font-weight:700" data-i18n="scenarios_title">シナリオプランニング</h3>
+      <p style="font-size:0.82rem;color:var(--text-muted);line-height:1.6" data-i18n="scenarios_desc">PESTLE分析とCLAメタ解析から導出された4つの蓋然性のある未来シナリオ</p>
+    </div>
+    <div id="scenariosCustomPanel"></div>
+    <div id="scenariosMeta" style="margin-bottom:20px"></div>
+    <div id="scenariosMatrix" style="margin-bottom:40px"></div>
+    <div id="scenariosDetail"></div>
+    <div id="scenariosDFMap" style="margin-top:40px"></div>
+  </div>
 
-  <script>
-    // ============================================================
-    // STATE
-    // ============================================================
-    let currentUser = null;
-    let userData = null;
-    // Shared data from the original app
-    let NEWS = null;
-    let AI = null;
-    let SCENARIOS = null;
-    let ALERTS = null;
-    // User workspace data (from Firestore)
-    let bookmarks = [];
-    let observations = [];
-    let drivingForces = [];
-    let myScenarios = [];
-    let signalTracking = [];
+  <!-- ===== WEAK SIGNALS ===== -->
+  <div class="tab-panel" id="tab-signals">
+    <div style="margin-bottom:16px">
+      <h3 style="font-size:1rem;color:var(--accent);margin-bottom:4px" data-i18n="signals_title">ウィークシグナル</h3>
+      <p style="font-size:0.8rem;color:var(--text-muted)" data-i18n="signals_desc">ニュースと学術論文から抽出された、将来大きな変化をもたらす可能性のある兆し</p>
+    </div>
+    <div class="signals-grid" id="signalsGrid"></div>
+  </div>
 
-    const PESTLE_JA = {
-      Political: '政治', Economic: '経済', Social: '社会',
-      Technological: '技術', Legal: '法律', Environmental: '環境'
-    };
+  <!-- ===== SEARCH ===== -->
+  <div class="tab-panel" id="tab-search">
+    <div class="search-bar" style="display:flex;gap:8px;align-items:center">
+      <input class="search-input" id="globalSearch" placeholder="自然文で検索してEnter（例：AIが社会に与える影響）" onkeydown="if(event.key==='Enter')runGlobalSemanticSearch()">
+      <button onclick="runGlobalSemanticSearch()" style="padding:8px 16px;background:var(--accent);color:white;border:none;border-radius:6px;cursor:pointer;font-size:0.82rem;white-space:nowrap">検索</button>
+    </div>
+    <div id="searchStatus" style="font-size:0.75rem;color:var(--text-muted);padding:4px 0;min-height:1.4em"></div>
+    <div id="searchResults"></div>
+  </div>
 
-    // ============================================================
-    // AUTH
-    // ============================================================
-    auth.onAuthStateChanged(async (user) => {
-      if (!user) { window.location.href = 'index.html'; return; }
-      currentUser = user;
+</div>
 
-      // Check user status
-      const doc = await db.collection('users').doc(user.uid).get();
-      if (!doc.exists || doc.data().status !== 'active') {
-        await auth.signOut();
-        window.location.href = 'index.html';
-        return;
-      }
-      userData = doc.data();
-      document.getElementById('userName').textContent = userData.displayName || user.email;
-      if (userData.role === 'admin') {
-        document.getElementById('adminLink').style.display = 'inline';
-      }
+<!-- Detail Modal -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <div class="modal-swipe-handle"></div>
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <h2 id="modalTitle"></h2>
+    <div id="modalBody"></div>
+  </div>
+</div>
 
-      // Update last login
-      db.collection('users').doc(user.uid).update({ lastLogin: firebase.firestore.FieldValue.serverTimestamp() });
+<script>
+// === Auth guard - redirect to login if not authenticated ===
+let currentUser = null;
+let userData = null;
+const DATA_BASE_URL = 'https://yuyanishimura0312.github.io/future-insight-app/';
 
-      // Load data
-      await Promise.all([loadSharedData(), loadWorkspaceData()]);
-      renderDashboard();
-    });
-
-    function logout() {
-      auth.signOut().then(() => window.location.href = 'index.html');
+auth.onAuthStateChanged(async (user) => {
+  if (!user) { window.location.href = 'index.html'; return; }
+  currentUser = user;
+  try {
+    const doc = await db.collection('users').doc(user.uid).get();
+    if (!doc.exists || doc.data().status !== 'active') {
+      await auth.signOut();
+      window.location.href = 'index.html';
+      return;
     }
+    userData = doc.data();
+    db.collection('users').doc(user.uid).update({ lastLogin: firebase.firestore.FieldValue.serverTimestamp() });
+    const adminLink = document.getElementById('adminLink');
+    if (adminLink && userData.role === 'admin') adminLink.style.display = 'inline';
+    if (typeof initApp === 'function') initApp();
+  } catch (e) {
+    console.error('Auth check failed:', e);
+  }
+});
 
-    // ============================================================
-    // DATA LOADING
-    // ============================================================
-    async function fetchJSON(path) {
-      const res = await fetch(`${SHARED_DATA_BASE}/${path}`);
-      if (!res.ok) throw new Error(`Failed to load ${path}`);
-      return res.json();
+// === Data ===
+let NEWS_DATA = null;
+let PAPERS_DATA = [];
+let PAPERS_FULL = null;
+let AI_DATA = null;
+let ALERTS_DATA = null;
+let PESTLE_HISTORY = null;
+let PAPERS_TRANS = {};
+let LANG = 'ja';
+
+const I18N = {
+  ja: {
+    app_title: 'Future Insight Workspace',
+    app_sub: 'Future Insight Support — PESTLE × Academic Papers × CLA',
+    tab_overview: '概要', tab_pestle: 'PESTLEニュース', tab_papers: '学術論文',
+    tab_cla: 'CLA分析', tab_scenarios: 'シナリオ', tab_signals: 'ウィークシグナル', tab_search: '横断検索',
+    pestle_summary: 'PESTLEサマリー', featured_papers: '注目の学術論文',
+    search_news: 'ニュースを検索...', search_papers: '論文を検索...',
+    search_all: 'ニュース・論文を横断検索...',
+    cla_title: '因果階層分析（CLA）',
+    cla_desc: 'PESTLE各分野のニュースを4つの深度で分析: リタニー（表層）→ 社会的原因 → 世界観 → 神話/メタファー',
+    signals_title: 'ウィークシグナル',
+    signals_desc: 'ニュースと学術論文から抽出された、将来大きな変化をもたらす可能性のある兆し',
+    scenarios_title: 'シナリオプランニング',
+    scenarios_desc: 'PESTLE分析とCLAメタ解析から導出された4つの蓋然性のある未来シナリオ',
+    scenarios_focal: '焦点課題', scenarios_horizon: '時間軸',
+    scenarios_generated: '生成日', scenarios_dfs: 'ドライビングフォース',
+    scenarios_custom: '軸をカスタマイズ', scenarios_custom_desc: '既存のドライビングフォースから2軸を選択し、シナリオを再生成できます',
+    scenarios_x_axis: 'X軸（横軸）', scenarios_y_axis: 'Y軸（縦軸）',
+    scenarios_select_df: '-- ドライビングフォースを選択 --',
+    scenarios_generate: 'シナリオ生成', scenarios_reset: '元に戻す',
+    scenarios_generating: '生成中... (30秒ほどかかります)',
+    scenarios_apikey: 'Anthropic APIキー（ブラウザに保存）',
+    scenarios_pole_pos: '+', scenarios_pole_neg: '-',
+    scenarios_same_axis_error: 'X軸とY軸には異なるドライビングフォースを選んでください',
+    scenarios_no_apikey: 'APIキーが未設定です（ページ下部の設定リンクから入力してください）',
+    scenarios_custom_label: 'カスタム生成',
+    scenarios_add_df: '新しいドライビングフォースを追加',
+    scenarios_df_name: '名称', scenarios_df_name_ph: '例: AIガバナンスの分岐',
+    scenarios_df_pos: '+方向（楽観的・変革的）', scenarios_df_pos_ph: '例: 透明で民主的なAI規制',
+    scenarios_df_neg: '-方向（悲観的・現状維持）', scenarios_df_neg_ph: '例: 規制不在による寡占化',
+    scenarios_df_add_btn: '追加', scenarios_df_added: 'ドライビングフォースを追加しました',
+    scenarios_df_name_required: '名称を入力してください',
+    scenarios_apikey_setting: 'APIキー設定', scenarios_apikey_configured: 'APIキー設定済み',
+    scenarios_apikey_change: '変更', scenarios_apikey_not_configured: 'APIキー未設定',
+    scenarios_apikey_set: '設定する', scenarios_df_history: '履歴から追加',
+    scenarios_df_history_empty: '履歴はまだありません', scenarios_df_delete_history: '履歴を削除',
+    stat_news: 'PESTLEニュース', stat_papers: '学術論文', stat_sources: 'ニュースソース',
+    stat_date: '収集日', stat_fields: '論文分野',
+    stat_sub_news: '6分野 × 20件', stat_sub_sources: '世界各国メディア',
+    from_selected: '件から選定', no_results: '検索結果がありません',
+    papers_all_decades: '全年代', papers_all_fields: '全分野', papers_all_langs: '全言語',
+    papers_lang_en: '英語', papers_lang_ja: '日本語',
+    papers_sort_date: '新しい順', papers_sort_title: 'タイトル順',
+    papers_total: '総論文数', papers_showing: '件表示中',
+    papers_load_more: 'さらに表示',
+    papers_no_results: '条件に一致する論文がありません',
+    papers_no_results_sub: '検索条件やフィルタを変更してみてください',
+    papers_subfield: 'サブ分野', papers_language: '言語', papers_ja_only: '日本語訳のみ',
+    field_humanities: '人文学', field_social: '社会科学', field_natural: '自然科学',
+    field_engineering: '工学', field_arts: '芸術',
+    search_min: '2文字以上で検索してください', found: '件見つかりました',
+    layer1: 'Layer 1: リタニー（表層）', layer2: 'Layer 2: 社会的・システム的原因',
+    layer3: 'Layer 3: 世界観・ディスコース', layer4: 'Layer 4: 神話・メタファー',
+    no_ai: 'AI分析データがありません。ai_analyze.pyを実行してください。',
+    no_signals: 'ウィークシグナルデータがありません。',
+    related: '関連記事', category: 'カテゴリ', source: 'ソース', published: '公開日',
+    summary: '要約・メモ', link: 'リンク', relevance: '関連度スコア',
+    field: '分野', authors: '著者', unknown: '不明', last_updated: '最終更新',
+    alerts_title: '新兆候アラート',
+    alerts_desc: '過去2年の蓄積データと比較して検出された、新たな変化の兆候',
+    alert_emergence: '初出', alert_surge: '急増', alert_crossover: '横断',
+    alert_mentions: '回出現', alert_ratio: '倍に急増',
+  },
+  en: {
+    app_title: 'Future Insight Workspace',
+    app_sub: 'Future Insight Support — PESTLE × Academic Papers × CLA',
+    tab_overview: 'Overview', tab_pestle: 'PESTLE News', tab_papers: 'Academic Papers',
+    tab_cla: 'CLA Analysis', tab_scenarios: 'Scenarios', tab_signals: 'Weak Signals', tab_search: 'Cross Search',
+    pestle_summary: 'PESTLE Summary', featured_papers: 'Featured Papers',
+    search_news: 'Search news...', search_papers: 'Search papers...',
+    search_all: 'Search across news & papers...',
+    cla_title: 'Causal Layered Analysis (CLA)',
+    cla_desc: 'Analyzing news through 4 layers: Litany (surface) → Systemic Causes → Worldview → Myth/Metaphor',
+    signals_title: 'Weak Signals',
+    signals_desc: 'Emerging signs of potential future change extracted from news and academic papers',
+    scenarios_title: 'Scenario Planning',
+    scenarios_desc: 'Four plausible future scenarios derived from PESTLE analysis and CLA meta-analysis',
+    scenarios_focal: 'Focal Question', scenarios_horizon: 'Time Horizon',
+    scenarios_generated: 'Generated', scenarios_dfs: 'Driving Forces',
+    scenarios_custom: 'Customize Axes', scenarios_custom_desc: 'Select 2 driving forces as axes to regenerate scenarios',
+    scenarios_x_axis: 'X-Axis (Horizontal)', scenarios_y_axis: 'Y-Axis (Vertical)',
+    scenarios_select_df: '-- Select a driving force --',
+    scenarios_generate: 'Generate Scenarios', scenarios_reset: 'Reset',
+    scenarios_generating: 'Generating... (about 30 seconds)',
+    scenarios_apikey: 'Anthropic API Key (saved in browser)',
+    scenarios_pole_pos: '+', scenarios_pole_neg: '-',
+    scenarios_same_axis_error: 'Please select different driving forces for X and Y axes',
+    scenarios_no_apikey: 'API key not configured (set it via the link at the bottom)',
+    scenarios_custom_label: 'Custom',
+    scenarios_add_df: 'Add a new driving force',
+    scenarios_df_name: 'Name', scenarios_df_name_ph: 'e.g. AI Governance Divergence',
+    scenarios_df_pos: '+ Direction (optimistic / transformational)',
+    scenarios_df_pos_ph: 'e.g. Transparent, democratic AI regulation',
+    scenarios_df_neg: '- Direction (pessimistic / status quo)',
+    scenarios_df_neg_ph: 'e.g. Unregulated monopolization',
+    scenarios_df_add_btn: 'Add', scenarios_df_added: 'Driving force added',
+    scenarios_df_name_required: 'Please enter a name',
+    scenarios_apikey_setting: 'API Key Settings', scenarios_apikey_configured: 'API key configured',
+    scenarios_apikey_change: 'Change', scenarios_apikey_not_configured: 'API key not configured',
+    scenarios_apikey_set: 'Set up', scenarios_df_history: 'Add from history',
+    scenarios_df_history_empty: 'No history yet', scenarios_df_delete_history: 'Clear history',
+    stat_news: 'PESTLE News', stat_papers: 'Academic Papers', stat_sources: 'News Sources',
+    stat_date: 'Collection Date', stat_fields: 'Paper Fields',
+    stat_sub_news: '6 categories × 20 articles', stat_sub_sources: 'Global media',
+    from_selected: ' articles screened', no_results: 'No results found',
+    papers_all_decades: 'All decades', papers_all_fields: 'All fields', papers_all_langs: 'All languages',
+    papers_lang_en: 'English', papers_lang_ja: 'Japanese',
+    papers_sort_date: 'Newest', papers_sort_title: 'By title',
+    papers_total: 'Total papers', papers_showing: ' shown',
+    papers_load_more: 'Load more',
+    papers_no_results: 'No papers match your criteria',
+    papers_no_results_sub: 'Try adjusting your search or filters',
+    papers_subfield: 'Subfield', papers_language: 'Language', papers_ja_only: 'Japanese only',
+    field_humanities: 'Humanities', field_social: 'Social Sciences', field_natural: 'Natural Sciences',
+    field_engineering: 'Engineering', field_arts: 'Arts',
+    search_min: 'Enter at least 2 characters', found: ' results found',
+    layer1: 'Layer 1: Litany (Surface)', layer2: 'Layer 2: Systemic Causes',
+    layer3: 'Layer 3: Worldview / Discourse', layer4: 'Layer 4: Myth / Metaphor',
+    no_ai: 'No AI analysis data. Run ai_analyze.py first.',
+    no_signals: 'No weak signal data available.',
+    related: 'Related articles', category: 'Category', source: 'Source', published: 'Published',
+    summary: 'Summary', link: 'Link', relevance: 'Relevance Score',
+    field: 'Field', authors: 'Authors', unknown: 'Unknown', last_updated: 'Last updated',
+    alerts_title: 'Emerging Signal Alerts',
+    alerts_desc: 'New change signals detected by comparing against 2 years of historical data',
+    alert_emergence: 'NEW', alert_surge: 'SURGE', alert_crossover: 'CROSS',
+    alert_mentions: ' mentions', alert_ratio: 'x surge',
+  }
+};
+
+function t(key) { return I18N[LANG][key] || I18N['ja'][key] || key; }
+
+function toggleLang() {
+  LANG = LANG === 'ja' ? 'en' : 'ja';
+  document.getElementById('langToggleBtn').textContent = LANG === 'ja' ? 'EN' : 'JA';
+  applyI18n(); renderOverview(); renderAlerts(); renderPestle(); renderPapers(); renderCLA(); renderSignals();
+}
+
+function applyI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (I18N[LANG][key]) el.textContent = I18N[LANG][key];
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    if (I18N[LANG][key]) el.placeholder = I18N[LANG][key];
+  });
+  document.title = 'Future Insight Workspace';
+}
+
+const PESTLE_META = {
+  Political: { ja: '政治', color: '#b92a38', icon: '&#127987;' },
+  Economic: { ja: '経済', color: '#cd8a32', icon: '&#128200;' },
+  Social: { ja: '社会', color: '#4a8c5c', icon: '&#128101;' },
+  Technological: { ja: '技術', color: '#2c8acc', icon: '&#128300;' },
+  Legal: { ja: '法律', color: '#7c5a96', icon: '&#9878;' },
+  Environmental: { ja: '環境', color: '#3a8c78', icon: '&#127793;' },
+};
+
+let pestleDimVisible = { Political: true, Economic: true, Social: true, Technological: true, Legal: true, Environmental: true };
+function togglePestleDim(dim) { pestleDimVisible[dim] = !pestleDimVisible[dim]; renderPestleDimFilters(); renderPestle(); }
+function renderPestleDimFilters() {
+  const container = document.getElementById('pestleDimFilters');
+  if (!container) return;
+  let html = '';
+  for (const [cat, meta] of Object.entries(PESTLE_META)) {
+    const active = pestleDimVisible[cat];
+    html += `<button class="pestle-dim-btn ${active ? 'active' : ''}" style="border-color:${meta.color};${active ? 'background:' + meta.color : 'color:' + meta.color}" onclick="togglePestleDim('${cat}')">${meta.ja}</button>`;
+  }
+  container.innerHTML = html;
+}
+
+const FIELD_COLORS = { '人文学': '#b92a38', '社会科学': '#cd8a32', '自然科学': '#4a8c5c', '工学': '#2c8acc', '芸術': '#7c5a96' };
+
+const SUBFIELD_JA = {
+  'Molecular Biology': '分子生物学', 'Artificial Intelligence': '人工知能',
+  'Sociology and Political Science': '社会学・政治学', 'Electrical and Electronic Engineering': '電気・電子工学',
+  'Computer Vision and Pattern Recognition': 'コンピュータビジョン・パターン認識',
+  'Materials Chemistry': '材料化学', 'Economics and Econometrics': '経済学・計量経済学',
+  'Renewable Energy, Sustainability and the Environment': '再生可能エネルギー・環境持続性',
+  'Cognitive Neuroscience': '認知神経科学', 'Education': '教育学',
+  'Computer Networks and Communications': 'コンピュータネットワーク・通信',
+  'Information Systems': '情報システム', 'Social Psychology': '社会心理学',
+  'Biomedical Engineering': '生体医工学', 'Strategy and Management': '戦略・経営',
+  'Political Science and International Relations': '政治学・国際関係',
+  'Clinical Psychology': '臨床心理学', 'Health Informatics': '医療情報学',
+  'Astronomy and Astrophysics': '天文学・宇宙物理学', 'General Health Professions': '医療専門職',
+  'Oncology': '腫瘍学', 'Organizational Behavior and Human Resource Management': '組織行動・人的資源管理',
+  'Global and Planetary Change': '地球規模変動', 'Genetics': '遺伝学',
+  'Experimental and Cognitive Psychology': '実験・認知心理学', 'Mechanical Engineering': '機械工学',
+  'Atomic and Molecular Physics, and Optics': '原子・分子物理学・光学',
+  'Management Science and Operations Research': '経営科学・オペレーションズリサーチ',
+  'Plant Science': '植物科学', 'Literature and Literary Theory': '文学・文学理論',
+  'Physiology': '生理学', 'Epidemiology': '疫学',
+  'Electronic, Optical and Magnetic Materials': '電子・光学・磁性材料',
+  'Computational Theory and Mathematics': '計算理論・数学', 'Philosophy': '哲学',
+  'Industrial and Manufacturing Engineering': '産業・製造工学',
+  'Public Health, Environmental and Occupational Health': '公衆衛生・環境衛生',
+  'Organic Chemistry': '有機化学', 'Control and Systems Engineering': '制御・システム工学',
+  'Ecology': '生態学', 'Developmental and Educational Psychology': '発達・教育心理学',
+  'Marketing': 'マーケティング', 'Finance': 'ファイナンス',
+  'Statistics, Probability and Uncertainty': '統計・確率・不確実性',
+  'Statistical and Nonlinear Physics': '統計・非線形物理学',
+  'Cardiology and Cardiovascular Medicine': '循環器学', 'Accounting': '会計学',
+  'Statistics and Probability': '統計・確率', 'Management Information Systems': '経営情報システム',
+  'Computer Science': 'コンピュータ科学', 'General Computer Science': 'コンピュータ科学一般',
+  'General Medicine': '一般医学', 'General Engineering': '工学一般',
+  'General Mathematics': '数学一般', 'General Physics and Astronomy': '物理学・天文学一般',
+  'General Chemistry': '化学一般', 'General Social Sciences': '社会科学一般',
+  'Law': '法学', 'History': '歴史学', 'Anthropology': '人類学',
+  'Linguistics and Language': '言語学', 'Geography, Planning and Development': '地理・都市計画・開発',
+  'Environmental Science': '環境科学', 'Neuroscience': '神経科学',
+  'Biochemistry': '生化学', 'Cell Biology': '細胞生物学',
+  'Applied Mathematics': '応用数学', 'Computer Science Applications': 'コンピュータ科学応用',
+  'Software': 'ソフトウェア', 'Hardware and Architecture': 'ハードウェア・アーキテクチャ',
+  'Signal Processing': '信号処理', 'General Arts and Humanities': '人文学一般',
+  'Visual Arts and Performing Arts': '視覚芸術・舞台芸術', 'Music': '音楽',
+};
+function localizedSubfield(sf) { if (!sf) return ''; if (LANG === 'ja' && SUBFIELD_JA[sf]) return SUBFIELD_JA[sf]; return sf; }
+function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+function formatPubDate(s) { if (!s) return ''; if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s; const d = new Date(s); if (isNaN(d.getTime())) return s; return d.toISOString().slice(0, 10); }
+
+const VALID_TABS = ['overview','pestle','papers','cla','scenarios','signals','search'];
+function switchTab(name, pushState) {
+  if (!VALID_TABS.includes(name)) name = 'overview';
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  const btns = document.querySelectorAll('.tab-btn');
+  const idx = VALID_TABS.indexOf(name);
+  if (idx >= 0 && btns[idx]) btns[idx].classList.add('active');
+  if (pushState !== false) history.replaceState(null, '', '#' + name);
+}
+function restoreTabFromHash() { const hash = location.hash.replace('#', ''); if (VALID_TABS.includes(hash)) switchTab(hash, false); }
+window.addEventListener('hashchange', restoreTabFromHash);
+
+function openModal(title, bodyHtml) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').innerHTML = bodyHtml;
+  document.getElementById('detailModal').classList.add('active');
+}
+function closeModal() { document.getElementById('detailModal').classList.remove('active'); }
+document.getElementById('detailModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+(function() {
+  const modal = document.querySelector('#detailModal .modal');
+  let startY = 0, currentY = 0, dragging = false;
+  modal.addEventListener('touchstart', e => { if (modal.scrollTop <= 0) { startY = e.touches[0].clientY; dragging = true; } }, { passive: true });
+  modal.addEventListener('touchmove', e => { if (!dragging) return; currentY = e.touches[0].clientY; const diff = currentY - startY; if (diff > 0) { modal.style.transform = `translateY(${diff}px)`; modal.style.transition = 'none'; } }, { passive: true });
+  modal.addEventListener('touchend', () => { if (!dragging) return; dragging = false; const diff = currentY - startY; modal.style.transition = 'transform 0.2s ease'; if (diff > 100) { closeModal(); } modal.style.transform = ''; });
+})();
+
+function showArticle(category, idx) {
+  const a = NEWS_DATA.pestle[category].articles[idx];
+  const meta = PESTLE_META[category];
+  const displayTitle = localizedTitle(a, category, idx);
+  const displaySummary = localizedSummary(a, category, idx);
+  openModal(displayTitle, `
+    <div class="modal-field"><div class="modal-label">${t('category')}</div><div class="modal-value" style="color:${meta.color}">${meta.ja} (${category})</div></div>
+    <div class="modal-field"><div class="modal-label">${t('source')}</div><div class="modal-value">${esc(a.source)} ${a.lang === 'ja' ? '\ud83c\uddef\ud83c\uddf5' : '\ud83c\udf10'}</div></div>
+    ${a.published ? `<div class="modal-field"><div class="modal-label">${t('published')}</div><div class="modal-value">${esc(a.published)}</div></div>` : ''}
+    <div class="modal-field"><div class="modal-label">${t('summary')}</div><div class="modal-value">${esc(displaySummary)}</div></div>
+    ${a.lang === 'en' && LANG === 'ja' ? `<div class="modal-field"><div class="modal-label">原文</div><div class="modal-value" style="font-size:0.78rem;color:var(--text-muted)">${esc(a.title)}<br>${esc(a.summary)}</div></div>` : ''}
+    <div class="modal-field"><div class="modal-label">${t('link')}</div><div class="modal-value"><a href="${esc(a.url)}" target="_blank">${esc(a.url)}</a></div></div>
+    <div class="modal-field"><div class="modal-label">${t('relevance')}</div><div class="modal-value">${a.relevance_score}</div></div>
+  `);
+}
+
+async function showPaper(idx) {
+  const p = PAPERS_DATA[idx];
+  if (!PAPERS_FULL) {
+    openModal(localizedPaperTitle(p, idx), `<div style="padding:20px;color:var(--text-muted)"><div style="display:flex;align-items:center;gap:8px;"><span style="display:inline-block;width:16px;height:16px;border:2px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite"></span>${LANG === 'ja' ? '詳細データを読み込み中...' : 'Loading details...'}</div><style>@keyframes spin{to{transform:rotate(360deg)}}</style></div>`);
+    try {
+      const resp = await fetch(DATA_BASE_URL + 'data/papers.json?v=' + Date.now());
+      PAPERS_FULL = await resp.json();
+    } catch (e) {
+      openModal(localizedPaperTitle(p, idx), `<div style="padding:20px"><div class="modal-field"><div class="modal-label">${t('field')}</div><div class="modal-value">${esc(p.field)}</div></div><div class="modal-field"><div class="modal-label">${t('authors')}</div><div class="modal-value">${esc(p.authors || t('unknown'))}</div></div><div class="modal-field"><div class="modal-label">${t('link')}</div><div class="modal-value"><a href="${esc(p.source_url)}" target="_blank" style="word-break:break-all">${esc(p.source_url)}</a></div></div></div>`);
+      return;
     }
-
-    async function loadSharedData() {
-      try {
-        [NEWS, AI, SCENARIOS, ALERTS] = await Promise.all([
-          fetchJSON('latest.json'),
-          fetchJSON('ai_analysis.json'),
-          fetchJSON('scenarios.json'),
-          fetchJSON('alerts.json'),
-        ]);
-      } catch (e) {
-        console.error('Failed to load shared data:', e);
-      }
-    }
-
-    async function loadWorkspaceData() {
-      const uid = currentUser.uid;
-      const cols = ['bookmarks', 'observations', 'drivingForces', 'myScenarios', 'signalTracking'];
-      const results = await Promise.all(cols.map(c =>
-        db.collection('users').doc(uid).collection(c).orderBy('createdAt', 'desc').get()
-      ));
-      bookmarks = results[0].docs.map(d => ({ id: d.id, ...d.data() }));
-      observations = results[1].docs.map(d => ({ id: d.id, ...d.data() }));
-      drivingForces = results[2].docs.map(d => ({ id: d.id, ...d.data() }));
-      myScenarios = results[3].docs.map(d => ({ id: d.id, ...d.data() }));
-      signalTracking = results[4].docs.map(d => ({ id: d.id, ...d.data() }));
-    }
-
-    // ============================================================
-    // TAB NAVIGATION
-    // ============================================================
-    document.querySelectorAll('.tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        tab.classList.add('active');
-        const target = tab.dataset.tab;
-        document.getElementById(`tab-${target}`).classList.add('active');
-        // Render on first visit
-        if (target === 'pestle' && !document.getElementById('pestleContent').dataset.loaded) renderPESTLE();
-        if (target === 'cla' && !document.getElementById('claContent').dataset.loaded) renderCLA();
-        if (target === 'scenarios' && !document.getElementById('scenariosContent').dataset.loaded) renderScenarios();
-        if (target === 'signals' && !document.getElementById('signalsContent').dataset.loaded) renderSignals();
-        if (target === 'workspace') renderWorkspace();
-      });
-    });
-
-    // Workspace sub-navigation
-    document.querySelectorAll('.ws-nav-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.ws-nav-btn').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.ws-section').forEach(s => s.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById(`ws-${btn.dataset.ws}`).classList.add('active');
-        renderWorkspaceSection(btn.dataset.ws);
-      });
-    });
-
-    // ============================================================
-    // DASHBOARD
-    // ============================================================
-    function renderDashboard() {
-      const newsDate = NEWS?.date || '-';
-      const totalArticles = NEWS ? Object.values(NEWS.pestle).reduce((s, c) => s + (c.count || 0), 0) : 0;
-      const signalCount = AI?.weak_signals?.length || 0;
-
-      document.getElementById('dashboardStats').innerHTML = `
-        <div class="stat-card"><div class="label">ニュース日付</div><div class="value">${newsDate}</div></div>
-        <div class="stat-card"><div class="label">記事数</div><div class="value">${totalArticles}</div></div>
-        <div class="stat-card"><div class="label">弱いシグナル</div><div class="value">${signalCount}</div></div>
-        <div class="stat-card"><div class="label">ブックマーク</div><div class="value">${bookmarks.length}</div></div>
-        <div class="stat-card"><div class="label">観察メモ</div><div class="value">${observations.length}</div></div>
-        <div class="stat-card"><div class="label">マイDF</div><div class="value">${drivingForces.length}</div></div>
-      `;
-
-      // Latest news summary
-      let newsHtml = '';
-      if (NEWS) {
-        Object.entries(NEWS.pestle).forEach(([cat, data]) => {
-          const top = data.articles?.[0];
-          if (top) {
-            newsHtml += `<div class="article-item">
-              <span class="pestle-badge pestle-${cat}">${PESTLE_JA[cat]}</span>
-              <div class="article-title" style="margin-top:4px;">${esc(getTitle(top, cat, 0))}</div>
-            </div>`;
-          }
-        });
-      }
-      document.getElementById('dashboardNews').innerHTML = newsHtml || '<div class="empty-state">データなし</div>';
-
-      // Workspace summary
-      let wsHtml = `<div style="font-size:0.9rem; line-height:1.8; color:var(--text-muted);">`;
-      wsHtml += `ブックマーク: ${bookmarks.length}件<br>`;
-      wsHtml += `観察ジャーナル: ${observations.length}件<br>`;
-      wsHtml += `ドライビングフォース: ${drivingForces.length}件<br>`;
-      wsHtml += `マイシナリオ: ${myScenarios.length}セット<br>`;
-      wsHtml += `シグナル追跡: ${signalTracking.length}件`;
-      wsHtml += `</div>`;
-      document.getElementById('dashboardWorkspace').innerHTML = wsHtml;
-    }
-
-    // ============================================================
-    // PESTLE
-    // ============================================================
-    function renderPESTLE() {
-      if (!NEWS) { document.getElementById('pestleContent').innerHTML = '<div class="empty-state">データを読み込めませんでした</div>'; return; }
-      document.getElementById('pestleContent').dataset.loaded = '1';
-
-      let html = `<p style="color:var(--text-muted); margin-bottom:16px;">日付: ${NEWS.date} / 記事にブックマークを付けてワークスペースに保存できます</p>`;
-
-      Object.entries(NEWS.pestle).forEach(([cat, data]) => {
-        html += `<div class="card">
-          <h3><span class="pestle-badge pestle-${cat}">${PESTLE_JA[cat]}</span> ${cat} (${data.count}件)</h3>`;
-        (data.articles || []).forEach((art, idx) => {
-          const isBookmarked = bookmarks.some(b => b.type === 'news' && b.category === cat && b.articleIndex === idx);
-          html += `<div class="article-item">
-            <div style="display:flex; justify-content:space-between; align-items:start;">
-              <div class="article-title"><a href="${esc(art.url)}" target="_blank">${esc(getTitle(art, cat, idx))}</a></div>
-              <button class="bookmark-btn ${isBookmarked ? 'bookmarked' : ''}" onclick="toggleBookmark('news','${cat}',${idx},this)">
-                ${isBookmarked ? '保存済' : '保存'}
-              </button>
-            </div>
-            <div class="article-meta">
-              <span>${esc(art.source)}</span>
-              <span>${art.published ? new Date(art.published).toLocaleDateString('ja-JP') : ''}</span>
-              <span class="relevance">関連度: ${art.relevance_score}</span>
-            </div>
-            <div class="article-summary">${esc(art.summary || '')}</div>
-          </div>`;
-        });
-        html += `</div>`;
-      });
-
-      document.getElementById('pestleContent').innerHTML = html;
-    }
-
-    // ============================================================
-    // CLA
-    // ============================================================
-    function renderCLA() {
-      if (!AI?.cla) { document.getElementById('claContent').innerHTML = '<div class="empty-state">CLAデータなし</div>'; return; }
-      document.getElementById('claContent').dataset.loaded = '1';
-
-      const layers = [
-        { key: 'litany', label: 'リタニー（表層の出来事）' },
-        { key: 'systemic_causes', label: 'システム的原因（構造）' },
-        { key: 'worldview', label: '世界観（文化的前提）' },
-        { key: 'myth_metaphor', label: '神話・メタファー（深層）' },
-      ];
-
-      let html = `<p style="color:var(--text-muted); margin-bottom:16px;">因果階層分析（Causal Layered Analysis） - 日付: ${AI.date}</p>`;
-      html += `<div class="card-grid">`;
-
-      Object.entries(AI.cla).forEach(([cat, data]) => {
-        html += `<div class="card">
-          <h3>${cat === 'Overall' ? '総合' : `<span class="pestle-badge pestle-${cat}">${PESTLE_JA[cat] || cat}</span> ${cat}`}</h3>`;
-        layers.forEach(l => {
-          html += `<div class="cla-layer">
-            <div class="cla-layer-label">${l.label}</div>
-            <div class="cla-layer-text">${esc(data[l.key] || '')}</div>
-          </div>`;
-        });
-        if (data.key_tension) {
-          html += `<div class="cla-layer"><div class="cla-layer-label" style="color:var(--warning);">主要な緊張</div><div class="cla-layer-text">${esc(data.key_tension)}</div></div>`;
-        }
-        if (data.emerging_narrative) {
-          html += `<div class="cla-layer"><div class="cla-layer-label" style="color:var(--accent2);">新興ナラティブ</div><div class="cla-layer-text">${esc(data.emerging_narrative)}</div></div>`;
-        }
-        html += `</div>`;
-      });
-      html += `</div>`;
-      document.getElementById('claContent').innerHTML = html;
-    }
-
-    // ============================================================
-    // SCENARIOS (shared)
-    // ============================================================
-    function renderScenarios() {
-      if (!SCENARIOS) { document.getElementById('scenariosContent').innerHTML = '<div class="empty-state">シナリオデータなし</div>'; return; }
-      document.getElementById('scenariosContent').dataset.loaded = '1';
-
-      const ax = SCENARIOS.axes || {};
-      let html = `<div class="card">
-        <h3>フォーカル・クエスチョン</h3>
-        <p style="font-size:0.95rem; line-height:1.6; color:var(--text);">${esc(SCENARIOS.focal_question || '')}</p>
-        <p style="font-size:0.85rem; color:var(--text-muted); margin-top:8px;">時間軸: ${SCENARIOS.time_horizon || '-'}</p>
-      </div>`;
-
-      // Axes
-      html += `<div class="card"><h3>シナリオ軸</h3>
-        <p style="margin-bottom:8px;"><strong>X軸:</strong> ${esc(ax.x?.label || '')}</p>
-        <p style="font-size:0.85rem; color:var(--text-muted);">${esc(ax.x?.pole_negative || '')} ←→ ${esc(ax.x?.pole_positive || '')}</p>
-        <p style="margin-top:12px;"><strong>Y軸:</strong> ${esc(ax.y?.label || '')}</p>
-        <p style="font-size:0.85rem; color:var(--text-muted);">${esc(ax.y?.pole_negative || '')} ←→ ${esc(ax.y?.pole_positive || '')}</p>
-      </div>`;
-
-      // Matrix
-      const quadrants = { top_right: 0, top_left: 1, bottom_left: 2, bottom_right: 3 };
-      const sorted = [...(SCENARIOS.scenarios || [])].sort((a, b) => (quadrants[a.quadrant] ?? 0) - (quadrants[b.quadrant] ?? 0));
-
-      html += `<div class="axis-label">${esc(ax.y?.pole_positive || '')}</div>`;
-      html += `<div class="scenario-matrix">`;
-      sorted.forEach(sc => {
-        html += `<div class="scenario-card" style="border-left: 3px solid ${sc.color || 'var(--accent)'};" onclick="showScenarioDetail('${sc.id}')">
-          <h4>${esc(sc.name)}</h4>
-          <p style="font-size:0.8rem; color:var(--accent); margin-bottom:6px;">${esc(sc.subtitle || '')}</p>
-          <p>${esc((sc.narrative || '').substring(0, 150))}...</p>
-        </div>`;
-      });
-      html += `</div>`;
-      html += `<div class="axis-label">${esc(ax.y?.pole_negative || '')}</div>`;
-      html += `<div style="display:flex; justify-content:space-between; font-size:0.85rem; color:var(--text-muted);">
-        <span>${esc(ax.x?.pole_negative || '')}</span>
-        <span>${esc(ax.x?.pole_positive || '')}</span>
-      </div>`;
-
-      // Driving Forces
-      if (SCENARIOS.driving_forces?.length) {
-        html += `<div class="card" style="margin-top:16px;"><h3>ドライビングフォース (${SCENARIOS.driving_forces.length})</h3>`;
-        SCENARIOS.driving_forces.forEach(df => {
-          html += `<div style="padding:8px 0; border-bottom:1px solid var(--border);">
-            <strong>${esc(df.name)}</strong>
-            <span style="font-size:0.8rem; color:var(--text-muted); margin-left:8px;">
-              インパクト:${df.impact} / 不確実性:${df.uncertainty} / ${df.quadrant}
-            </span>
-            <p style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">${esc(df.description || '')}</p>
-          </div>`;
-        });
-        html += `</div>`;
-      }
-
-      document.getElementById('scenariosContent').innerHTML = html;
-    }
-
-    function showScenarioDetail(id) {
-      const sc = SCENARIOS?.scenarios?.find(s => s.id === id);
-      if (!sc) return;
-      const layers = [
-        { key: 'litany', label: 'リタニー' },
-        { key: 'systemic_causes', label: 'システム的原因' },
-        { key: 'worldview', label: '世界観' },
-        { key: 'myth_metaphor', label: '神話・メタファー' },
-      ];
-      let html = `<p style="color:var(--accent); margin-bottom:12px;">${esc(sc.subtitle || '')}</p>`;
-      html += `<div style="line-height:1.8; margin-bottom:16px;">${esc(sc.narrative || '')}</div>`;
-
-      if (sc.cla) {
-        html += `<h4 style="margin:16px 0 8px;">CLA分析</h4>`;
-        layers.forEach(l => {
-          if (sc.cla[l.key]) {
-            html += `<div class="cla-layer"><div class="cla-layer-label">${l.label}</div><div class="cla-layer-text">${esc(sc.cla[l.key])}</div></div>`;
-          }
-        });
-      }
-
-      if (sc.key_events?.length) {
-        html += `<h4 style="margin:16px 0 8px;">主要イベント</h4>`;
-        sc.key_events.forEach(ev => {
-          html += `<p style="font-size:0.85rem; color:var(--text-muted);">${ev.year}: ${esc(ev.event)}</p>`;
-        });
-      }
-
-      if (sc.signposts?.length) {
-        html += `<h4 style="margin:16px 0 8px;">シグナルポスト（早期指標）</h4>`;
-        sc.signposts.forEach(sp => {
-          html += `<div style="padding:8px 0; border-bottom:1px solid var(--border); font-size:0.85rem;">
-            <strong>${esc(sp.indicator)}</strong><br>
-            <span style="color:var(--text-muted);">現状: ${esc(sp.current_state)} / トリガー: ${esc(sp.trigger_condition)}</span>
-          </div>`;
-        });
-      }
-
-      openModal(sc.name, html);
-    }
-
-    // ============================================================
-    // SIGNALS
-    // ============================================================
-    function renderSignals() {
-      if (!AI?.weak_signals?.length) { document.getElementById('signalsContent').innerHTML = '<div class="empty-state">シグナルデータなし</div>'; return; }
-      document.getElementById('signalsContent').dataset.loaded = '1';
-
-      let html = `<p style="color:var(--text-muted); margin-bottom:16px;">${AI.weak_signals.length}件の弱いシグナルを検出 - シグナルを追跡リストに追加できます</p>`;
-
-      AI.weak_signals.forEach((sig, idx) => {
-        const isTracked = signalTracking.some(t => t.signalIndex === idx);
-        html += `<div class="signal-item">
-          <div style="display:flex; justify-content:space-between; align-items:start;">
-            <h4>${esc(sig.signal)}</h4>
-            <button class="bookmark-btn ${isTracked ? 'bookmarked' : ''}" onclick="toggleSignalTrack(${idx}, this)">
-              ${isTracked ? '追跡中' : '追跡する'}
-            </button>
-          </div>
-          <p style="font-size:0.85rem; color:var(--text-muted); margin-top:6px; line-height:1.6;">${esc(sig.description)}</p>
-          <div class="signal-badges">
-            ${(sig.pestle_categories || []).map(c => `<span class="pestle-badge pestle-${c}">${PESTLE_JA[c] || c}</span>`).join('')}
-            <span class="badge ${sig.potential_impact === 'High' || sig.potential_impact === '高' ? 'high' : 'medium'}">
-              影響: ${esc(sig.potential_impact)}
-            </span>
-            <span class="badge">${esc(sig.time_horizon)}</span>
-          </div>
-        </div>`;
-      });
-
-      document.getElementById('signalsContent').innerHTML = html;
-    }
-
-    // ============================================================
-    // WORKSPACE
-    // ============================================================
-    function renderWorkspace() {
-      const activeBtn = document.querySelector('.ws-nav-btn.active');
-      if (activeBtn) renderWorkspaceSection(activeBtn.dataset.ws);
-    }
-
-    function renderWorkspaceSection(section) {
-      switch (section) {
-        case 'bookmarks': renderBookmarks(); break;
-        case 'observations': renderObservations(); break;
-        case 'driving-forces': renderDrivingForces(); break;
-        case 'my-scenarios': renderMyScenarios(); break;
-        case 'signal-tracking': renderSignalTracking(); break;
-      }
-    }
-
-    // --- Bookmarks ---
-    function renderBookmarks() {
-      let html = '';
-      if (bookmarks.length === 0) {
-        html = '<div class="empty-state">ブックマークはありません。PESTLEタブでニュースを保存してください。</div>';
-      } else {
-        html = `<p style="color:var(--text-muted); margin-bottom:16px;">${bookmarks.length}件のブックマーク</p>`;
-        bookmarks.forEach(bm => {
-          const art = getArticleByBookmark(bm);
-          html += `<div class="card">
-            <div style="display:flex; justify-content:space-between; align-items:start;">
-              <div>
-                <span class="pestle-badge pestle-${bm.category}">${PESTLE_JA[bm.category] || bm.category}</span>
-                <div class="article-title" style="margin-top:4px;">${art ? esc(getTitle(art, bm.category, bm.articleIndex)) : '(記事データなし)'}</div>
-                ${bm.note ? `<p style="font-size:0.85rem; color:var(--accent2); margin-top:6px;">メモ: ${esc(bm.note)}</p>` : ''}
-              </div>
-              <div>
-                <button class="btn btn-sm btn-primary" onclick="editBookmarkNote('${bm.id}')">メモ</button>
-                <button class="btn btn-sm btn-danger" onclick="deleteDoc('bookmarks','${bm.id}')">削除</button>
-              </div>
-            </div>
-          </div>`;
-        });
-      }
-      document.getElementById('ws-bookmarks').innerHTML = html;
-    }
-
-    function getArticleByBookmark(bm) {
-      if (bm.type === 'news' && NEWS?.pestle?.[bm.category]?.articles) {
-        return NEWS.pestle[bm.category].articles[bm.articleIndex];
-      }
-      return null;
-    }
-
-    // --- Observations ---
-    function renderObservations() {
-      let html = `<div style="margin-bottom:16px;">
-        <button class="btn btn-success" onclick="showObservationForm()">新しい観察を記録</button>
-      </div>`;
-
-      if (observations.length === 0) {
-        html += '<div class="empty-state">まだ観察記録がありません。ニュースやシグナルから気づいたことを記録しましょう。</div>';
-      } else {
-        observations.forEach(obs => {
-          const date = obs.createdAt?.toDate ? obs.createdAt.toDate().toLocaleDateString('ja-JP') : '-';
-          html += `<div class="card">
-            <div style="display:flex; justify-content:space-between;">
-              <span style="font-size:0.8rem; color:var(--text-muted);">${date}</span>
-              <div>
-                <button class="btn btn-sm btn-primary" onclick="editObservation('${obs.id}')">編集</button>
-                <button class="btn btn-sm btn-danger" onclick="deleteDoc('observations','${obs.id}')">削除</button>
-              </div>
-            </div>
-            ${obs.title ? `<h4 style="margin:8px 0;">${esc(obs.title)}</h4>` : ''}
-            <p style="font-size:0.9rem; line-height:1.7; white-space:pre-wrap;">${esc(obs.text)}</p>
-            ${obs.tags?.length ? `<div style="margin-top:8px;">${obs.tags.map(t => `<span class="badge">${esc(t)}</span>`).join(' ')}</div>` : ''}
-          </div>`;
-        });
-      }
-      document.getElementById('ws-observations').innerHTML = html;
-    }
-
-    // --- Driving Forces ---
-    function renderDrivingForces() {
-      let html = `<div style="margin-bottom:16px;">
-        <button class="btn btn-success" onclick="showDFForm()">ドライビングフォースを追加</button>
-      </div>`;
-
-      if (drivingForces.length === 0) {
-        html += '<div class="empty-state">ドライビングフォースがありません。CLA分析やシグナルから重要な変化の原動力を特定しましょう。</div>';
-      } else {
-        html += '<div class="card-grid">';
-        drivingForces.forEach(df => {
-          html += `<div class="card">
-            <div style="display:flex; justify-content:space-between; align-items:start;">
-              <h3>${esc(df.name)}</h3>
-              <div>
-                <button class="btn btn-sm btn-primary" onclick="editDF('${df.id}')">編集</button>
-                <button class="btn btn-sm btn-danger" onclick="deleteDoc('drivingForces','${df.id}')">削除</button>
-              </div>
-            </div>
-            <p style="font-size:0.85rem; color:var(--text-muted); margin:8px 0;">${esc(df.description || '')}</p>
-            <div style="font-size:0.85rem; margin-top:8px;">
-              <span style="color:var(--accent);">+</span> ${esc(df.polePositive || '')}
-              <span style="color:var(--danger); margin-left:12px;">-</span> ${esc(df.poleNegative || '')}
-            </div>
-            <div style="font-size:0.8rem; color:var(--text-muted); margin-top:8px;">
-              インパクト: <strong>${df.impact || '-'}</strong> / 不確実性: <strong>${df.uncertainty || '-'}</strong>
-            </div>
-            ${df.pestleCategories?.length ? `<div style="margin-top:8px;">${df.pestleCategories.map(c => `<span class="pestle-badge pestle-${c}">${PESTLE_JA[c]||c}</span>`).join(' ')}</div>` : ''}
-          </div>`;
-        });
-        html += '</div>';
-      }
-      document.getElementById('ws-driving-forces').innerHTML = html;
-    }
-
-    // --- My Scenarios ---
-    function renderMyScenarios() {
-      let html = `<div style="margin-bottom:16px;">
-        <button class="btn btn-success" onclick="showScenarioBuilder()">新しいシナリオセットを作成</button>
-      </div>`;
-
-      if (drivingForces.length < 2) {
-        html += '<div class="empty-state">シナリオを作成するには、まずドライビングフォースを2つ以上定義してください。</div>';
-      } else if (myScenarios.length === 0) {
-        html += '<div class="empty-state">まだシナリオセットがありません。2つのドライビングフォースを軸にしてシナリオを構築しましょう。</div>';
-      } else {
-        myScenarios.forEach(set => {
-          html += `<div class="card">
-            <div style="display:flex; justify-content:space-between; align-items:start;">
-              <h3>${esc(set.name)}</h3>
-              <div>
-                <button class="btn btn-sm btn-primary" onclick="editScenarioSet('${set.id}')">編集</button>
-                <button class="btn btn-sm btn-danger" onclick="deleteDoc('myScenarios','${set.id}')">削除</button>
-              </div>
-            </div>
-            <p style="font-size:0.85rem; color:var(--text-muted);">X: ${esc(set.axisX?.label || '')} / Y: ${esc(set.axisY?.label || '')}</p>
-            <div class="scenario-matrix" style="margin-top:12px;">
-              ${(set.scenarios || []).map(sc => `
-                <div class="scenario-card">
-                  <h4>${esc(sc.name || '(未命名)')}</h4>
-                  <p>${esc((sc.narrative || '').substring(0, 100))}${sc.narrative?.length > 100 ? '...' : ''}</p>
-                </div>
-              `).join('')}
-            </div>
-          </div>`;
-        });
-      }
-      document.getElementById('ws-my-scenarios').innerHTML = html;
-    }
-
-    // --- Signal Tracking ---
-    function renderSignalTracking() {
-      let html = `<p style="color:var(--text-muted); margin-bottom:16px;">弱いシグナルタブから追跡するシグナルを選択できます。</p>`;
-
-      if (signalTracking.length === 0) {
-        html += '<div class="empty-state">追跡中のシグナルはありません。</div>';
-      } else {
-        signalTracking.forEach(track => {
-          const sig = AI?.weak_signals?.[track.signalIndex];
-          html += `<div class="signal-item">
-            <div style="display:flex; justify-content:space-between; align-items:start;">
-              <h4>${esc(sig?.signal || track.customName || '(不明)')}</h4>
-              <div>
-                <select onchange="updateTrackStatus('${track.id}', this.value)" style="background:var(--bg); color:var(--text); border:1px solid var(--border); border-radius:4px; padding:4px 8px; font-size:0.8rem;">
-                  <option value="emerging" ${track.status === 'emerging' ? 'selected' : ''}>出現中</option>
-                  <option value="growing" ${track.status === 'growing' ? 'selected' : ''}>成長中</option>
-                  <option value="mature" ${track.status === 'mature' ? 'selected' : ''}>成熟</option>
-                  <option value="fading" ${track.status === 'fading' ? 'selected' : ''}>衰退</option>
-                </select>
-                <button class="btn btn-sm btn-danger" onclick="deleteDoc('signalTracking','${track.id}')">削除</button>
-              </div>
-            </div>
-            ${sig ? `<p style="font-size:0.85rem; color:var(--text-muted); margin-top:6px;">${esc(sig.description)}</p>` : ''}
-            ${track.notes?.length ? `<div style="margin-top:8px; font-size:0.85rem;">
-              ${track.notes.map(n => `<div style="padding:4px 0; border-top:1px solid var(--border);">${n.date}: ${esc(n.text)}</div>`).join('')}
-            </div>` : ''}
-            <div style="margin-top:8px;">
-              <button class="btn btn-sm btn-primary" onclick="addTrackNote('${track.id}')">メモを追加</button>
-            </div>
-          </div>`;
-        });
-      }
-      document.getElementById('ws-signal-tracking').innerHTML = html;
-    }
-
-    // ============================================================
-    // FIRESTORE OPERATIONS
-    // ============================================================
-    async function toggleBookmark(type, category, articleIndex, btn) {
-      const uid = currentUser.uid;
-      const ref = db.collection('users').doc(uid).collection('bookmarks');
-      const existing = bookmarks.find(b => b.type === type && b.category === category && b.articleIndex === articleIndex);
-
-      if (existing) {
-        await ref.doc(existing.id).delete();
-        bookmarks = bookmarks.filter(b => b.id !== existing.id);
-        btn.classList.remove('bookmarked');
-        btn.textContent = '保存';
-      } else {
-        const doc = await ref.add({
-          type, category, articleIndex,
-          note: '',
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        });
-        bookmarks.unshift({ id: doc.id, type, category, articleIndex, note: '' });
-        btn.classList.add('bookmarked');
-        btn.textContent = '保存済';
-      }
-    }
-
-    async function toggleSignalTrack(signalIndex, btn) {
-      const uid = currentUser.uid;
-      const ref = db.collection('users').doc(uid).collection('signalTracking');
-      const existing = signalTracking.find(t => t.signalIndex === signalIndex);
-
-      if (existing) {
-        await ref.doc(existing.id).delete();
-        signalTracking = signalTracking.filter(t => t.id !== existing.id);
-        btn.classList.remove('bookmarked');
-        btn.textContent = '追跡する';
-      } else {
-        const doc = await ref.add({
-          signalIndex, status: 'emerging', notes: [],
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-        });
-        signalTracking.unshift({ id: doc.id, signalIndex, status: 'emerging', notes: [] });
-        btn.classList.add('bookmarked');
-        btn.textContent = '追跡中';
-      }
-    }
-
-    async function deleteDoc(collection, docId) {
-      if (!confirm('削除しますか？')) return;
-      await db.collection('users').doc(currentUser.uid).collection(collection).doc(docId).delete();
-      // Refresh local data
-      if (collection === 'bookmarks') bookmarks = bookmarks.filter(b => b.id !== docId);
-      if (collection === 'observations') observations = observations.filter(o => o.id !== docId);
-      if (collection === 'drivingForces') drivingForces = drivingForces.filter(d => d.id !== docId);
-      if (collection === 'myScenarios') myScenarios = myScenarios.filter(s => s.id !== docId);
-      if (collection === 'signalTracking') signalTracking = signalTracking.filter(t => t.id !== docId);
-      renderWorkspace();
-    }
-
-    async function updateTrackStatus(trackId, status) {
-      await db.collection('users').doc(currentUser.uid).collection('signalTracking').doc(trackId).update({ status });
-      const track = signalTracking.find(t => t.id === trackId);
-      if (track) track.status = status;
-    }
-
-    // ============================================================
-    // FORMS & MODALS
-    // ============================================================
-    function openModal(title, bodyHtml) {
-      document.getElementById('modalTitle').textContent = title;
-      document.getElementById('modalBody').innerHTML = bodyHtml;
-      document.getElementById('modalOverlay').classList.add('active');
-    }
-
-    function closeModal() {
-      document.getElementById('modalOverlay').classList.remove('active');
-    }
-
-    document.getElementById('modalOverlay').addEventListener('click', (e) => {
-      if (e.target === e.currentTarget) closeModal();
-    });
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
-
-    function editBookmarkNote(bmId) {
-      const bm = bookmarks.find(b => b.id === bmId);
-      openModal('ブックマークメモ', `
-        <div class="form-group">
-          <textarea id="bmNote">${esc(bm?.note || '')}</textarea>
-        </div>
-        <button class="btn btn-primary" onclick="saveBookmarkNote('${bmId}')">保存</button>
-      `);
-    }
-
-    async function saveBookmarkNote(bmId) {
-      const note = document.getElementById('bmNote').value;
-      await db.collection('users').doc(currentUser.uid).collection('bookmarks').doc(bmId).update({ note });
-      const bm = bookmarks.find(b => b.id === bmId);
-      if (bm) bm.note = note;
-      closeModal();
-      renderBookmarks();
-    }
-
-    function showObservationForm(editId) {
-      const obs = editId ? observations.find(o => o.id === editId) : null;
-      openModal(obs ? '観察を編集' : '新しい観察を記録', `
-        <div class="form-group">
-          <label>タイトル（任意）</label>
-          <input type="text" id="obsTitle" value="${esc(obs?.title || '')}">
-        </div>
-        <div class="form-group">
-          <label>観察内容</label>
-          <textarea id="obsText" style="min-height:150px;">${esc(obs?.text || '')}</textarea>
-        </div>
-        <div class="form-group">
-          <label>タグ（カンマ区切り）</label>
-          <input type="text" id="obsTags" value="${esc(obs?.tags?.join(', ') || '')}">
-        </div>
-        <button class="btn btn-primary" onclick="saveObservation('${editId || ''}')">保存</button>
-      `);
-    }
-
-    function editObservation(id) { showObservationForm(id); }
-
-    async function saveObservation(editId) {
-      const data = {
-        title: document.getElementById('obsTitle').value.trim(),
-        text: document.getElementById('obsText').value.trim(),
-        tags: document.getElementById('obsTags').value.split(',').map(t => t.trim()).filter(Boolean),
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      };
-      if (!data.text) { alert('内容を入力してください'); return; }
-
-      const ref = db.collection('users').doc(currentUser.uid).collection('observations');
-      if (editId) {
-        await ref.doc(editId).update(data);
-        const idx = observations.findIndex(o => o.id === editId);
-        if (idx >= 0) observations[idx] = { ...observations[idx], ...data };
-      } else {
-        data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-        const doc = await ref.add(data);
-        observations.unshift({ id: doc.id, ...data });
-      }
-      closeModal();
-      renderObservations();
-    }
-
-    function showDFForm(editId) {
-      const df = editId ? drivingForces.find(d => d.id === editId) : null;
-      const cats = ['Political', 'Economic', 'Social', 'Technological', 'Legal', 'Environmental'];
-      openModal(df ? 'ドライビングフォースを編集' : 'ドライビングフォースを追加', `
-        <div class="form-group">
-          <label>名称</label>
-          <input type="text" id="dfName" value="${esc(df?.name || '')}" placeholder="例: AI技術の社会浸透">
-        </div>
-        <div class="form-group">
-          <label>説明</label>
-          <textarea id="dfDesc">${esc(df?.description || '')}</textarea>
-        </div>
-        <div class="form-group">
-          <label>方向性（+）</label>
-          <input type="text" id="dfPosDir" value="${esc(df?.polePositive || '')}" placeholder="例: 協調的なAIガバナンス">
-        </div>
-        <div class="form-group">
-          <label>方向性（-）</label>
-          <input type="text" id="dfNegDir" value="${esc(df?.poleNegative || '')}" placeholder="例: 技術独占と規制の分断">
-        </div>
-        <div class="form-group">
-          <label>インパクト</label>
-          <div class="slider-group">
-            <input type="range" id="dfImpact" min="1" max="10" value="${df?.impact || 5}" oninput="document.getElementById('dfImpactVal').textContent=this.value">
-            <span class="slider-value" id="dfImpactVal">${df?.impact || 5}</span>
-          </div>
-        </div>
-        <div class="form-group">
-          <label>不確実性</label>
-          <div class="slider-group">
-            <input type="range" id="dfUncertainty" min="1" max="10" value="${df?.uncertainty || 5}" oninput="document.getElementById('dfUncVal').textContent=this.value">
-            <span class="slider-value" id="dfUncVal">${df?.uncertainty || 5}</span>
-          </div>
-        </div>
-        <div class="form-group">
-          <label>PESTLE分類</label>
-          <div style="display:flex; gap:8px; flex-wrap:wrap;">
-            ${cats.map(c => `<label style="font-size:0.85rem; cursor:pointer;">
-              <input type="checkbox" value="${c}" class="dfCatCheck" ${df?.pestleCategories?.includes(c) ? 'checked' : ''}> ${PESTLE_JA[c]}
-            </label>`).join('')}
-          </div>
-        </div>
-        <button class="btn btn-primary" onclick="saveDF('${editId || ''}')">保存</button>
-      `);
-    }
-
-    function editDF(id) { showDFForm(id); }
-
-    async function saveDF(editId) {
-      const data = {
-        name: document.getElementById('dfName').value.trim(),
-        description: document.getElementById('dfDesc').value.trim(),
-        polePositive: document.getElementById('dfPosDir').value.trim(),
-        poleNegative: document.getElementById('dfNegDir').value.trim(),
-        impact: parseInt(document.getElementById('dfImpact').value),
-        uncertainty: parseInt(document.getElementById('dfUncertainty').value),
-        pestleCategories: [...document.querySelectorAll('.dfCatCheck:checked')].map(c => c.value),
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      };
-      if (!data.name) { alert('名称を入力してください'); return; }
-
-      const ref = db.collection('users').doc(currentUser.uid).collection('drivingForces');
-      if (editId) {
-        await ref.doc(editId).update(data);
-        const idx = drivingForces.findIndex(d => d.id === editId);
-        if (idx >= 0) drivingForces[idx] = { ...drivingForces[idx], ...data };
-      } else {
-        data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-        const doc = await ref.add(data);
-        drivingForces.unshift({ id: doc.id, ...data });
-      }
-      closeModal();
-      renderDrivingForces();
-    }
-
-    function showScenarioBuilder(editId) {
-      const set = editId ? myScenarios.find(s => s.id === editId) : null;
-      const dfOptions = drivingForces.map(df => `<option value="${df.id}">${esc(df.name)}</option>`).join('');
-
-      openModal(set ? 'シナリオセットを編集' : 'シナリオセットを作成', `
-        <div class="form-group">
-          <label>セット名</label>
-          <input type="text" id="scName" value="${esc(set?.name || '')}" placeholder="例: 2030年テクノロジー社会シナリオ">
-        </div>
-        <div class="form-group">
-          <label>X軸（ドライビングフォース）</label>
-          <select id="scAxisX">${dfOptions}</select>
-        </div>
-        <div class="form-group">
-          <label>Y軸（ドライビングフォース）</label>
-          <select id="scAxisY">${dfOptions}</select>
-        </div>
-        <p style="font-size:0.85rem; color:var(--text-muted); margin:16px 0 8px;">各象限のシナリオ名とナラティブを記入してください：</p>
-        <div class="matrix-preview">
-          <div class="matrix-cell">
-            <h5>左上: Y+ / X-</h5>
-            <input type="text" id="scQ1Name" value="${esc(set?.scenarios?.[0]?.name || '')}" placeholder="シナリオ名" style="margin-bottom:4px;">
-            <textarea id="scQ1Narr" placeholder="ナラティブ...">${esc(set?.scenarios?.[0]?.narrative || '')}</textarea>
-          </div>
-          <div class="matrix-cell">
-            <h5>右上: Y+ / X+</h5>
-            <input type="text" id="scQ2Name" value="${esc(set?.scenarios?.[1]?.name || '')}" placeholder="シナリオ名" style="margin-bottom:4px;">
-            <textarea id="scQ2Narr" placeholder="ナラティブ...">${esc(set?.scenarios?.[1]?.narrative || '')}</textarea>
-          </div>
-          <div class="matrix-cell">
-            <h5>左下: Y- / X-</h5>
-            <input type="text" id="scQ3Name" value="${esc(set?.scenarios?.[2]?.name || '')}" placeholder="シナリオ名" style="margin-bottom:4px;">
-            <textarea id="scQ3Narr" placeholder="ナラティブ...">${esc(set?.scenarios?.[2]?.narrative || '')}</textarea>
-          </div>
-          <div class="matrix-cell">
-            <h5>右下: Y- / X+</h5>
-            <input type="text" id="scQ4Name" value="${esc(set?.scenarios?.[3]?.name || '')}" placeholder="シナリオ名" style="margin-bottom:4px;">
-            <textarea id="scQ4Narr" placeholder="ナラティブ...">${esc(set?.scenarios?.[3]?.narrative || '')}</textarea>
-          </div>
-        </div>
-        <button class="btn btn-primary" onclick="saveScenarioSet('${editId || ''}')">保存</button>
-      `);
-
-      // Set selected axes if editing
-      if (set) {
-        if (set.axisX?.dfId) document.getElementById('scAxisX').value = set.axisX.dfId;
-        if (set.axisY?.dfId) document.getElementById('scAxisY').value = set.axisY.dfId;
-      }
-    }
-
-    function editScenarioSet(id) { showScenarioBuilder(id); }
-
-    async function saveScenarioSet(editId) {
-      const xDfId = document.getElementById('scAxisX').value;
-      const yDfId = document.getElementById('scAxisY').value;
-      const xDf = drivingForces.find(d => d.id === xDfId);
-      const yDf = drivingForces.find(d => d.id === yDfId);
-
-      if (xDfId === yDfId) { alert('X軸とY軸は異なるドライビングフォースを選択してください'); return; }
-
-      const data = {
-        name: document.getElementById('scName').value.trim() || '無題のシナリオセット',
-        axisX: { dfId: xDfId, label: xDf?.name || '', polePositive: xDf?.polePositive || '', poleNegative: xDf?.poleNegative || '' },
-        axisY: { dfId: yDfId, label: yDf?.name || '', polePositive: yDf?.polePositive || '', poleNegative: yDf?.poleNegative || '' },
-        scenarios: [
-          { quadrant: 'top_left', name: document.getElementById('scQ1Name').value, narrative: document.getElementById('scQ1Narr').value },
-          { quadrant: 'top_right', name: document.getElementById('scQ2Name').value, narrative: document.getElementById('scQ2Narr').value },
-          { quadrant: 'bottom_left', name: document.getElementById('scQ3Name').value, narrative: document.getElementById('scQ3Narr').value },
-          { quadrant: 'bottom_right', name: document.getElementById('scQ4Name').value, narrative: document.getElementById('scQ4Narr').value },
-        ],
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-      };
-
-      const ref = db.collection('users').doc(currentUser.uid).collection('myScenarios');
-      if (editId) {
-        await ref.doc(editId).update(data);
-        const idx = myScenarios.findIndex(s => s.id === editId);
-        if (idx >= 0) myScenarios[idx] = { ...myScenarios[idx], ...data };
-      } else {
-        data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
-        const doc = await ref.add(data);
-        myScenarios.unshift({ id: doc.id, ...data });
-      }
-      closeModal();
-      renderMyScenarios();
-    }
-
-    async function addTrackNote(trackId) {
-      const text = prompt('メモを入力:');
-      if (!text) return;
-      const track = signalTracking.find(t => t.id === trackId);
-      if (!track) return;
-      const notes = [...(track.notes || []), { date: new Date().toLocaleDateString('ja-JP'), text }];
-      await db.collection('users').doc(currentUser.uid).collection('signalTracking').doc(trackId).update({ notes });
-      track.notes = notes;
-      renderSignalTracking();
-    }
-
-    // ============================================================
-    // UTILITIES
-    // ============================================================
-    function esc(str) {
-      if (!str) return '';
-      const div = document.createElement('div');
-      div.textContent = str;
-      return div.innerHTML;
-    }
-
-    function getTitle(article, cat, idx) {
-      // Try to get Japanese translation from AI data
-      if (AI?.translations?.[cat]?.[idx]?.title_ja) {
-        return AI.translations[cat][idx].title_ja;
-      }
-      return article.title || '';
-    }
-  </script>
+  }
+  const full = PAPERS_FULL[idx] || p;
+  const displayTitle = localizedPaperTitle(full, idx);
+  const displaySummary = localizedPaperSummary(full, idx);
+  const lang = full.language || 'en';
+  const color = FIELD_COLORS[full.field] || 'var(--accent)';
+  const hasTrans = PAPERS_TRANS[idx] && lang === 'en' && LANG === 'ja';
+  openModal(displayTitle, `
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;">
+      <span class="paper-field-badge" style="background:${color}">${esc(full.field)}</span>
+      ${full.subfield ? `<span class="paper-subfield-tag">${esc(localizedSubfield(full.subfield))}</span>` : ''}
+      <span class="paper-lang-badge${lang === 'ja' ? ' ja' : ''}">${lang.toUpperCase()}</span>
+      ${full.published_date ? `<span style="font-size:0.72rem;color:var(--text-muted);padding:2px 0;margin-left:auto">${esc(full.published_date)}</span>` : ''}
+    </div>
+    <div class="modal-field"><div class="modal-label">${t('authors')}</div><div class="modal-value" style="line-height:1.6">${esc(full.authors || t('unknown'))}</div></div>
+    <div class="modal-field"><div class="modal-label">${t('summary')}</div><div class="modal-value" style="line-height:1.8;font-size:0.84rem">${esc(displaySummary)}</div></div>
+    ${hasTrans ? `<div class="modal-field" style="background:#faf5f0;padding:12px;border-radius:8px;margin-top:4px;"><div class="modal-label" style="margin-bottom:4px">Original (English)</div><div style="font-size:0.78rem;color:var(--text-muted);line-height:1.6;font-weight:500;margin-bottom:6px">${esc(full.title)}</div><div style="font-size:0.75rem;color:var(--text-muted);line-height:1.6">${esc(full.summary)}</div></div>` : ''}
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
+      <a href="${esc(full.source_url)}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:8px 16px;border-radius:8px;background:var(--accent);color:white;text-decoration:none;font-size:0.82rem;font-weight:500;transition:background 0.15s">${LANG === 'ja' ? '論文を開く' : 'Open paper'} &#8599;</a>
+      ${full.doi ? `<a href="https://doi.org/${esc(full.doi)}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:8px 16px;border-radius:8px;background:var(--card);border:1px solid var(--border);color:var(--text);text-decoration:none;font-size:0.82rem;transition:border-color 0.15s">DOI: ${esc(full.doi)}</a>` : ''}
+    </div>
+  `);
+}
+
+function renderAlerts() {
+  const panel = document.getElementById('alertsPanel');
+  if (!ALERTS_DATA || !ALERTS_DATA.alerts || ALERTS_DATA.alerts.length === 0) { panel.innerHTML = ''; return; }
+  const alerts = ALERTS_DATA.alerts;
+  const icons = { EMERGENCE: '\u26a0\ufe0f', SURGE: '\ud83d\udcc8', CROSSOVER: '\ud83d\udd00' };
+  const typeLabels = { EMERGENCE: t('alert_emergence'), SURGE: t('alert_surge'), CROSSOVER: t('alert_crossover') };
+  const catColors = { Political: 'var(--P)', Economic: 'var(--E)', Social: 'var(--S)', Technological: 'var(--T)', Legal: 'var(--L)', Environmental: 'var(--En)' };
+  const catJa = { Political: '\u653f\u6cbb', Economic: '\u7d4c\u6e08', Social: '\u793e\u4f1a', Technological: '\u6280\u8853', Legal: '\u6cd5\u5f8b', Environmental: '\u74b0\u5883' };
+  let html = `<div class="alerts-panel"><div class="alerts-panel-header">\u26a0\ufe0f ${t('alerts_title')}<span style="font-size:0.75rem;font-weight:400;color:var(--text-muted);margin-left:8px">${t('alerts_desc')}</span><span class="alert-total-badge">${alerts.length}</span></div><div class="alert-list">`;
+  for (const a of alerts) {
+    const typeCls = a.type.toLowerCase(); const icon = icons[a.type] || '\u26a0\ufe0f'; const typeLabel = typeLabels[a.type] || a.type;
+    const desc = LANG === 'ja' ? a.description : (a.description_en || a.description);
+    let detail = '';
+    if (a.type === 'SURGE' && a.ratio) detail = `<span style="color:var(--highlight);font-weight:600">${a.ratio}${t('alert_ratio')}</span>`;
+    else if (a.type === 'EMERGENCE') detail = `<span style="color:#b92a38;font-weight:600">${a.mentions}${t('alert_mentions')}</span>`;
+    else if (a.type === 'CROSSOVER') detail = `<span style="color:#2c68a0;font-weight:600">${a.n_categories} categories</span>`;
+    const catTags = (a.categories || []).map(c => { const label = LANG === 'ja' ? (catJa[c] || c) : c; const color = catColors[c] || 'var(--accent)'; return `<span class="alert-cat-tag" style="border-left:2px solid ${color}">${label}</span>`; }).join('');
+    const title = LANG === 'ja' ? (a.alert_title || a.topic) : (a.alert_title_en || a.topic);
+    html += `<div class="alert-item"><div class="alert-icon ${typeCls}">${icon}</div><div class="alert-body"><div class="alert-topic">${esc(title)}<span class="alert-type-badge ${typeCls}">${typeLabel}</span>${detail}</div><div class="alert-desc">${esc(desc)}</div><div class="alert-cats">${catTags}</div></div></div>`;
+  }
+  html += '</div></div>';
+  panel.innerHTML = html;
+}
+
+function getAlertCountByCategory() {
+  if (!ALERTS_DATA || !ALERTS_DATA.alerts) return {};
+  const counts = {};
+  for (const a of ALERTS_DATA.alerts) { for (const cat of (a.categories || [])) { counts[cat] = (counts[cat] || 0) + 1; } }
+  return counts;
+}
+
+function renderOverview() {
+  if (!NEWS_DATA) return;
+  const totalNews = Object.values(NEWS_DATA.pestle).reduce((s, c) => s + c.count, 0);
+  const sources = new Set();
+  Object.values(NEWS_DATA.pestle).forEach(c => c.articles.forEach(a => sources.add(a.source)));
+  const fields = {};
+  PAPERS_DATA.forEach(p => { fields[p.field] = (fields[p.field] || 0) + 1; });
+  const historyQuarters = PESTLE_HISTORY?._quarterCount || 0;
+  let historyTotal = 0;
+  if (PESTLE_HISTORY?._index) { for (const cats of Object.values(PESTLE_HISTORY._index)) { if (typeof cats === 'object') historyTotal += Object.values(cats).reduce((s, n) => s + (typeof n === 'number' ? n : 0), 0); } }
+  const newsTotal = historyTotal || totalNews;
+  const papersTotal = PAPERS_STATS?.total || PAPERS_DATA.length;
+  document.getElementById('overviewStats').innerHTML = `
+    <div class="stat-card"><div class="stat-label">${t('stat_news')}</div><div class="stat-value">${newsTotal.toLocaleString()}</div><div class="stat-sub">${historyQuarters > 0 ? '1990年〜 ' + historyQuarters + '四半期' : t('stat_sub_news')}</div></div>
+    <div class="stat-card"><div class="stat-label">${t('stat_papers')}</div><div class="stat-value">${papersTotal.toLocaleString()}</div><div class="stat-sub">${Object.keys(PAPERS_STATS?.by_field || fields).length} ${t('field')}</div></div>
+    <div class="stat-card"><div class="stat-label">${t('stat_sources')}</div><div class="stat-value">${sources.size}</div><div class="stat-sub">${t('stat_sub_sources')}</div></div>
+    <div class="stat-card"><div class="stat-label">${t('stat_date')}</div><div class="stat-value" style="font-size:1rem">${NEWS_DATA.date}</div><div class="stat-sub">${NEWS_DATA.total_fetched}件から${totalNews}件選定</div></div>
+    <div class="stat-card"><div class="stat-label">${t('stat_fields')}</div><div class="stat-value">${Object.keys(fields).length}</div><div class="stat-sub">${Object.entries(fields).map(([f,n]) => f + ':' + n).join(', ')}</div></div>`;
+  let pestleHtml = '';
+  for (const [cat, meta] of Object.entries(PESTLE_META)) {
+    const info = NEWS_DATA.pestle[cat]; if (!info) continue;
+    const alertCounts = getAlertCountByCategory();
+    const alertBadge = alertCounts[cat] ? `<span class="pestle-alert-badge">\u26a0 ${alertCounts[cat]}</span>` : '';
+    pestleHtml += `<div class="pestle-section"><div class="pestle-header" style="background:linear-gradient(135deg, ${meta.color} 0%, ${meta.color}cc 100%)"><div class="pestle-badge"></div>${meta.icon} ${meta.ja} ${alertBadge}<span class="pestle-count">${info.count}件</span></div><div class="article-list">${info.articles.slice(0, 3).map((a, i) => `<div class="article-item" onclick="showArticle('${cat}', ${i})"><div class="article-title">${esc(localizedTitle(a, cat, i))}</div><div class="article-meta"><span class="article-source">${esc(a.source)}</span>${a.published_date ? `<span style="font-size:0.7rem;color:var(--text-muted)">${esc(a.published_date)}</span>` : ''}</div></div>`).join('')}</div></div>`;
+  }
+  document.getElementById('overviewPestle').innerHTML = pestleHtml;
+  let papersHtml = '';
+  const byField = {};
+  PAPERS_DATA.forEach((p, i) => { if (!byField[p.field]) byField[p.field] = []; byField[p.field].push({...p, _idx: i}); });
+  for (const [field, papers] of Object.entries(byField)) {
+    papersHtml += `<div class="paper-section"><div class="paper-header"><span class="paper-field-badge" style="background:${FIELD_COLORS[field] || 'var(--accent)'}">${esc(field)}</span><span class="pestle-count">${papers.length}件</span></div>${papers.slice(0, 2).map(p => `<div class="paper-item" style="cursor:pointer" onclick="showPaper(${p._idx})"><div class="paper-title">${esc(localizedPaperTitle(p, p._idx))}</div><div class="paper-authors">${esc((p.authors || '').substring(0, 80))}${(p.authors || '').length > 80 ? '...' : ''} ${p.published_date ? `<span style="color:var(--text-muted);font-size:0.7rem">(${esc(p.published_date)})</span>` : ''}</div></div>`).join('')}</div>`;
+  }
+  document.getElementById('overviewPapers').innerHTML = papersHtml;
+}
+
+async function ensurePestleHistoryLoaded() {
+  if (_pestleHistoryLoaded) return;
+  try { const resp = await fetch(DATA_BASE_URL + 'data/pestle_history.json?v=' + Date.now()); const full = await resp.json(); PESTLE_HISTORY = { ...PESTLE_HISTORY, ...full }; _pestleHistoryLoaded = true; } catch (e) { console.warn('Failed to load history:', e); }
+}
+
+async function renderPestle() {
+  if (!NEWS_DATA) return;
+  const q = (document.getElementById('pestleSearch').value || '').toLowerCase();
+  const yearFilter = document.getElementById('pestleYearFilter')?.value || 'latest';
+  if (yearFilter !== 'latest' && !_pestleHistoryLoaded) { document.getElementById('pestleGrid').innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-muted)">データを読み込み中...</div>'; await ensurePestleHistoryLoaded(); }
+  const sel = document.getElementById('pestleYearFilter');
+  const idx = PESTLE_HISTORY?._index;
+  if (sel && sel.options.length <= 2 && idx) { const years = new Set(); Object.keys(idx).forEach(qk => { if (qk.length >= 4) years.add(qk.substring(0, 4)); }); [...years].sort().reverse().forEach(y => { const opt = document.createElement('option'); opt.value = y; opt.textContent = y + '年'; sel.appendChild(opt); }); }
+  let pestleData = {};
+  if (PESTLE_HISTORY && _pestleHistoryLoaded) { const validQs = Object.keys(PESTLE_HISTORY).filter(k => /^\d{4}Q\d$/.test(k)).sort(); for (const qk of validQs) { if (yearFilter !== 'all' && yearFilter !== 'latest' && !qk.startsWith(yearFilter)) continue; if (yearFilter === 'latest' && qk !== validQs[validQs.length - 1]) continue; const cats = PESTLE_HISTORY[qk]; for (const [cat, info] of Object.entries(cats)) { if (!pestleData[cat]) pestleData[cat] = []; pestleData[cat].push(...(info.articles || [])); } } }
+  if ((yearFilter === 'latest' || Object.keys(pestleData).length === 0) && NEWS_DATA) { pestleData = {}; for (const [cat, info] of Object.entries(NEWS_DATA.pestle)) { pestleData[cat] = (info.articles || []); } }
+  renderPestleDimFilters();
+  let totalCount = 0; let html = '';
+  for (const [cat, meta] of Object.entries(PESTLE_META)) {
+    if (!pestleDimVisible[cat]) continue;
+    let articles = pestleData[cat] || [];
+    if (q) articles = articles.filter(a => ((a.title||'') + (a.summary||'') + (a.source||'')).toLowerCase().includes(q));
+    totalCount += articles.length;
+    articles.sort((a, b) => ((b.published_date||'').localeCompare(a.published_date||'')));
+    html += `<div class="pestle-section"><div class="pestle-header" style="background:linear-gradient(135deg, ${meta.color} 0%, ${meta.color}cc 100%)"><div class="pestle-badge"></div>${meta.icon} <strong>${meta.ja}</strong><span class="pestle-count">${articles.length.toLocaleString()}件</span></div><div class="article-list">${articles.slice(0, 50).map((a, i) => { const title = (yearFilter === 'latest') ? localizedTitle(a, cat, i) : a.title; const summary = (yearFilter === 'latest') ? localizedSummary(a, cat, i) : (a.summary || ''); const snippet = (summary || '').substring(0, 120); const relScore = a.relevance_score || 0; const relPct = Math.min(relScore / 10 * 100, 100); return `<div class="article-item" ${yearFilter === 'latest' ? `onclick="showArticle('${cat}', ${i})"` : (a.url ? `onclick="window.open('${esc(a.url)}','_blank')" style="cursor:pointer"` : '')}><div class="article-title">${esc(title)}</div>${snippet ? `<div class="article-snippet">${esc(snippet)}${summary.length > 120 ? '...' : ''}</div>` : ''}<div class="article-meta"><span class="article-source">${esc(a.source)}</span>${(a.published_date || a.published) ? `<span>${esc(formatPubDate(a.published_date || a.published))}</span>` : ''}${relScore ? `<span class="article-relevance"><span class="article-relevance-bar"><span class="article-relevance-fill" style="width:${relPct}%;background:${meta.color}"></span></span>${relScore}</span>` : ''}</div></div>`; }).join('')}${articles.length > 50 ? `<div style="padding:10px;text-align:center;color:var(--text-muted);font-size:0.8rem">他 ${(articles.length - 50).toLocaleString()}件</div>` : ''}</div></div>`;
+  }
+  const countEl = document.getElementById('pestleTotalCount');
+  if (countEl) countEl.textContent = `計 ${totalCount.toLocaleString()}件`;
+  document.getElementById('pestleGrid').innerHTML = html;
+}
+
+let _papersSort = 'date'; let _papersShowCount = {};
+function onPapersSearchInput() { const q = document.getElementById('papersSearch').value; const clearBtn = document.getElementById('papersSearchClear'); if (clearBtn) clearBtn.classList.toggle('show', q.length > 0); renderPapers(); }
+function clearPapersSearch() { document.getElementById('papersSearch').value = ''; document.getElementById('papersSearchClear').classList.remove('show'); renderPapers(); }
+function setPapersSort(mode) { _papersSort = mode; document.getElementById('papersSortDate').classList.toggle('active', mode === 'date'); document.getElementById('papersSortTitle').classList.toggle('active', mode === 'title'); renderPapers(); }
+function loadMorePapers(field) { _papersShowCount[field] = (_papersShowCount[field] || 30) + 30; renderPapers(); }
+function filterByField(field) { document.getElementById('papersField').value = field; renderPapers(); }
+let _papersJaOnly = false;
+function toggleTransFilter() { _papersJaOnly = !_papersJaOnly; document.getElementById('papersTransFilter').classList.toggle('active', _papersJaOnly); renderPapers(); }
+
+function renderPapersStats(byField, totalShown) {
+  const statsGrid = document.getElementById('papersStatsGrid'); if (!statsGrid) return;
+  const fieldOrder = ['人文学', '社会科学', '自然科学', '工学', '芸術'];
+  const maxCount = Math.max(...fieldOrder.map(f => (byField[f] || []).length), 1);
+  const currentFilter = document.getElementById('papersField').value;
+  let html = `<div class="papers-stat-card${!currentFilter ? ' active' : ''}" onclick="filterByField('')" style="border-left: 4px solid var(--accent);"><div class="papers-stat-label">${t('papers_total')}</div><div class="papers-stat-value" style="color:var(--accent)">${totalShown.toLocaleString()}</div></div>`;
+  for (const field of fieldOrder) { const count = (byField[field] || []).length; const color = FIELD_COLORS[field] || 'var(--accent)'; const pct = Math.round((count / maxCount) * 100); const isActive = currentFilter === field; html += `<div class="papers-stat-card${isActive ? ' active' : ''}" onclick="filterByField('${field}')" style="border-left: 4px solid ${color};"><div class="papers-stat-label">${esc(field)}</div><div class="papers-stat-value" style="color:${color}">${count.toLocaleString()}</div><div class="papers-stat-bar"><div class="papers-stat-bar-fill" style="width:${pct}%;background:${color}"></div></div></div>`; }
+  statsGrid.innerHTML = html;
+}
+
+function renderPapers() {
+  const q = (document.getElementById('papersSearch').value || '').toLowerCase();
+  const decade = document.getElementById('papersDecade').value;
+  const fieldFilter = document.getElementById('papersField').value;
+  const langFilter = document.getElementById('papersLang').value;
+  const byField = {}; let totalShown = 0;
+  PAPERS_DATA.forEach((p, i) => {
+    if (q) { const tr = PAPERS_TRANS[i]; const searchable = (p.title + ' ' + (p.summary || '') + ' ' + (p.authors || '') + ' ' + p.field + ' ' + (p.subfield || '') + ' ' + (p.title_ja || '') + ' ' + (p.summary_ja || '') + (tr ? ' ' + (tr.title_ja || '') + ' ' + (tr.summary_ja || '') : '')).toLowerCase(); if (!searchable.includes(q)) return; }
+    if (fieldFilter && p.field !== fieldFilter) return;
+    if (langFilter && (p.language || 'en') !== langFilter) return;
+    if (_papersJaOnly) { const hasJa = (p.language === 'ja') || p.title_ja || (PAPERS_TRANS[i] && PAPERS_TRANS[i].title_ja); if (!hasJa) return; }
+    if (decade) { const yr = parseInt((p.published_date || '').substring(0, 4)); const d = parseInt(decade); if (isNaN(yr) || yr < d || yr >= d + 10) return; }
+    if (!byField[p.field]) byField[p.field] = []; byField[p.field].push({...p, _idx: i}); totalShown++;
+  });
+  renderPapersStats(byField, totalShown);
+  const countEl = document.getElementById('papersResultCount');
+  if (countEl) { const total = PAPERS_DATA.length; countEl.textContent = totalShown === total ? `${total.toLocaleString()}${t('papers_showing')}` : `${totalShown.toLocaleString()} / ${total.toLocaleString()}${t('papers_showing')}`; }
+  let html = '';
+  const fieldOrder = ['人文学', '社会科学', '自然科学', '工学', '芸術'];
+  const sortedFields = Object.entries(byField).sort((a, b) => fieldOrder.indexOf(a[0]) - fieldOrder.indexOf(b[0]));
+  for (const [field, papers] of sortedFields) {
+    if (_papersSort === 'date') papers.sort((a, b) => (b.published_date || '').localeCompare(a.published_date || '')); else papers.sort((a, b) => localizedPaperTitle(a, a._idx).localeCompare(localizedPaperTitle(b, b._idx)));
+    const limit = _papersShowCount[field] || 30; const shown = papers.slice(0, limit); const hasMore = papers.length > limit; const color = FIELD_COLORS[field] || 'var(--accent)';
+    html += `<div class="paper-section"><div class="paper-header"><span class="paper-field-badge" style="background:${color}">${esc(field)}</span><span class="pestle-count" style="margin-left:auto;font-size:0.78rem;color:var(--text-muted)">${papers.length.toLocaleString()}件</span></div><div class="article-list">${shown.map(p => { const title = localizedPaperTitle(p, p._idx); const lang = p.language || 'en'; const summary = localizedPaperSummary(p, p._idx); const summaryShort = summary ? summary.substring(0, 120) : ''; return `<div class="paper-item" onclick="showPaper(${p._idx})"><div class="paper-item-top"><div class="paper-title">${esc(title)}</div><span class="paper-lang-badge${lang === 'ja' ? ' ja' : ''}">${lang.toUpperCase()}</span></div>${summaryShort ? `<div class="paper-summary-preview">${esc(summaryShort)}${summary.length > 120 ? '...' : ''}</div>` : ''}<div class="paper-meta"><span class="paper-authors">${esc((p.authors || '').substring(0, 80))}${(p.authors || '').length > 80 ? '...' : ''}</span>${p.published_date ? `<span class="paper-date">${esc(p.published_date)}</span>` : ''}${p.subfield ? `<span class="paper-subfield-tag">${esc(localizedSubfield(p.subfield))}</span>` : ''}</div></div>`; }).join('')}${hasMore ? `<div class="paper-load-more" onclick="loadMorePapers('${esc(field)}')">${t('papers_load_more')} (${(papers.length - limit).toLocaleString()}件)</div>` : ''}</div></div>`;
+  }
+  if (!html) html = `<div class="papers-empty"><div class="papers-empty-icon">&#128269;</div><div class="papers-empty-text">${t('papers_no_results')}</div><div class="papers-empty-sub">${t('papers_no_results_sub')}</div></div>`;
+  document.getElementById('papersGrid').innerHTML = html;
+}
+
+let semanticEmbeddings = null; let semanticModel = null; let semanticSearchRunning = false;
+async function loadSemanticEmbeddings() { if (semanticEmbeddings) return semanticEmbeddings; try { const resp = await fetch(DATA_BASE_URL + 'data/embeddings.json'); semanticEmbeddings = await resp.json(); console.log(`Loaded ${semanticEmbeddings.count} embeddings`); return semanticEmbeddings; } catch (e) { console.error('Failed to load embeddings:', e); return null; } }
+async function loadSemanticModel() { if (semanticModel) return semanticModel; const { pipeline } = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3'); semanticModel = await pipeline('feature-extraction', 'Xenova/multilingual-e5-small', { dtype: 'q8' }); return semanticModel; }
+
+async function runGlobalSemanticSearch() {
+  const q = (document.getElementById('globalSearch').value || '').trim();
+  if (!q || q.length < 2 || semanticSearchRunning) return;
+  semanticSearchRunning = true;
+  const statusEl = document.getElementById('searchStatus');
+  statusEl.textContent = 'AIモデルを読み込み中...（初回のみ、約30秒）';
+  try {
+    const [emb, model] = await Promise.all([loadSemanticEmbeddings(), loadSemanticModel()]);
+    if (!emb || !model) { statusEl.textContent = 'データの読み込みに失敗しました。ページを更新してください。'; semanticSearchRunning = false; return; }
+    statusEl.textContent = '検索中...';
+    const output = await model('query: ' + q, { pooling: 'mean', normalize: true });
+    const queryVec = Array.from(output.data);
+    const scores = [];
+    for (const [id, docVec] of Object.entries(emb.vectors)) { let dot = 0; for (let i = 0; i < docVec.length; i++) dot += queryVec[i] * docVec[i]; scores.push({ id, score: dot }); }
+    scores.sort((a, b) => b.score - a.score);
+    const results = scores.slice(0, 30);
+    statusEl.textContent = `上位${results.length}件の関連結果を表示`;
+    renderSemanticResults(results);
+  } catch (e) { console.error('Semantic search error:', e); statusEl.textContent = 'エラーが発生しました: ' + e.message; }
+  semanticSearchRunning = false;
+}
+
+function renderSemanticResults(results) {
+  let html = '';
+  results.forEach(r => {
+    const pct = (r.score * 100).toFixed(0);
+    if (r.id.startsWith('news_')) { const parts = r.id.split('_'); const cat = parts[1]; const idx = parseInt(parts[2]); if (!NEWS_DATA || !NEWS_DATA.pestle[cat]) return; const article = NEWS_DATA.pestle[cat].articles[idx]; if (!article) return; const color = PESTLE_META[cat]?.color || 'var(--accent)'; const badge = PESTLE_META[cat]?.ja || cat; const title = localizedTitle(article, cat, idx); html += `<div class="article-item" style="background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:pointer" onclick="showArticle('${cat}', ${idx})"><div style="display:flex;align-items:center;gap:8px"><span style="font-size:0.65rem;padding:2px 8px;border-radius:4px;background:${color};color:white">${esc(badge)}</span><span class="lang-badge">NEWS</span><span style="font-size:0.65rem;padding:2px 6px;border-radius:4px;background:var(--accent-warm);color:white">${pct}%</span></div><div class="article-title" style="margin-top:4px">${esc(title)}</div><div class="article-meta">${esc(article.source || '')}</div></div>`; }
+    else if (r.id.startsWith('paper_')) { const idx = parseInt(r.id.split('_')[1]); const paper = PAPERS_DATA[idx]; if (!paper) return; const color = FIELD_COLORS[paper.field] || 'var(--accent)'; const title = localizedPaperTitle(paper, idx); html += `<div class="article-item" style="background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:pointer" onclick="showPaper(${idx})"><div style="display:flex;align-items:center;gap:8px"><span style="font-size:0.65rem;padding:2px 8px;border-radius:4px;background:${color};color:white">${esc(paper.field || '')}</span><span class="lang-badge">PAPER</span><span style="font-size:0.65rem;padding:2px 6px;border-radius:4px;background:var(--accent-warm);color:white">${pct}%</span></div><div class="article-title" style="margin-top:4px">${esc(title)}</div><div class="article-meta">${esc((paper.authors || '').substring(0, 60))}</div></div>`; }
+  });
+  if (!html) html = '<div style="color:var(--text-muted);padding:20px;">結果が見つかりませんでした。</div>';
+  document.getElementById('searchResults').innerHTML = html;
+}
+
+function renderGlobalSearch() {
+  const q = (document.getElementById('globalSearch').value || '').toLowerCase();
+  if (!q || q.length < 2) { document.getElementById('searchResults').innerHTML = `<div style="color:var(--text-muted);padding:20px;">${t('search_min')}</div>`; return; }
+  let results = [];
+  if (NEWS_DATA) { for (const [cat, info] of Object.entries(NEWS_DATA.pestle)) { info.articles.forEach((a, i) => { const tr = getTranslation(cat, i); const searchText = [a.title, a.summary, tr?.title_translated, tr?.summary_translated].filter(Boolean).join(' ').toLowerCase(); if (searchText.includes(q)) results.push({ type: 'news', category: cat, title: localizedTitle(a, cat, i), sub: a.source, idx: i }); }); } }
+  PAPERS_DATA.forEach((p, i) => { const ptr = PAPERS_TRANS[i]; const searchText = [p.title, p.summary, p.authors, ptr?.title_ja, ptr?.summary_ja].filter(Boolean).join(' ').toLowerCase(); if (searchText.includes(q)) results.push({ type: 'paper', category: p.field, title: localizedPaperTitle(p, i), sub: (p.authors || '').substring(0, 60), idx: i }); });
+  let html = `<div style="color:var(--text-muted);font-size:0.8rem;margin-bottom:12px">${results.length}${t('found')}</div>`;
+  results.forEach(r => { const color = r.type === 'news' ? (PESTLE_META[r.category]?.color || 'var(--accent)') : (FIELD_COLORS[r.category] || 'var(--accent)'); const badge = r.type === 'news' ? (PESTLE_META[r.category]?.ja || r.category) : r.category; const onclick = r.type === 'news' ? `showArticle('${r.category}', ${r.idx})` : `showPaper(${r.idx})`; html += `<div class="article-item" style="background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:pointer" onclick="${onclick}"><div style="display:flex;align-items:center;gap:8px"><span style="font-size:0.65rem;padding:2px 8px;border-radius:4px;background:${color};color:white">${esc(badge)}</span><span class="lang-badge">${r.type === 'news' ? 'NEWS' : 'PAPER'}</span></div><div class="article-title" style="margin-top:4px">${esc(r.title)}</div><div class="article-meta">${esc(r.sub)}</div></div>`; });
+  document.getElementById('searchResults').innerHTML = html;
+}
+
+let claCatFilter = 'Overall'; let claViewMode = 'timeline';
+function renderCLA() {
+  if (!AI_DATA || !AI_DATA.cla) { document.getElementById('claGrid').innerHTML = `<div style="color:var(--text-muted);padding:20px;">${t('no_ai')}</div>`; return; }
+  const qcla = AI_DATA.quarterly_cla || {};
+  const quarters = Object.keys(qcla).sort();
+  if (quarters.length === 0) quarters.push(AI_DATA.date?.slice(0,7) || '2026-03');
+  const catOptions = [{ key: 'Overall', label: '全体', icon: '\ud83c\udf10', color: 'var(--accent)' }, ...Object.entries(PESTLE_META).map(([k, m]) => ({ key: k, label: m.ja, icon: m.icon, color: m.color }))];
+  let html = '';
+  html += `<div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;align-items:center"><span style="font-size:0.82rem;color:var(--text-muted);font-weight:600">分野:</span>`;
+  catOptions.forEach(opt => { const isActive = claCatFilter === opt.key; html += `<button onclick="claCatFilter='${opt.key}';renderCLA()" style="padding:5px 12px;border:1px solid ${isActive ? opt.color : 'var(--border)'};border-radius:6px;background:${isActive ? opt.color : 'var(--card)'};color:${isActive ? '#fff' : 'var(--text)'};cursor:pointer;font-size:0.8rem">${opt.icon} ${opt.label}</button>`; });
+  html += `</div>`;
+  html += `<div style="display:flex;gap:6px;margin-bottom:16px;align-items:center"><span style="font-size:0.82rem;color:var(--text-muted);font-weight:600">表示:</span><button onclick="claViewMode='timeline';renderCLA()" style="padding:5px 12px;border:1px solid ${claViewMode==='timeline'?'var(--accent)':'var(--border)'};border-radius:6px;background:${claViewMode==='timeline'?'var(--accent)':'var(--card)'};color:${claViewMode==='timeline'?'#fff':'var(--text)'};cursor:pointer;font-size:0.8rem">変遷一覧</button><button onclick="claViewMode='single';renderCLA()" style="padding:5px 12px;border:1px solid ${claViewMode==='single'?'var(--accent)':'var(--border)'};border-radius:6px;background:${claViewMode==='single'?'var(--accent)':'var(--card)'};color:${claViewMode==='single'?'#fff':'var(--text)'};cursor:pointer;font-size:0.8rem">個別表示</button></div>`;
+  if (claViewMode === 'timeline') {
+    const layers = [{ key: 'litany', label: t('layer1'), border: 'var(--accent-warm)' }, { key: 'systemic_causes', label: t('layer2'), border: 'var(--accent-light)' }, { key: 'worldview', label: t('layer3'), border: 'var(--accent)' }, { key: 'myth_metaphor', label: t('layer4'), border: '#2c8acc' }, { key: 'key_tension', label: '核心的緊張', border: 'var(--highlight)' }, { key: 'emerging_narrative', label: '新たな物語', border: 'var(--S)' }];
+    layers.forEach(layer => { html += `<div style="margin-bottom:20px"><div style="font-size:0.88rem;font-weight:700;color:var(--accent);margin-bottom:8px;padding-left:4px;border-left:3px solid ${layer.border}">${layer.label}</div><div style="display:flex;gap:12px;overflow-x:auto;padding-bottom:8px">`; quarters.forEach(q => { const data = qcla[q]; const catData = data ? data[claCatFilter] : null; const text = catData ? (catData[layer.key] || '') : ''; const label = (q.includes('-') ? q.replace('-0', '年').replace('-1', '年1').replace('-', '年') + '月' : q + '年'); const isCurrent = q === quarters[quarters.length - 1]; html += `<div style="min-width:240px;max-width:300px;flex:1;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px;${isCurrent ? 'border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)' : ''}"><div style="font-size:0.75rem;font-weight:600;color:${isCurrent ? 'var(--accent)' : 'var(--text-muted)'};margin-bottom:6px">${label}${isCurrent ? '（現在）' : ''}</div><div style="font-size:0.8rem;line-height:1.6;color:var(--text)">${esc(text) || '<span style="color:var(--text-muted)">—</span>'}</div></div>`; }); html += `</div></div>`; });
+  } else {
+    html += `<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center"><span style="font-size:0.82rem;color:var(--text-muted);font-weight:600">期間:</span>`;
+    quarters.forEach((q, i) => { const isActive = i === (window._claSingleIdx || quarters.length - 1); const label = (q.includes('-') ? q.replace('-0', '年').replace('-1', '年1').replace('-', '年') + '月' : q + '年'); html += `<button onclick="window._claSingleIdx=${i};renderCLA()" style="padding:5px 12px;border:1px solid ${isActive ? 'var(--accent)' : 'var(--border)'};border-radius:6px;background:${isActive ? 'var(--accent)' : 'var(--card)'};color:${isActive ? '#fff' : 'var(--text)'};cursor:pointer;font-size:0.8rem">${label}</button>`; });
+    html += `</div>`;
+    const selIdx = window._claSingleIdx ?? quarters.length - 1; const selQ = quarters[selIdx];
+    const data = qcla[selQ] || (selIdx === quarters.length - 1 ? AI_DATA.cla : null);
+    if (!data || !data[claCatFilter]) { html += `<div style="padding:24px;text-align:center;color:var(--text-muted);background:var(--card);border-radius:10px;">データなし</div>`; }
+    else { const cla = data[claCatFilter]; const opt = catOptions.find(o => o.key === claCatFilter); html += `<div class="cla-card"><div class="cla-cat-header"><div class="pestle-badge" style="background:${opt?.color || 'var(--accent)'}"></div>${opt?.icon || ''} ${opt?.label || claCatFilter}<span style="font-size:0.72rem;color:var(--text-muted);margin-left:auto">${selQ}</span></div><div class="cla-layer litany"><div class="cla-layer-label">${t('layer1')}</div><div class="cla-layer-text">${esc(cla.litany || '')}</div></div><div class="cla-layer systemic"><div class="cla-layer-label">${t('layer2')}</div><div class="cla-layer-text">${esc(cla.systemic_causes || '')}</div></div><div class="cla-layer worldview"><div class="cla-layer-label">${t('layer3')}</div><div class="cla-layer-text">${esc(cla.worldview || '')}</div></div><div class="cla-layer myth"><div class="cla-layer-label">${t('layer4')}</div><div class="cla-layer-text">${esc(cla.myth_metaphor || '')}</div></div>${cla.key_tension ? `<div class="cla-tension">${esc(cla.key_tension)}</div>` : ''}${cla.emerging_narrative ? `<div class="cla-narrative">${esc(cla.emerging_narrative)}</div>` : ''}</div>`; }
+  }
+  document.getElementById('claGrid').innerHTML = html;
+}
+
+let signalsShowAll = false;
+function renderSignals() {
+  if (!AI_DATA || !AI_DATA.weak_signals || AI_DATA.weak_signals.length === 0) { document.getElementById('signalsGrid').innerHTML = `<div style="color:var(--text-muted);padding:20px;">${t('no_signals')}</div>`; return; }
+  const allSignals = AI_DATA.weak_signals; const displaySignals = signalsShowAll ? allSignals : allSignals.slice(0, 100);
+  let html = displaySignals.map(s => `<div class="signal-card"><div class="signal-header"><div class="signal-name">${esc(s.signal)}</div><span class="signal-impact ${(s.potential_impact || '').toLowerCase()}">${esc(s.potential_impact || '?')}</span></div><div class="signal-desc">${esc(s.description)}</div><div class="signal-meta">${s.detected_date ? `<span style="font-size:0.7rem;color:var(--text-muted)">${esc(s.detected_date)}</span>` : ''}${s.source_date ? `<span style="font-size:0.7rem;color:var(--text-muted)">${esc(s.source_date)}</span>` : ''}<span class="signal-horizon">${esc(s.time_horizon || '?')}</span>${(s.pestle_categories || []).map(c => { const m = PESTLE_META[c]; return m ? `<span style="font-size:0.65rem;padding:2px 6px;border-radius:3px;background:${m.color};color:white">${m.ja}</span>` : `<span class="lang-badge">${esc(c)}</span>`; }).join('')}</div>${s.counter_trend ? `<div class="signal-counter">${esc(s.counter_trend)}</div>` : ''}${s.related_headlines && s.related_headlines.length > 0 ? `<details style="margin-top:8px;font-size:0.75rem;color:var(--text-muted)"><summary style="cursor:pointer">関連記事 (${s.related_headlines.length})</summary><ul style="margin-top:4px;padding-left:16px">${s.related_headlines.map(h => `<li>${esc(h)}</li>`).join('')}</ul></details>` : ''}</div>`).join('');
+  if (!signalsShowAll && allSignals.length > 100) html += `<div style="text-align:center;padding:20px"><button onclick="signalsShowAll=true;renderSignals()" style="padding:10px 24px;border:1px solid var(--border);border-radius:8px;background:var(--card);cursor:pointer;font-size:0.88rem;color:var(--accent)">さらに表示（残り${allSignals.length - 100}件）</button></div>`;
+  document.getElementById('signalsGrid').innerHTML = html;
+}
+
+function getTranslation(cat, idx) { if (!AI_DATA || !AI_DATA.translations || !AI_DATA.translations[cat]) return null; return AI_DATA.translations[cat].find(t => t.index === idx); }
+function localizedTitle(article, cat, idx) { if (LANG === 'ja' && article.lang === 'en') { const tr = getTranslation(cat, idx); if (tr && tr.title_translated) return tr.title_translated; } return article.title; }
+function localizedSummary(article, cat, idx) { if (LANG === 'ja' && article.lang === 'en') { const tr = getTranslation(cat, idx); if (tr && tr.summary_translated) return tr.summary_translated; } return article.summary; }
+function localizedPaperTitle(paper, idx) { if (LANG === 'ja' && (paper.language || 'en') !== 'ja') { if (paper.title_ja) return paper.title_ja; const tr = PAPERS_TRANS[idx]; if (tr && tr.title_ja) return tr.title_ja; } return paper.title; }
+function localizedPaperSummary(paper, idx) { if (LANG === 'ja' && (paper.language || 'en') !== 'ja') { if (paper.summary_ja) return paper.summary_ja; const tr = PAPERS_TRANS[idx]; if (tr && tr.summary_ja) return tr.summary_ja; } return paper.summary; }
+
+let SCENARIOS_DATA = null;
+function renderScenarios() {
+  if (!SCENARIOS_DATA || !SCENARIOS_DATA.scenarios) { document.getElementById('scenariosMeta').innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem">シナリオデータが未生成です。</p>'; return; }
+  const S = SCENARIOS_DATA; const lang = LANG; const tf = (ja, en) => lang === 'en' && en ? en : ja;
+  const genDate = S.generated_at ? new Date(S.generated_at).toLocaleDateString('ja-JP') : '';
+  document.getElementById('scenariosMeta').innerHTML = `<div class="sc-meta-bar"><span><strong>${t('scenarios_focal') || '焦点課題'}:</strong> ${tf(S.focal_question, S.focal_question_en)}</span><span>${t('scenarios_horizon') || '時間軸'}: <strong>${S.time_horizon}</strong></span><span>${t('scenarios_generated') || '生成日'}: ${genDate}</span><span>${t('scenarios_dfs') || 'ドライビングフォース'}: ${S.driving_forces?.length || 0}件</span></div>`;
+  const ax = S.axes; const quadrantOrder = ['top_left', 'top_right', 'bottom_left', 'bottom_right']; const quadrantLabels = { top_left: 'Y+ / X-', top_right: 'Y+ / X+', bottom_left: 'Y- / X-', bottom_right: 'Y- / X+' };
+  const scMap = {}; S.scenarios.forEach(sc => { scMap[sc.quadrant] = sc; });
+  let matrixHtml = `<div class="sc-axes-legend"><div class="sc-axes-legend-item"><strong>X:</strong> ${esc(tf(ax.x.label, ax.x.label_en))} <span class="sc-axes-legend-arrow">${esc(tf(ax.x.pole_negative, ax.x.pole_negative_en))} &harr; ${esc(tf(ax.x.pole_positive, ax.x.pole_positive_en))}</span></div><div class="sc-axes-legend-item"><strong>Y:</strong> ${esc(tf(ax.y.label, ax.y.label_en))} <span class="sc-axes-legend-arrow">${esc(tf(ax.y.pole_negative, ax.y.pole_negative_en))} &harr; ${esc(tf(ax.y.pole_positive, ax.y.pole_positive_en))}</span></div></div><div class="sc-matrix-wrapper"><div class="sc-axis-label sc-axis-y-pos">${tf(ax.y.pole_positive, ax.y.pole_positive_en)}</div><div class="sc-axis-label sc-axis-y-neg">${tf(ax.y.pole_negative, ax.y.pole_negative_en)}</div><div class="sc-axis-label sc-axis-x-neg">${tf(ax.x.pole_negative, ax.x.pole_negative_en)}</div><div class="sc-axis-label sc-axis-x-pos">${tf(ax.x.pole_positive, ax.x.pole_positive_en)}</div><div class="sc-matrix">`;
+  quadrantOrder.forEach(q => { const sc = scMap[q]; if (!sc) { matrixHtml += '<div class="sc-quadrant"></div>'; return; } matrixHtml += `<div class="sc-quadrant" id="scq-${q}" style="border-color:${sc.color}50;color:${sc.color}" onclick="showScenarioDetail('${q}')"><span class="sc-quadrant-position">${quadrantLabels[q]}</span><div class="sc-quadrant-name" style="color:${sc.color}">${tf(sc.name, sc.name_en)}</div><div class="sc-quadrant-sub">${esc(sc.subtitle || '')}</div></div>`; });
+  matrixHtml += '</div></div>';
+  document.getElementById('scenariosMatrix').innerHTML = matrixHtml;
+  showScenarioDetail(S.scenarios[0]?.quadrant || 'top_right');
+  renderDFMap();
+  const wasOpen = document.getElementById('scCustomDetails')?.open; renderCustomAxesPanel(); if (wasOpen) { const details = document.getElementById('scCustomDetails'); if (details) details.open = true; }
+  if (ORIGINAL_SCENARIOS_DATA) { const resetBtn = document.getElementById('scResetBtn'); if (resetBtn) resetBtn.style.display = ''; }
+}
+
+function showScenarioDetail(quadrant) {
+  const S = SCENARIOS_DATA; const lang = LANG; const tf = (ja, en) => lang === 'en' && en ? en : ja;
+  const sc = S.scenarios.find(s => s.quadrant === quadrant); if (!sc) return;
+  document.querySelectorAll('.sc-quadrant').forEach(el => el.classList.remove('active'));
+  const qEl = document.getElementById('scq-' + quadrant); if (qEl) qEl.classList.add('active');
+  let tabsHtml = '<div class="sc-detail-tabs">'; S.scenarios.forEach(s => { const isActive = s.quadrant === quadrant ? ' active' : ''; tabsHtml += `<button class="sc-detail-tab${isActive}" style="color:${s.quadrant === quadrant ? s.color : ''};border-bottom-color:${s.quadrant === quadrant ? s.color : 'transparent'}" onclick="showScenarioDetail('${s.quadrant}')">${tf(s.name, s.name_en)}</button>`; }); tabsHtml += '</div>';
+  const narrative = tf(sc.narrative, sc.narrative_en) || '';
+  let html = '<div class="sc-detail-wrapper">' + tabsHtml;
+  html += `<div class="sc-detail-header"><div class="sc-detail-header-color" style="background:${sc.color}"></div><div class="sc-detail-header-text"><h4 style="color:${sc.color}">${tf(sc.name, sc.name_en)}</h4><p>${esc(sc.subtitle || '')}</p></div></div><div class="sc-detail-body"><div class="sc-narrative">${esc(narrative).replace(/\n/g, '<br>')}</div>`;
+  if (sc.cla) { const claColors = { litany: '#cd8a32', systemic_causes: '#b92a38', worldview: '#7c5a96', myth_metaphor: '#3a8c78' }; const claLabels = { litany: 'リタニー（表層）', systemic_causes: '社会的原因', worldview: '世界観', myth_metaphor: '神話/メタファー' }; const claLabelsEn = { litany: 'Litany', systemic_causes: 'Systemic Causes', worldview: 'Worldview', myth_metaphor: 'Myth / Metaphor' }; html += '<div class="sc-section-title">CLA</div><div class="sc-cla-grid">'; for (const [key, color] of Object.entries(claColors)) { if (!sc.cla[key]) continue; html += `<div class="sc-cla-card" style="border-left-color:${color}"><div class="sc-cla-label" style="color:${color}">${lang === 'en' ? claLabelsEn[key] : claLabels[key]}</div>${esc(sc.cla[key])}</div>`; } html += '</div>'; }
+  if (sc.key_events?.length) { html += `<div class="sc-section-title">${lang === 'en' ? 'Key Events' : 'キーイベント'}</div><div class="sc-timeline">`; sc.key_events.forEach(ev => { html += `<div class="sc-timeline-item"><div class="sc-timeline-year">${ev.year}</div><div class="sc-timeline-event">${esc(tf(ev.event, ev.event_en))}</div></div>`; }); html += '</div>'; }
+  const implications = lang === 'en' && sc.implications_en ? sc.implications_en : sc.implications;
+  if (implications?.length) html += `<div class="sc-section-title">${lang === 'en' ? 'Strategic Implications' : '戦略的含意'}</div><ul class="sc-implications">${implications.map(i => `<li>${esc(i)}</li>`).join('')}</ul>`;
+  if (sc.signposts?.length) { html += `<div class="sc-section-title">${lang === 'en' ? 'Signposts' : 'サインポスト（早期警戒指標）'}</div><table class="sc-signpost-table"><thead><tr><th>${lang === 'en' ? 'Indicator' : '指標'}</th><th>${lang === 'en' ? 'Current State' : '現在の状態'}</th><th>${lang === 'en' ? 'Trigger' : 'トリガー条件'}</th></tr></thead><tbody>`; sc.signposts.forEach(sp => { html += `<tr><td><strong>${esc(tf(sp.indicator, sp.indicator_en))}</strong></td><td>${esc(sp.current_state || '')}</td><td>${esc(sp.trigger_condition || '')}</td></tr>`; }); html += '</tbody></table>'; }
+  if (sc.wild_cards?.length) { html += `<div class="sc-section-title">${lang === 'en' ? 'Wild Cards' : 'ワイルドカード'}</div>`; sc.wild_cards.forEach(wc => { html += `<div class="sc-wildcards">${esc(wc)}</div>`; }); }
+  if (S.no_regret_moves?.length) html += `<div class="sc-no-regret"><div class="sc-section-title" style="margin-top:0">${lang === 'en' ? 'Predetermined Elements (All Scenarios)' : '確定要素（全シナリオ共通）'}</div><ul class="sc-implications">${S.no_regret_moves.map(m => `<li>${esc(m)}</li>`).join('')}</ul></div>`;
+  html += '</div></div>';
+  document.getElementById('scenariosDetail').innerHTML = html;
+}
+
+function renderDFMap() {
+  const S = SCENARIOS_DATA; if (!S?.driving_forces?.length) return;
+  const lang = LANG; const tf = (ja, en) => lang === 'en' && en ? en : ja;
+  const catColors = { Political: 'var(--P)', Economic: 'var(--E)', Social: 'var(--S)', Technological: 'var(--T)', Legal: 'var(--L)', Environmental: 'var(--En)' };
+  let html = `<div class="sc-section-title">${lang === 'en' ? 'Driving Forces Map (Impact x Uncertainty)' : 'ドライビングフォース・マップ（重要度 x 不確実性）'}</div><div class="sc-df-map" id="dfMapCanvas">`;
+  html += '<div class="sc-df-map-line" style="left:50%;top:0;width:1px;height:100%;"></div><div class="sc-df-map-line" style="top:50%;left:0;height:1px;width:100%;"></div>';
+  html += `<div class="sc-df-map-axis" style="bottom:4px;right:8px">${lang === 'en' ? 'Impact' : '重要度'} &rarr;</div><div class="sc-df-map-axis" style="top:8px;left:8px">&uarr; ${lang === 'en' ? 'Uncertainty' : '不確実性'}</div>`;
+  html += '<div class="sc-df-map-axis" style="top:8px;right:8px;font-size:0.65rem;opacity:0.5">Critical Uncertainty</div><div class="sc-df-map-axis" style="bottom:8px;right:8px;font-size:0.65rem;opacity:0.5">Predetermined</div><div class="sc-df-map-axis" style="top:8px;left:8px;font-size:0.65rem;opacity:0.5;margin-top:16px">Monitor</div><div class="sc-df-map-axis" style="bottom:8px;left:8px;font-size:0.65rem;opacity:0.5">Background</div>';
+  html += '<div class="sc-df-tooltip" id="dfTooltip"></div>';
+  const impacts = S.driving_forces.map(d => d.impact || 5); const uncerts = S.driving_forces.map(d => d.uncertainty || 5);
+  const minI = Math.min(...impacts), maxI = Math.max(...impacts); const minU = Math.min(...uncerts), maxU = Math.max(...uncerts);
+  const rangeI = maxI - minI || 1, rangeU = maxU - minU || 1;
+  S.driving_forces.forEach((df, i) => { const impact = df.impact || 5; const uncertainty = df.uncertainty || 5; const x = 10 + ((impact - minI) / rangeI) * 80; const y = 90 - ((uncertainty - minU) / rangeU) * 80; const cats = df.pestle_categories || []; const mainColor = catColors[cats[0]] || 'var(--accent)'; const size = 24 + cats.length * 3; const isAxis = S.axes.x.driving_force_id === df.id || S.axes.y.driving_force_id === df.id; const border = isAxis ? '3px solid var(--accent)' : '2px solid rgba(255,255,255,0.8)'; const shadow = isAxis ? 'box-shadow:0 0 0 3px var(--accent),0 2px 8px rgba(0,0,0,0.2);' : ''; const idx = i + 1; html += `<div class="sc-df-dot" style="left:calc(${x}% - ${size/2}px);top:calc(${y}% - ${size/2}px);width:${size}px;height:${size}px;background:${mainColor};border:${border};${shadow}" onmouseenter="showDFTooltip(event,${i})" onmouseleave="hideDFTooltip()" onclick="showDFDetail(${i})">${idx}</div>`; });
+  html += '</div>';
+  html += '<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;justify-content:center">'; for (const [cat, color] of Object.entries(catColors)) { html += `<span style="font-size:0.72rem;display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:50%;background:${color};display:inline-block"></span>${cat}</span>`; } html += '</div>';
+  document.getElementById('scenariosDFMap').innerHTML = html;
+}
+
+function showDFTooltip(event, idx) { const df = SCENARIOS_DATA.driving_forces[idx]; if (!df) return; const lang = LANG; const tf = (ja, en) => lang === 'en' && en ? en : ja; const tip = document.getElementById('dfTooltip'); tip.innerHTML = `<strong>${tf(df.name, df.name_en)}</strong><br>${lang === 'en' ? 'Impact' : '重要度'}: ${df.impact || '?'} / ${lang === 'en' ? 'Uncertainty' : '不確実性'}: ${df.uncertainty || '?'}<br><span style="font-size:0.7rem;opacity:0.8">${(df.pestle_categories || []).join(', ')}</span>`; tip.style.display = 'block'; const map = document.getElementById('dfMapCanvas'); const rect = map.getBoundingClientRect(); const ex = event.clientX - rect.left; const ey = event.clientY - rect.top; tip.style.left = Math.min(ex + 12, rect.width - 270) + 'px'; tip.style.top = Math.max(ey - 40, 8) + 'px'; }
+function hideDFTooltip() { document.getElementById('dfTooltip').style.display = 'none'; }
+
+function showDFDetail(idx) {
+  const df = SCENARIOS_DATA.driving_forces[idx]; if (!df) return;
+  const lang = LANG; const tf = (ja, en) => lang === 'en' && en ? en : ja;
+  let body = `<p style="margin-bottom:12px">${esc(tf(df.description, df.description_en))}</p>`;
+  body += `<p style="font-size:0.82rem;color:var(--text-muted)">${lang === 'en' ? 'Impact' : '重要度'}: <strong>${df.impact || '?'}</strong> / ${lang === 'en' ? 'Uncertainty' : '不確実性'}: <strong>${df.uncertainty || '?'}</strong> / ${lang === 'en' ? 'Quadrant' : '象限'}: <strong>${df.quadrant || '?'}</strong></p>`;
+  if (df.pestle_categories?.length) { body += '<p style="margin-top:8px">'; df.pestle_categories.forEach(c => { const col = {Political:'var(--P)',Economic:'var(--E)',Social:'var(--S)',Technological:'var(--T)',Legal:'var(--L)',Environmental:'var(--En)'}[c] || 'var(--accent)'; body += `<span style="display:inline-block;padding:2px 8px;border-radius:12px;font-size:0.72rem;background:${col};color:white;margin-right:4px">${c}</span>`; }); body += '</p>'; }
+  if (df.direction_positive) body += `<div style="margin-top:12px;padding:10px;background:#f0f8f0;border-radius:8px;font-size:0.82rem"><strong style="color:#4a8c5c">+</strong> ${esc(df.direction_positive)}</div>`;
+  if (df.direction_negative) body += `<div style="margin-top:6px;padding:10px;background:#fef0f0;border-radius:8px;font-size:0.82rem"><strong style="color:#b92a38">-</strong> ${esc(df.direction_negative)}</div>`;
+  if (df.source_articles?.length) { body += `<div style="margin-top:12px"><strong style="font-size:0.8rem">${lang === 'en' ? 'Source Articles' : '根拠記事'}:</strong><ul style="margin-top:4px">`; df.source_articles.forEach(a => { body += `<li style="font-size:0.8rem;padding:2px 0">${esc(a.title)} <span style="color:var(--text-muted)">(${a.category})</span></li>`; }); body += '</ul></div>'; }
+  openModal(tf(df.name, df.name_en), body);
+}
+
+let ORIGINAL_SCENARIOS_DATA = null;
+function getApiKey() { return localStorage.getItem('fi_anthropic_key') || ''; }
+
+function renderCustomAxesPanel() {
+  const panel = document.getElementById('scenariosCustomPanel');
+  if (!SCENARIOS_DATA?.driving_forces?.length) { panel.innerHTML = ''; return; }
+  const lang = LANG; const tf = (ja, en) => lang === 'en' && en ? en : ja;
+  const dfs = SCENARIOS_DATA.driving_forces;
+  let optionsHtml = `<option value="">${t('scenarios_select_df')}</option>`;
+  dfs.forEach((df, i) => { const label = tf(df.name, df.name_en); const cats = (df.pestle_categories || []).join(', '); const isCustom = df.id.startsWith('df_custom_') ? ' *' : ''; optionsHtml += `<option value="${i}">${df.id}: ${label}${isCustom} [${cats}]</option>`; });
+  const hasKey = !!getApiKey();
+  const keyStatusHtml = hasKey ? `<span style="font-size:0.72rem;color:#4a8c5c">${t('scenarios_apikey_configured')}</span> <span class="sc-apikey-link" onclick="promptApiKey()">${t('scenarios_apikey_change')}</span>` : `<span style="font-size:0.72rem;color:#b92a38">${t('scenarios_apikey_not_configured')}</span> <span class="sc-apikey-link" onclick="promptApiKey()">${t('scenarios_apikey_set')}</span>`;
+  panel.innerHTML = `<details class="sc-custom-panel" id="scCustomDetails"><summary>${t('scenarios_custom')}</summary><p style="font-size:0.78rem;color:var(--text-muted);margin-top:8px">${t('scenarios_custom_desc')}</p><div class="sc-custom-grid"><div><label>${t('scenarios_x_axis')}</label><select id="scCustomX" onchange="updateAxisPreview('x')">${optionsHtml}</select><div class="sc-custom-pole" id="scCustomXPole"></div></div><div><label>${t('scenarios_y_axis')}</label><select id="scCustomY" onchange="updateAxisPreview('y')">${optionsHtml}</select><div class="sc-custom-pole" id="scCustomYPole"></div></div></div><details class="sc-add-df"><summary>${t('scenarios_add_df')}</summary><div class="sc-add-df-form"><div><label>${t('scenarios_df_name')}</label><input type="text" id="scNewDfName" placeholder="${t('scenarios_df_name_ph')}"></div><div class="sc-add-df-row"><div><label>${t('scenarios_df_pos')}</label><input type="text" id="scNewDfPos" placeholder="${t('scenarios_df_pos_ph')}"></div><div><label>${t('scenarios_df_neg')}</label><input type="text" id="scNewDfNeg" placeholder="${t('scenarios_df_neg_ph')}"></div></div><div><button class="sc-custom-btn sc-custom-btn-primary" onclick="addCustomDF()" style="padding:6px 16px;font-size:0.78rem">${t('scenarios_df_add_btn')}</button><span id="scAddDfStatus" style="font-size:0.75rem;margin-left:8px"></span></div>${renderDFHistoryHtml()}</div></details><div class="sc-custom-actions"><button class="sc-custom-btn sc-custom-btn-primary" id="scGenerateBtn" onclick="generateCustomScenarios()">${t('scenarios_generate')}</button><button class="sc-custom-btn sc-custom-btn-reset" id="scResetBtn" onclick="resetToOriginalScenarios()" style="display:none">${t('scenarios_reset')}</button><span class="sc-custom-status" id="scCustomStatus"></span><span style="margin-left:auto">${keyStatusHtml}</span></div></details>`;
+}
+
+function promptApiKey() { const current = getApiKey(); const masked = current ? current.slice(0, 10) + '...' : ''; const msg = current ? (LANG === 'en' ? `Current: ${masked}\nEnter new key (blank to keep):` : `現在: ${masked}\n新しいキーを入力（空欄で変更なし）:`) : (LANG === 'en' ? 'Enter your Anthropic API key:' : 'Anthropic APIキーを入力:'); const val = prompt(msg); if (val !== null && val.trim()) { localStorage.setItem('fi_anthropic_key', val.trim()); const wasOpen = document.getElementById('scCustomDetails')?.open; renderCustomAxesPanel(); const details = document.getElementById('scCustomDetails'); if (details && wasOpen) details.open = true; } }
+
+let _customDfCounter = 0;
+function getDfHistory() { try { return JSON.parse(localStorage.getItem('fi_df_history') || '[]'); } catch { return []; } }
+function saveDfHistory(history) { localStorage.setItem('fi_df_history', JSON.stringify(history)); }
+
+function renderDFHistoryHtml() {
+  const history = getDfHistory(); if (!history.length) return '';
+  let html = `<div class="sc-df-history"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><label style="font-size:0.75rem;color:var(--text-muted);font-weight:500">${t('scenarios_df_history')}</label><button class="sc-df-history-del" onclick="clearDfHistory()" title="${t('scenarios_df_delete_history')}">&times;</button></div>`;
+  history.forEach((h, i) => { html += `<div class="sc-df-history-item"><div class="sc-df-history-name">${esc(h.name)}</div><div class="sc-df-history-poles"><span style="color:#4a8c5c">+ ${esc(h.direction_positive || '')}</span> <span style="color:#b92a38">- ${esc(h.direction_negative || '')}</span></div><button class="sc-df-history-btn" onclick="addDfFromHistory(${i})">${t('scenarios_df_add_btn')}</button><button class="sc-df-history-del" onclick="removeDfHistory(${i})">&times;</button></div>`; });
+  return html + '</div>';
+}
+
+function addDfFromHistory(idx) { const history = getDfHistory(); const h = history[idx]; if (!h) return; if (!ORIGINAL_SCENARIOS_DATA) ORIGINAL_SCENARIOS_DATA = JSON.parse(JSON.stringify(SCENARIOS_DATA)); _customDfCounter++; SCENARIOS_DATA.driving_forces.push({ id: `df_custom_${_customDfCounter}`, name: h.name, name_en: h.name, description: h.name, description_en: h.name, origin_cla_categories: [], pestle_categories: [], impact: 7, uncertainty: 8, quadrant: 'critical_uncertainty', direction_positive: h.direction_positive || h.name, direction_negative: h.direction_negative || h.name, source_articles: [] }); _refreshCustomPanel(); renderDFMap(); }
+function removeDfHistory(idx) { const history = getDfHistory(); history.splice(idx, 1); saveDfHistory(history); _refreshCustomPanel(); }
+function clearDfHistory() { saveDfHistory([]); _refreshCustomPanel(); }
+function _refreshCustomPanel() { const wasOpen = document.getElementById('scCustomDetails')?.open; const addDfOpen = document.querySelector('.sc-add-df')?.open; renderCustomAxesPanel(); const details = document.getElementById('scCustomDetails'); if (details && wasOpen) details.open = true; const addDf = details?.querySelector('.sc-add-df'); if (addDf && addDfOpen) addDf.open = true; const resetBtn = document.getElementById('scResetBtn'); if (resetBtn && ORIGINAL_SCENARIOS_DATA) resetBtn.style.display = ''; }
+
+function addCustomDF() {
+  const name = document.getElementById('scNewDfName').value.trim(); const pos = document.getElementById('scNewDfPos').value.trim(); const neg = document.getElementById('scNewDfNeg').value.trim(); const statusEl = document.getElementById('scAddDfStatus');
+  if (!name) { statusEl.style.color = '#b92a38'; statusEl.textContent = t('scenarios_df_name_required'); return; }
+  if (!ORIGINAL_SCENARIOS_DATA) ORIGINAL_SCENARIOS_DATA = JSON.parse(JSON.stringify(SCENARIOS_DATA));
+  _customDfCounter++; SCENARIOS_DATA.driving_forces.push({ id: `df_custom_${_customDfCounter}`, name: name, name_en: name, description: name, description_en: name, origin_cla_categories: [], pestle_categories: [], impact: 7, uncertainty: 8, quadrant: 'critical_uncertainty', direction_positive: pos || name, direction_negative: neg || name, source_articles: [] });
+  const history = getDfHistory(); if (!history.some(h => h.name === name)) { history.unshift({ name, direction_positive: pos || name, direction_negative: neg || name }); saveDfHistory(history); }
+  document.getElementById('scNewDfName').value = ''; document.getElementById('scNewDfPos').value = ''; document.getElementById('scNewDfNeg').value = '';
+  statusEl.style.color = '#4a8c5c'; statusEl.textContent = t('scenarios_df_added'); setTimeout(() => { if (statusEl) statusEl.textContent = ''; }, 3000);
+  _refreshCustomPanel(); renderDFMap();
+}
+
+function updateAxisPreview(axis) { const sel = document.getElementById(axis === 'x' ? 'scCustomX' : 'scCustomY'); const poleEl = document.getElementById(axis === 'x' ? 'scCustomXPole' : 'scCustomYPole'); const idx = parseInt(sel.value); if (isNaN(idx)) { poleEl.innerHTML = ''; return; } const df = SCENARIOS_DATA.driving_forces[idx]; poleEl.innerHTML = `<span style="color:#4a8c5c">+ ${esc(df.direction_positive || '')}</span><br><span style="color:#b92a38">- ${esc(df.direction_negative || '')}</span>`; }
+
+async function generateCustomScenarios() {
+  const xIdx = parseInt(document.getElementById('scCustomX').value); const yIdx = parseInt(document.getElementById('scCustomY').value);
+  const apiKey = getApiKey(); const statusEl = document.getElementById('scCustomStatus'); const btn = document.getElementById('scGenerateBtn');
+  if (isNaN(xIdx) || isNaN(yIdx)) { statusEl.className = 'sc-custom-status error'; statusEl.textContent = t('scenarios_select_df'); return; }
+  if (xIdx === yIdx) { statusEl.className = 'sc-custom-status error'; statusEl.textContent = t('scenarios_same_axis_error'); return; }
+  if (!apiKey) { statusEl.className = 'sc-custom-status error'; statusEl.textContent = t('scenarios_no_apikey'); return; }
+  if (!ORIGINAL_SCENARIOS_DATA) ORIGINAL_SCENARIOS_DATA = JSON.parse(JSON.stringify(SCENARIOS_DATA));
+  const dfs = SCENARIOS_DATA.driving_forces; const dfX = dfs[xIdx]; const dfY = dfs[yIdx];
+  btn.disabled = true; statusEl.className = 'sc-custom-status'; statusEl.textContent = t('scenarios_generating');
+  const customAxes = { x: { driving_force_id: dfX.id, label: dfX.name || dfX.name_en, label_en: dfX.name_en || dfX.name, pole_positive: dfX.direction_positive, pole_negative: dfX.direction_negative, pole_positive_en: dfX.direction_positive_en || dfX.direction_positive, pole_negative_en: dfX.direction_negative_en || dfX.direction_negative }, y: { driving_force_id: dfY.id, label: dfY.name || dfY.name_en, label_en: dfY.name_en || dfY.name, pole_positive: dfY.direction_positive, pole_negative: dfY.direction_negative, pole_positive_en: dfY.direction_positive_en || dfY.direction_positive, pole_negative_en: dfY.direction_negative_en || dfY.direction_negative } };
+  let claContext = ''; if (AI_DATA?.cla) { for (const cat of ['Political','Economic','Social','Technological','Legal','Environmental','Overall']) { const c = AI_DATA.cla[cat]; if (!c) continue; claContext += `\n### ${cat}\n`; for (const f of ['litany','systemic_causes','worldview','myth_metaphor','key_tension','emerging_narrative']) { if (c[f]) claContext += `- ${f}: ${c[f]}\n`; } } }
+  const predetermined = JSON.stringify(SCENARIOS_DATA.predetermined_elements || [], null, 2);
+  const dfSummary = dfs.map(d => `- ${d.id}: ${d.name} (${(d.pestle_categories||[]).join(',')})`).join('\n');
+  const promptText = `あなたはシナリオプランニングの専門家であり、優れたナラティブライターです。\n以下の2軸定義に基づき、4つのシナリオを生成してください。\n\n## シナリオの2軸\n\n${JSON.stringify(customAxes, null, 2)}\n\n## 確定要素（全シナリオ共通）\n\n${predetermined}\n\n## CLA分析（全7領域・全層）— シナリオの深層構造\n\n${claContext}\n\n## 全ドライビングフォース（参考）\n\n${dfSummary}\n\n## 時間軸\n\n2030年（4年後）\n\n## 指示\n\n4つのシナリオを生成してください。各シナリオは2x2マトリクスの1象限に対応します。\n\n**シナリオの質の基準:**\n- ナラティブは500-800字の散文形式（箇条書きではなく文章で記述）\n- 「この世界はどう見えるか」（litanyレベルの具体的描写）\n- 「どのようにしてこうなったか」（systemic_causesレベルの経路説明）\n- 「我々にとって何を意味するか」（worldviewレベルの意味づけ）\n- 現在のCLAの myth_metaphor を参照し、各シナリオがどの深層的物語の上に成り立つかを示す\n\n## 出力形式\n\n以下のJSON配列で返してください。JSONのみ、説明は不要です。\n\n\`\`\`json\n[\n  {\n    "id": "sc_01",\n    "quadrant": "top_right",\n    "name": "シナリオ名",\n    "name_en": "English scenario name",\n    "subtitle": "X軸の極 × Y軸の極",\n    "narrative": "500-800字の散文形式ナラティブ",\n    "narrative_en": "English narrative",\n    "cla": { "litany": "...", "systemic_causes": "...", "worldview": "...", "myth_metaphor": "..." },\n    "key_events": [{"year": 2027, "event": "...", "event_en": "..."}, {"year": 2028, "event": "...", "event_en": "..."}, {"year": 2030, "event": "...", "event_en": "..."}],\n    "implications": ["..."],\n    "implications_en": ["..."],\n    "signposts": [{"indicator": "...", "indicator_en": "...", "current_state": "...", "trigger_condition": "...", "monitoring_keywords": ["..."]}],\n    "wild_cards": ["..."]\n  },\n  {"id": "sc_02", "quadrant": "top_left", "...": "同じ構造"},\n  {"id": "sc_03", "quadrant": "bottom_right", "...": "同じ構造"},\n  {"id": "sc_04", "quadrant": "bottom_left", "...": "同じ構造"}\n]\n\`\`\`\n\n**重要:** top_right = X正×Y正, top_left = X負×Y正, bottom_right = X正×Y負, bottom_left = X負×Y負`;
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' }, body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 16000, messages: [{ role: 'user', content: promptText }] }) });
+    if (!response.ok) { const err = await response.json().catch(() => ({})); throw new Error(err.error?.message || `API error: ${response.status}`); }
+    const result = await response.json(); const text = result.content[0].text;
+    let scenarios; try { const codeMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/); if (codeMatch) scenarios = JSON.parse(codeMatch[1].trim()); else { const jsonStart = text.indexOf('['); const jsonEnd = text.lastIndexOf(']'); scenarios = JSON.parse(text.substring(jsonStart, jsonEnd + 1)); } } catch (parseErr) { throw new Error('Failed to parse scenario JSON from API response'); }
+    const colorMap = { top_right: '#4a8c5c', top_left: '#2c8acc', bottom_right: '#cd8a32', bottom_left: '#b92a38' };
+    scenarios.forEach(sc => { sc.color = colorMap[sc.quadrant] || '#783c28'; });
+    SCENARIOS_DATA.axes = customAxes; SCENARIOS_DATA.scenarios = scenarios; SCENARIOS_DATA.generated_at = new Date().toISOString();
+    renderScenarios(); statusEl.className = 'sc-custom-status'; statusEl.textContent = ''; document.getElementById('scResetBtn').style.display = '';
+  } catch (err) { statusEl.className = 'sc-custom-status error'; statusEl.textContent = err.message; } finally { btn.disabled = false; }
+}
+
+function resetToOriginalScenarios() { if (ORIGINAL_SCENARIOS_DATA) { SCENARIOS_DATA = JSON.parse(JSON.stringify(ORIGINAL_SCENARIOS_DATA)); renderScenarios(); document.getElementById('scResetBtn').style.display = 'none'; document.getElementById('scCustomStatus').textContent = ''; } }
+
+let PAPERS_STATS = null; let _pestleHistoryLoaded = false; let _papersFullLoaded = false;
+
+async function loadData() {
+  const v = Date.now();
+  const [newsResp, papersLightResp, aiResp, statsResp] = await Promise.allSettled([
+    fetch(DATA_BASE_URL + 'data/latest.json?v=' + v),
+    fetch(DATA_BASE_URL + 'data/papers_light.json?v=' + v),
+    fetch(DATA_BASE_URL + 'data/ai_analysis.json?v=' + v),
+    fetch(DATA_BASE_URL + 'data/papers_stats.json?v=' + v),
+  ]);
+  if (newsResp.status === 'fulfilled') { NEWS_DATA = await newsResp.value.json(); document.getElementById('lastUpdated').textContent = `${t('last_updated')}: ${NEWS_DATA.date}`; }
+  if (papersLightResp.status === 'fulfilled') PAPERS_DATA = await papersLightResp.value.json();
+  if (aiResp.status === 'fulfilled') AI_DATA = await aiResp.value.json();
+  if (statsResp.status === 'fulfilled') PAPERS_STATS = await statsResp.value.json();
+  try { const alertsResp = await fetch(DATA_BASE_URL + 'data/alerts.json?v=' + v); ALERTS_DATA = await alertsResp.json(); } catch (e) {}
+  try { const scResp = await fetch(DATA_BASE_URL + 'data/scenarios.json?v=' + v); if (scResp.ok) SCENARIOS_DATA = await scResp.json(); } catch (e) {}
+  try { const trResp = await fetch(DATA_BASE_URL + 'data/papers_translations.json?v=' + v); if (trResp.ok) { const trArr = await trResp.json(); trArr.forEach(tr => { if (tr && tr.index != null) PAPERS_TRANS[tr.index] = tr; }); } } catch (e) {}
+  try { const idxResp = await fetch(DATA_BASE_URL + 'data/pestle_index.json?v=' + v); const idx = await idxResp.json(); if (!PESTLE_HISTORY) PESTLE_HISTORY = {}; PESTLE_HISTORY._index = idx; PESTLE_HISTORY._quarterCount = Object.keys(idx).length; } catch (e) {}
+  applyI18n(); renderOverview(); renderAlerts(); renderPestle(); renderPapers(); renderCLA(); renderScenarios(); renderSignals(); restoreTabFromHash();
+  if (Object.keys(PAPERS_TRANS).length > 0) { renderPapers(); renderOverview(); }
+}
+
+// initApp is called by the auth guard after successful authentication
+function initApp() { loadData(); }
+</script>
 </body>
 </html>
