@@ -278,6 +278,147 @@
   .papers-empty-text { font-size: 0.9rem; }
   .papers-empty-sub { font-size: 0.78rem; margin-top: 4px; }
 
+  /* Daily Papers */
+  .daily-papers-header {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
+    padding-bottom: 12px; border-bottom: 2px solid var(--accent);
+  }
+  .daily-papers-header h3 {
+    font-size: 1rem; font-weight: 700; color: var(--accent); margin: 0;
+  }
+  .daily-papers-date {
+    font-size: 0.75rem; color: var(--text-muted); margin-left: auto;
+  }
+  .daily-papers-summary {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;
+  }
+  .daily-summary-chip {
+    padding: 4px 12px; border-radius: 20px; font-size: 0.72rem;
+    font-weight: 600; color: white;
+  }
+  .daily-paper-item {
+    padding: 14px 18px; border-bottom: 1px solid var(--border);
+    cursor: pointer; transition: all 0.15s; position: relative;
+  }
+  .daily-paper-item:hover { background: var(--card-hover); padding-left: 22px; }
+  .daily-paper-item:last-child { border-bottom: none; }
+  .novelty-badge {
+    display: inline-flex; align-items: center; gap: 3px;
+    font-size: 0.62rem; padding: 2px 8px; border-radius: 10px;
+    font-weight: 700; flex-shrink: 0;
+  }
+  .novelty-badge.high { background: #fde8e8; color: #b92a38; }
+  .novelty-badge.medium { background: #fff3e0; color: #cd8a32; }
+  .novelty-badge.low { background: #f0f0f0; color: #888; }
+  .daily-paper-title {
+    font-size: 0.84rem; font-weight: 500; line-height: 1.5; flex: 1;
+  }
+  .daily-paper-meta {
+    display: flex; align-items: center; gap: 8px; margin-top: 4px; flex-wrap: wrap;
+  }
+  .daily-paper-novelty-reason {
+    font-size: 0.7rem; color: var(--accent-warm); margin-top: 3px;
+    font-style: italic;
+  }
+  .daily-view-toggle {
+    display: flex; gap: 0; border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+  }
+  .daily-view-toggle button {
+    padding: 6px 14px; border: none; background: var(--card);
+    font-size: 0.75rem; cursor: pointer; color: var(--text-muted);
+    transition: all 0.15s;
+  }
+  .daily-view-toggle button.active {
+    background: var(--accent); color: white;
+  }
+  .daily-view-toggle button:not(:last-child) {
+    border-right: 1px solid var(--border);
+  }
+
+  /* Paper Alerts */
+  .paper-alerts-panel {
+    background: linear-gradient(135deg, #fff5f5 0%, #fff9f0 100%);
+    border: 1px solid #f0d0c0; border-radius: 12px;
+    padding: 16px 20px; margin-bottom: 20px;
+  }
+  .paper-alerts-header {
+    font-size: 0.9rem; font-weight: 700; color: #b92a38;
+    margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+  }
+  .paper-alert-item {
+    background: white; border: 1px solid #f0d0c0; border-radius: 8px;
+    padding: 12px 16px; margin-bottom: 8px; cursor: pointer;
+    transition: box-shadow 0.15s;
+  }
+  .paper-alert-item:hover { box-shadow: 0 2px 8px rgba(185,42,56,0.1); }
+  .paper-alert-item:last-child { margin-bottom: 0; }
+  .paper-alert-type {
+    font-size: 0.62rem; padding: 2px 8px; border-radius: 4px;
+    font-weight: 700; display: inline-block; margin-right: 6px;
+  }
+  .paper-alert-type.new-context { background: #b92a38; color: white; }
+  .paper-alert-type.cross-field { background: #2c8acc; color: white; }
+  .paper-alert-title {
+    font-size: 0.85rem; font-weight: 600; margin-top: 4px;
+  }
+  .paper-alert-desc {
+    font-size: 0.78rem; color: var(--text-muted); margin-top: 4px; line-height: 1.6;
+  }
+  .paper-alert-field {
+    font-size: 0.65rem; padding: 1px 8px; border-radius: 4px;
+    color: white; font-weight: 600; display: inline-block; margin-top: 6px;
+  }
+
+  /* AI Paper Search */
+  .ai-search-btn {
+    padding: 10px 16px; border-radius: 10px; border: 1px solid var(--accent);
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+    color: white; font-size: 0.78rem; font-weight: 600;
+    cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .ai-search-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+  .ai-search-btn.active { box-shadow: 0 0 0 3px rgba(120,60,40,0.2); }
+  .ai-search-results {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px; margin-bottom: 20px;
+  }
+  .ai-search-status {
+    font-size: 0.78rem; color: var(--text-muted); padding: 8px 0;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  /* Paper Save Enhancement */
+  .paper-save-actions {
+    display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap;
+  }
+  .paper-save-btn {
+    padding: 5px 12px; border-radius: 6px; font-size: 0.72rem;
+    border: 1px solid var(--border); background: var(--card);
+    cursor: pointer; transition: all 0.15s; color: var(--text);
+  }
+  .paper-save-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .paper-save-btn.saved { background: var(--accent); color: white; border-color: var(--accent); }
+  .paper-collection-select {
+    padding: 5px 10px; border-radius: 6px; font-size: 0.72rem;
+    border: 1px solid var(--border); background: var(--card); color: var(--text);
+  }
+  .paper-note-input {
+    width: 100%; padding: 8px 12px; border: 1px solid var(--border);
+    border-radius: 8px; font-size: 0.8rem; background: var(--card);
+    color: var(--text); resize: vertical; min-height: 60px;
+    margin-top: 8px;
+  }
+  .paper-note-input:focus { outline: none; border-color: var(--accent); }
+  .paper-export-bar {
+    display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center;
+  }
+  .paper-export-btn {
+    padding: 6px 14px; border-radius: 8px; font-size: 0.75rem;
+    border: 1px solid var(--border); background: var(--card);
+    cursor: pointer; transition: all 0.15s; color: var(--text);
+  }
+  .paper-export-btn:hover { border-color: var(--accent); color: var(--accent); }
+
   /* Search */
   .search-bar {
     display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;
@@ -945,6 +1086,13 @@
 
   <!-- ===== PAPERS ===== -->
   <div class="tab-panel" id="tab-papers">
+    <!-- Paper Novelty Alerts -->
+    <div id="paperAlertsPanel"></div>
+
+    <!-- Daily Curated Papers -->
+    <div id="dailyPapersSection"></div>
+
+    <!-- Stats & Filters -->
     <div class="papers-stats-grid" id="papersStatsGrid"></div>
     <div class="papers-toolbar">
       <div class="papers-search-wrap">
@@ -952,6 +1100,7 @@
         <input id="papersSearch" data-i18n-placeholder="search_papers" placeholder="論文を検索..." oninput="onPapersSearchInput()">
         <button class="papers-search-clear" id="papersSearchClear" onclick="clearPapersSearch()">&times;</button>
       </div>
+      <button class="ai-search-btn" id="papersAiSearchBtn" onclick="togglePapersAiSearch()">AI検索</button>
       <select class="papers-filter-select" id="papersDecade" onchange="renderPapers()">
         <option value="" data-i18n="papers_all_decades">全年代</option>
         <option value="2020">2020s</option><option value="2010">2010s</option><option value="2000">2000s</option><option value="1990">1990s</option>
@@ -972,6 +1121,21 @@
       <button class="papers-sort-btn" id="papersTransFilter" onclick="toggleTransFilter()" data-i18n="papers_ja_only">日本語訳のみ</button>
       <button class="papers-sort-btn active" id="papersSortDate" onclick="setPapersSort('date')" data-i18n="papers_sort_date">新しい順</button>
       <button class="papers-sort-btn" id="papersSortTitle" onclick="setPapersSort('title')" data-i18n="papers_sort_title">タイトル順</button>
+    </div>
+    <!-- AI Search Results Area -->
+    <div id="papersAiSearchArea" style="display:none">
+      <div class="ai-search-results">
+        <div class="ai-search-status" id="papersAiStatus">AI検索モード: 自然言語で論文を検索できます</div>
+        <div id="papersAiResults"></div>
+      </div>
+    </div>
+    <!-- Saved Papers Export Bar -->
+    <div class="paper-export-bar" id="paperExportBar" style="display:none">
+      <span style="font-size:0.78rem;color:var(--text-muted);font-weight:600">保存済み論文:</span>
+      <button class="paper-export-btn" onclick="exportSavedPapers('json')">JSON出力</button>
+      <button class="paper-export-btn" onclick="exportSavedPapers('csv')">CSV出力</button>
+      <button class="paper-export-btn" onclick="exportSavedPapers('markdown')">Markdown出力</button>
+      <button class="paper-export-btn" onclick="shareAllSavedPapers()">一覧シェア</button>
     </div>
     <div class="papers-result-count" id="papersResultCount"></div>
     <div class="papers-grid" id="papersGrid"></div>
@@ -1199,6 +1363,10 @@ const I18N = {
     alerts_desc: '過去2年の蓄積データと比較して検出された、新たな変化の兆候',
     alert_emergence: '初出', alert_surge: '急増', alert_crossover: '横断',
     alert_mentions: '回出現', alert_ratio: '倍に急増',
+    daily_papers: '本日の注目論文', paper_alerts: '新たな研究文脈アラート',
+    novelty: '新規性', ai_search: 'AI検索', save_paper: '保存',
+    paper_saved: '保存済', export_papers: 'エクスポート',
+    paper_note_ph: 'メモを追加...', novelty_reason: '新規性の理由',
   },
   en: {
     app_title: 'Future Insight Workspace',
@@ -1264,6 +1432,10 @@ const I18N = {
     alerts_desc: 'New change signals detected by comparing against 2 years of historical data',
     alert_emergence: 'NEW', alert_surge: 'SURGE', alert_crossover: 'CROSS',
     alert_mentions: ' mentions', alert_ratio: 'x surge',
+    daily_papers: "Today's Featured Papers", paper_alerts: 'Novel Research Context Alerts',
+    novelty: 'Novelty', ai_search: 'AI Search', save_paper: 'Save',
+    paper_saved: 'Saved', export_papers: 'Export',
+    paper_note_ph: 'Add a note...', novelty_reason: 'Novelty Reason',
   }
 };
 
@@ -1272,7 +1444,7 @@ function t(key) { return I18N[LANG][key] || I18N['ja'][key] || key; }
 function toggleLang() {
   LANG = LANG === 'ja' ? 'en' : 'ja';
   document.getElementById('langToggleBtn').textContent = LANG === 'ja' ? 'EN' : 'JA';
-  applyI18n(); renderOverview(); renderAlerts(); renderPestle(); renderPapers(); renderCLA(); renderSignals();
+  applyI18n(); renderOverview(); renderAlerts(); renderPestle(); renderPapers(); renderCLA(); renderSignals(); renderDailyPapers(); renderPaperAlerts();
 }
 
 function applyI18n() {
@@ -1438,7 +1610,9 @@ async function showPaper(idx) {
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">
       <a href="${esc(full.source_url)}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:8px 16px;border-radius:8px;background:var(--accent);color:white;text-decoration:none;font-size:0.82rem;font-weight:500;transition:background 0.15s">${LANG === 'ja' ? '論文を開く' : 'Open paper'} &#8599;</a>
       ${full.doi ? `<a href="https://doi.org/${esc(full.doi)}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:8px 16px;border-radius:8px;background:var(--card);border:1px solid var(--border);color:var(--text);text-decoration:none;font-size:0.82rem;transition:border-color 0.15s">DOI: ${esc(full.doi)}</a>` : ''}
+      <button class="paper-save-btn ${isPaperSaved('all_'+idx) ? 'saved' : ''}" onclick="savePaperFromAll(${idx},this)">${isPaperSaved('all_'+idx) ? (LANG === 'ja' ? '保存済' : 'Saved') : (LANG === 'ja' ? '保存' : 'Save')}</button>
     </div>
+    <div style="margin-top:12px"><textarea class="paper-note-input" placeholder="${LANG === 'ja' ? 'メモを追加...' : 'Add a note...'}" oninput="savePaperNote('all_${idx}',this.value)">${esc(getPaperNote('all_'+idx))}</textarea></div>
   `);
 }
 
@@ -1828,6 +2002,524 @@ function resetToOriginalScenarios() { if (ORIGINAL_SCENARIOS_DATA) { SCENARIOS_D
 
 let PAPERS_STATS = null; let _pestleHistoryLoaded = false; let _papersFullLoaded = false;
 
+// === DAILY CURATED PAPERS ===
+let DAILY_PAPERS = null;
+let PAPER_ALERTS = [];
+let _dailyPapersView = 'grid'; // 'grid' or 'list'
+let _papersAiMode = false;
+
+async function loadDailyPapers() {
+  try {
+    const [dpResp, paResp] = await Promise.allSettled([
+      fetch(DATA_BASE_URL + 'data/daily_papers.json?v=' + Date.now()),
+      fetch(DATA_BASE_URL + 'data/paper_alerts.json?v=' + Date.now()),
+    ]);
+    if (dpResp.status === 'fulfilled') {
+      DAILY_PAPERS = await dpResp.value.json();
+      renderDailyPapers();
+    }
+    if (paResp.status === 'fulfilled') {
+      PAPER_ALERTS = await paResp.value.json();
+      renderPaperAlerts();
+    }
+  } catch (e) { console.warn('Daily papers load error:', e); }
+}
+
+function renderPaperAlerts() {
+  const panel = document.getElementById('paperAlertsPanel');
+  if (!panel || !PAPER_ALERTS || PAPER_ALERTS.length === 0) { if (panel) panel.innerHTML = ''; return; }
+
+  // Show only recent alerts (last 7 days)
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 7);
+  const recent = PAPER_ALERTS.filter(a => new Date(a.date) >= cutoff);
+  if (recent.length === 0) { panel.innerHTML = ''; return; }
+
+  // Sort by date desc, significance
+  const sigOrder = { high: 0, medium: 1, low: 2 };
+  recent.sort((a, b) => (b.date || '').localeCompare(a.date || '') || (sigOrder[a.significance] || 2) - (sigOrder[b.significance] || 2));
+
+  const shown = recent.slice(0, 5);
+  let html = `<div class="paper-alerts-panel">`;
+  html += `<div class="paper-alerts-header">${LANG === 'ja' ? '新たな研究文脈アラート' : 'Novel Research Context Alerts'}<span style="font-size:0.72rem;font-weight:400;color:var(--text-muted);margin-left:8px">${LANG === 'ja' ? '過去7日間で検出' : 'Detected in last 7 days'}</span><span style="margin-left:auto;font-size:0.72rem;padding:2px 8px;border-radius:10px;background:#b92a38;color:white">${recent.length}</span></div>`;
+
+  for (const a of shown) {
+    const typeCls = (a.alert_type || '').toLowerCase().replace('_', '-');
+    const typeLabel = a.alert_type === 'CROSS_FIELD' ? (LANG === 'ja' ? '分野横断' : 'Cross-field') : (LANG === 'ja' ? '新文脈' : 'New Context');
+    const fieldColor = FIELD_COLORS[a.field] || '#b92a38';
+    html += `<div class="paper-alert-item" ${a.paper_url ? `onclick="window.open('${esc(a.paper_url)}','_blank')"` : ''}>`;
+    html += `<span class="paper-alert-type ${typeCls}">${typeLabel}</span>`;
+    if (a.field && a.field !== '横断') html += `<span class="paper-alert-field" style="background:${fieldColor}">${esc(a.field)}</span>`;
+    if (a.related_fields) html += a.related_fields.map(f => `<span class="paper-alert-field" style="background:${FIELD_COLORS[f] || 'var(--accent)'}">${esc(f)}</span>`).join('');
+    html += `<div class="paper-alert-title">${esc(a.title)}</div>`;
+    html += `<div class="paper-alert-desc">${esc(a.description)}</div>`;
+    if (a.paper_title_ja || a.paper_title) {
+      html += `<div style="font-size:0.72rem;color:var(--accent);margin-top:4px">${esc(LANG === 'ja' ? (a.paper_title_ja || a.paper_title) : a.paper_title)}</div>`;
+    }
+    html += `</div>`;
+  }
+  if (recent.length > 5) {
+    html += `<div style="text-align:center;padding:8px;font-size:0.78rem;color:var(--text-muted);cursor:pointer" onclick="showAllPaperAlerts()">${LANG === 'ja' ? `他${recent.length - 5}件のアラート` : `${recent.length - 5} more alerts`}</div>`;
+  }
+  html += `</div>`;
+  panel.innerHTML = html;
+}
+
+function showAllPaperAlerts() {
+  const recent = PAPER_ALERTS.filter(a => {
+    const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 30);
+    return new Date(a.date) >= cutoff;
+  });
+  let body = '';
+  for (const a of recent) {
+    const typeCls = (a.alert_type || '').toLowerCase().replace('_', '-');
+    const typeLabel = a.alert_type === 'CROSS_FIELD' ? '分野横断' : '新文脈';
+    body += `<div style="margin-bottom:12px;padding:12px;border:1px solid var(--border);border-radius:8px">`;
+    body += `<span class="paper-alert-type ${typeCls}">${typeLabel}</span>`;
+    body += `<span style="font-size:0.68rem;color:var(--text-muted);margin-left:8px">${esc(a.date)}</span>`;
+    body += `<div style="font-weight:600;margin-top:4px">${esc(a.title)}</div>`;
+    body += `<div style="font-size:0.82rem;color:var(--text-muted);margin-top:4px;line-height:1.6">${esc(a.description)}</div>`;
+    if (a.paper_url) body += `<a href="${esc(a.paper_url)}" target="_blank" style="font-size:0.78rem;color:#2c8acc;margin-top:4px;display:inline-block">${LANG === 'ja' ? '論文を開く' : 'Open paper'}</a>`;
+    body += `</div>`;
+  }
+  openModal(LANG === 'ja' ? '研究文脈アラート一覧' : 'Research Context Alerts', body);
+}
+
+function renderDailyPapers() {
+  const section = document.getElementById('dailyPapersSection');
+  if (!section || !DAILY_PAPERS || !DAILY_PAPERS.fields) { if (section) section.innerHTML = ''; return; }
+
+  const fields = DAILY_PAPERS.fields;
+  const fieldOrder = ['人文学', '社会科学', '自然科学', '工学', '芸術'];
+  const summary = DAILY_PAPERS.summary || {};
+
+  let html = `<div class="daily-papers-header">`;
+  html += `<h3>${LANG === 'ja' ? '本日の注目論文' : "Today's Featured Papers"}</h3>`;
+  html += `<div class="daily-papers-summary">`;
+  for (const f of fieldOrder) {
+    const count = fields[f]?.count || 0;
+    if (count > 0) html += `<span class="daily-summary-chip" style="background:${FIELD_COLORS[f] || 'var(--accent)'}">${esc(f)} ${count}</span>`;
+  }
+  html += `</div>`;
+  html += `<div class="daily-view-toggle">`;
+  html += `<button class="${_dailyPapersView === 'grid' ? 'active' : ''}" onclick="setDailyView('grid')">Grid</button>`;
+  html += `<button class="${_dailyPapersView === 'list' ? 'active' : ''}" onclick="setDailyView('list')">List</button>`;
+  html += `</div>`;
+  html += `<div class="daily-papers-date">${esc(DAILY_PAPERS.date)}</div>`;
+  html += `</div>`;
+
+  if (_dailyPapersView === 'grid') {
+    html += `<div class="papers-grid" style="margin-bottom:32px">`;
+    for (const field of fieldOrder) {
+      const info = fields[field];
+      if (!info || !info.papers || info.papers.length === 0) continue;
+      const color = FIELD_COLORS[field] || 'var(--accent)';
+      html += `<div class="paper-section"><div class="paper-header"><span class="paper-field-badge" style="background:${color}">${esc(field)}</span><span class="pestle-count" style="margin-left:auto;font-size:0.78rem;color:var(--text-muted)">${info.count}${LANG === 'ja' ? '件' : ''}</span></div>`;
+      html += `<div class="article-list">`;
+      for (const p of info.papers) {
+        const title = LANG === 'ja' ? (p.title_ja || p.title) : p.title;
+        const summary = LANG === 'ja' ? (p.summary_ja || p.summary) : p.summary;
+        const summaryShort = summary ? summary.substring(0, 120) : '';
+        const novelty = p.novelty_score || 0;
+        const noveltyCls = novelty >= 8 ? 'high' : novelty >= 5 ? 'medium' : 'low';
+        html += `<div class="daily-paper-item" onclick="showDailyPaper('${esc(field)}', ${info.papers.indexOf(p)})">`;
+        html += `<div style="display:flex;align-items:flex-start;gap:8px">`;
+        html += `<div class="daily-paper-title">${esc(title)}</div>`;
+        if (novelty >= 5) html += `<span class="novelty-badge ${noveltyCls}">${novelty}/10</span>`;
+        html += `<span class="paper-lang-badge${(p.language || 'en') === 'ja' ? ' ja' : ''}">${(p.language || 'en').toUpperCase()}</span>`;
+        html += `</div>`;
+        if (summaryShort) html += `<div class="paper-summary-preview">${esc(summaryShort)}${summary.length > 120 ? '...' : ''}</div>`;
+        if (p.novelty_reason && novelty >= 6) html += `<div class="daily-paper-novelty-reason">${esc(p.novelty_reason)}</div>`;
+        html += `<div class="daily-paper-meta">`;
+        html += `<span class="paper-authors">${esc((p.authors || '').substring(0, 80))}${(p.authors || '').length > 80 ? '...' : ''}</span>`;
+        if (p.published_date) html += `<span class="paper-date">${esc(p.published_date)}</span>`;
+        if (p.subfield) html += `<span class="paper-subfield-tag">${esc(localizedSubfield(p.subfield))}</span>`;
+        html += `</div></div>`;
+      }
+      html += `</div></div>`;
+    }
+    html += `</div>`;
+  } else {
+    // List view - flat list sorted by novelty
+    html += `<div style="margin-bottom:32px">`;
+    const allDaily = [];
+    for (const field of fieldOrder) {
+      const info = fields[field];
+      if (!info || !info.papers) continue;
+      info.papers.forEach((p, i) => allDaily.push({ ...p, _field: field, _idx: i }));
+    }
+    allDaily.sort((a, b) => (b.novelty_score || 0) - (a.novelty_score || 0));
+    for (const p of allDaily) {
+      const title = LANG === 'ja' ? (p.title_ja || p.title) : p.title;
+      const color = FIELD_COLORS[p._field] || 'var(--accent)';
+      const novelty = p.novelty_score || 0;
+      const noveltyCls = novelty >= 8 ? 'high' : novelty >= 5 ? 'medium' : 'low';
+      html += `<div style="background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px 16px;margin-bottom:6px;cursor:pointer;transition:box-shadow 0.15s;border-left:4px solid ${color}" onclick="showDailyPaper('${esc(p._field)}', ${p._idx})">`;
+      html += `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">`;
+      html += `<span class="paper-field-badge" style="background:${color};font-size:0.6rem;padding:2px 8px">${esc(p._field)}</span>`;
+      if (novelty >= 5) html += `<span class="novelty-badge ${noveltyCls}">${novelty}/10</span>`;
+      html += `<span class="paper-lang-badge${(p.language || 'en') === 'ja' ? ' ja' : ''}">${(p.language || 'en').toUpperCase()}</span>`;
+      if (p.published_date) html += `<span style="font-size:0.68rem;color:var(--text-muted);margin-left:auto">${esc(p.published_date)}</span>`;
+      html += `</div>`;
+      html += `<div style="font-size:0.84rem;font-weight:500;margin-top:6px;line-height:1.5">${esc(title)}</div>`;
+      html += `<div style="font-size:0.72rem;color:var(--text-muted);margin-top:2px">${esc((p.authors || '').substring(0, 80))}</div>`;
+      if (p.novelty_reason && novelty >= 6) html += `<div class="daily-paper-novelty-reason">${esc(p.novelty_reason)}</div>`;
+      html += `</div>`;
+    }
+    html += `</div>`;
+  }
+
+  section.innerHTML = html;
+}
+
+function setDailyView(mode) { _dailyPapersView = mode; renderDailyPapers(); }
+
+function showDailyPaper(field, idx) {
+  if (!DAILY_PAPERS || !DAILY_PAPERS.fields[field]) return;
+  const p = DAILY_PAPERS.fields[field].papers[idx];
+  if (!p) return;
+
+  const displayTitle = LANG === 'ja' ? (p.title_ja || p.title) : p.title;
+  const displaySummary = LANG === 'ja' ? (p.summary_ja || p.summary) : p.summary;
+  const lang = p.language || 'en';
+  const color = FIELD_COLORS[p.field || field] || 'var(--accent)';
+  const novelty = p.novelty_score || 0;
+  const noveltyCls = novelty >= 8 ? 'high' : novelty >= 5 ? 'medium' : 'low';
+  const isTranslated = lang === 'en' && p.title_ja && LANG === 'ja';
+
+  let body = `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;">`;
+  body += `<span class="paper-field-badge" style="background:${color}">${esc(p.field || field)}</span>`;
+  if (p.subfield) body += `<span class="paper-subfield-tag">${esc(localizedSubfield(p.subfield))}</span>`;
+  body += `<span class="paper-lang-badge${lang === 'ja' ? ' ja' : ''}">${lang.toUpperCase()}</span>`;
+  if (novelty >= 1) body += `<span class="novelty-badge ${noveltyCls}" style="margin-left:4px">${LANG === 'ja' ? '新規性' : 'Novelty'}: ${novelty}/10</span>`;
+  if (p.published_date) body += `<span style="font-size:0.72rem;color:var(--text-muted);margin-left:auto">${esc(p.published_date)}</span>`;
+  body += `</div>`;
+
+  body += `<div class="modal-field"><div class="modal-label">${t('authors')}</div><div class="modal-value" style="line-height:1.6">${esc(p.authors || t('unknown'))}</div></div>`;
+  body += `<div class="modal-field"><div class="modal-label">${t('summary')}</div><div class="modal-value" style="line-height:1.8;font-size:0.84rem">${esc(displaySummary)}</div></div>`;
+
+  if (p.novelty_reason) {
+    body += `<div class="modal-field"><div class="modal-label">${LANG === 'ja' ? '新規性の理由' : 'Novelty Reason'}</div><div class="modal-value" style="color:var(--accent-warm);font-style:italic">${esc(p.novelty_reason)}</div></div>`;
+  }
+
+  // Show original English if viewing Japanese translation
+  if (isTranslated) {
+    body += `<div class="modal-field" style="background:#faf5f0;padding:12px;border-radius:8px;margin-top:4px;">`;
+    body += `<div class="modal-label" style="margin-bottom:4px">Original (English)</div>`;
+    body += `<div style="font-size:0.78rem;color:var(--text-muted);line-height:1.6;font-weight:500;margin-bottom:6px">${esc(p.title)}</div>`;
+    if (p.summary) body += `<div style="font-size:0.75rem;color:var(--text-muted);line-height:1.6">${esc(p.summary)}</div>`;
+    body += `</div>`;
+  }
+
+  // Save & Actions
+  body += `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;padding-top:16px;border-top:1px solid var(--border);">`;
+  body += `<a href="${esc(p.source_url)}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:8px 16px;border-radius:8px;background:var(--accent);color:white;text-decoration:none;font-size:0.82rem;font-weight:500">${LANG === 'ja' ? '論文を開く' : 'Open paper'} &#8599;</a>`;
+  if (p.doi) body += `<a href="https://doi.org/${esc(p.doi)}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;padding:8px 16px;border-radius:8px;background:var(--card);border:1px solid var(--border);color:var(--text);text-decoration:none;font-size:0.82rem">DOI: ${esc(p.doi)}</a>`;
+
+  const bmKey = `daily_${field}_${idx}`;
+  const isSaved = isPaperSaved(bmKey);
+  body += `<button class="paper-save-btn ${isSaved ? 'saved' : ''}" onclick="savePaperFromDaily('${esc(field)}',${idx},this)" id="dailySaveBtn_${field}_${idx}">${isSaved ? (LANG === 'ja' ? '保存済' : 'Saved') : (LANG === 'ja' ? '保存' : 'Save')}</button>`;
+  body += `</div>`;
+
+  // Note input
+  const existingNote = getPaperNote(bmKey);
+  body += `<div style="margin-top:12px">`;
+  body += `<textarea class="paper-note-input" id="dailyPaperNote_${field}_${idx}" placeholder="${LANG === 'ja' ? 'メモを追加...' : 'Add a note...'}" oninput="savePaperNote('${bmKey}',this.value)">${esc(existingNote)}</textarea>`;
+  body += `</div>`;
+
+  openModal(displayTitle, body);
+}
+
+// === AI PAPER SEARCH ===
+function togglePapersAiSearch() {
+  _papersAiMode = !_papersAiMode;
+  const btn = document.getElementById('papersAiSearchBtn');
+  const area = document.getElementById('papersAiSearchArea');
+  btn.classList.toggle('active', _papersAiMode);
+  area.style.display = _papersAiMode ? 'block' : 'none';
+
+  if (_papersAiMode) {
+    // Switch search input to AI mode
+    const searchInput = document.getElementById('papersSearch');
+    searchInput.placeholder = LANG === 'ja' ? 'AIに聞く: 例「量子コンピュータの最新応用」' : 'Ask AI: e.g. "latest quantum computing applications"';
+    searchInput.onkeydown = function(e) { if (e.key === 'Enter') runPapersAiSearch(); };
+  } else {
+    const searchInput = document.getElementById('papersSearch');
+    searchInput.placeholder = LANG === 'ja' ? '論文を検索...' : 'Search papers...';
+    searchInput.onkeydown = null;
+    document.getElementById('papersAiResults').innerHTML = '';
+    document.getElementById('papersAiStatus').textContent = LANG === 'ja' ? 'AI検索モード: 自然言語で論文を検索できます' : 'AI Search Mode: Search papers with natural language';
+  }
+}
+
+async function runPapersAiSearch() {
+  const q = (document.getElementById('papersSearch').value || '').trim();
+  if (!q || q.length < 2) return;
+
+  const statusEl = document.getElementById('papersAiStatus');
+  const resultsEl = document.getElementById('papersAiResults');
+
+  // First try semantic search if embeddings are available
+  statusEl.innerHTML = `<span style="display:inline-block;width:14px;height:14px;border:2px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite"></span>${LANG === 'ja' ? 'AI検索中...' : 'AI searching...'}`;
+
+  try {
+    // Try loading semantic embeddings
+    const [emb, model] = await Promise.all([loadSemanticEmbeddings(), loadSemanticModel()]);
+
+    if (emb && model) {
+      const output = await model('query: ' + q, { pooling: 'mean', normalize: true });
+      const queryVec = Array.from(output.data);
+      const scores = [];
+      for (const [id, docVec] of Object.entries(emb.vectors)) {
+        if (!id.startsWith('paper_')) continue;
+        let dot = 0; for (let i = 0; i < docVec.length; i++) dot += queryVec[i] * docVec[i];
+        scores.push({ id, score: dot });
+      }
+      scores.sort((a, b) => b.score - a.score);
+      const topResults = scores.slice(0, 20);
+
+      statusEl.textContent = `${LANG === 'ja' ? 'AI検索結果' : 'AI Results'}: ${topResults.length}${LANG === 'ja' ? '件' : ' papers'}`;
+
+      let html = '';
+      for (const r of topResults) {
+        const idx = parseInt(r.id.split('_')[1]);
+        const paper = PAPERS_DATA[idx];
+        if (!paper) continue;
+        const pct = (r.score * 100).toFixed(0);
+        const title = localizedPaperTitle(paper, idx);
+        const color = FIELD_COLORS[paper.field] || 'var(--accent)';
+        html += `<div class="article-item" style="background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:pointer;border-left:3px solid ${color}" onclick="showPaper(${idx})">`;
+        html += `<div style="display:flex;align-items:center;gap:8px">`;
+        html += `<span style="font-size:0.65rem;padding:2px 8px;border-radius:4px;background:${color};color:white">${esc(paper.field)}</span>`;
+        html += `<span style="font-size:0.65rem;padding:2px 6px;border-radius:4px;background:var(--accent-warm);color:white">${pct}%</span>`;
+        if (paper.subfield) html += `<span class="paper-subfield-tag">${esc(localizedSubfield(paper.subfield))}</span>`;
+        html += `</div>`;
+        html += `<div class="article-title" style="margin-top:4px">${esc(title)}</div>`;
+        html += `<div class="article-meta">${esc((paper.authors || '').substring(0, 60))} ${paper.published_date ? `<span style="color:var(--text-muted)">${esc(paper.published_date)}</span>` : ''}</div>`;
+        html += `</div>`;
+      }
+      resultsEl.innerHTML = html || `<div style="color:var(--text-muted);padding:12px">${LANG === 'ja' ? '結果が見つかりませんでした' : 'No results found'}</div>`;
+    } else {
+      // Fallback: Claude API search
+      await runPapersAiSearchWithClaude(q);
+    }
+  } catch (e) {
+    console.warn('Semantic search failed, trying Claude API:', e);
+    await runPapersAiSearchWithClaude(q);
+  }
+}
+
+async function runPapersAiSearchWithClaude(query) {
+  const statusEl = document.getElementById('papersAiStatus');
+  const resultsEl = document.getElementById('papersAiResults');
+  const apiKey = getApiKey();
+
+  if (!apiKey) {
+    statusEl.textContent = LANG === 'ja' ? 'APIキーが必要です（設定から入力してください）' : 'API key required';
+    return;
+  }
+
+  // Build a sample of papers for Claude to search through
+  const sampleSize = Math.min(PAPERS_DATA.length, 200);
+  const step = Math.max(1, Math.floor(PAPERS_DATA.length / sampleSize));
+  const sample = [];
+  for (let i = 0; i < PAPERS_DATA.length && sample.length < sampleSize; i += step) {
+    const p = PAPERS_DATA[i];
+    sample.push(`[${i}] ${p.title} | ${p.field} | ${p.subfield || ''} | ${(p.authors || '').substring(0, 50)}`);
+  }
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001', max_tokens: 1000,
+        messages: [{ role: 'user', content: `以下の学術論文リストから、「${query}」に最も関連する論文を最大15件選んでください。\n番号の配列のみ返してください。例: [0, 5, 12]\n\n${sample.join('\n')}` }]
+      })
+    });
+
+    if (!resp.ok) throw new Error('API error');
+    const result = await resp.json();
+    const text = result.content[0].text;
+    const start = text.indexOf('['); const end = text.lastIndexOf(']') + 1;
+    const indices = JSON.parse(text.substring(start, end));
+
+    statusEl.textContent = `${LANG === 'ja' ? 'AI検索結果' : 'AI Results'}: ${indices.length}${LANG === 'ja' ? '件' : ' papers'}`;
+
+    let html = '';
+    for (const idx of indices) {
+      if (idx < 0 || idx >= PAPERS_DATA.length) continue;
+      const paper = PAPERS_DATA[idx];
+      const title = localizedPaperTitle(paper, idx);
+      const color = FIELD_COLORS[paper.field] || 'var(--accent)';
+      html += `<div class="article-item" style="background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:pointer;border-left:3px solid ${color}" onclick="showPaper(${idx})">`;
+      html += `<div style="display:flex;align-items:center;gap:8px"><span style="font-size:0.65rem;padding:2px 8px;border-radius:4px;background:${color};color:white">${esc(paper.field)}</span></div>`;
+      html += `<div class="article-title" style="margin-top:4px">${esc(title)}</div>`;
+      html += `<div class="article-meta">${esc((paper.authors || '').substring(0, 60))}</div></div>`;
+    }
+    resultsEl.innerHTML = html;
+  } catch (e) {
+    statusEl.textContent = LANG === 'ja' ? 'AI検索でエラーが発生しました' : 'AI search error';
+    console.error('AI search error:', e);
+  }
+}
+
+// === PAPER SAVE ENHANCEMENT ===
+let savedPapers = [];
+let paperNotes = {};
+let paperCollections = {};
+
+async function loadSavedPapers() {
+  if (!currentUser) return;
+  try {
+    const snap = await db.collection('users').doc(currentUser.uid).collection('savedPapers').orderBy('createdAt', 'desc').get();
+    savedPapers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    // Load notes
+    const notesDoc = await db.collection('users').doc(currentUser.uid).collection('settings').doc('paperNotes').get();
+    if (notesDoc.exists) paperNotes = notesDoc.data() || {};
+    // Load collections
+    const colDoc = await db.collection('users').doc(currentUser.uid).collection('settings').doc('paperCollections').get();
+    if (colDoc.exists) paperCollections = colDoc.data() || {};
+    updateExportBar();
+  } catch (e) { console.warn('Saved papers load failed:', e); }
+}
+
+function isPaperSaved(key) {
+  return savedPapers.some(sp => sp.paperKey === key);
+}
+
+function getPaperNote(key) {
+  return paperNotes[key] || '';
+}
+
+function savePaperNote(key, text) {
+  paperNotes[key] = text;
+  // Debounced save
+  clearTimeout(savePaperNote._timer);
+  savePaperNote._timer = setTimeout(() => {
+    if (currentUser) {
+      db.collection('users').doc(currentUser.uid).collection('settings').doc('paperNotes').set(paperNotes, { merge: true }).catch(() => {});
+    }
+  }, 1000);
+}
+
+async function savePaperFromDaily(field, idx, btn) {
+  if (!currentUser || !DAILY_PAPERS) return;
+  const p = DAILY_PAPERS.fields[field]?.papers[idx];
+  if (!p) return;
+  const key = `daily_${field}_${idx}`;
+
+  const existing = savedPapers.find(sp => sp.paperKey === key);
+  if (existing) {
+    await db.collection('users').doc(currentUser.uid).collection('savedPapers').doc(existing.id).delete();
+    savedPapers = savedPapers.filter(sp => sp.id !== existing.id);
+    if (btn) { btn.classList.remove('saved'); btn.textContent = LANG === 'ja' ? '保存' : 'Save'; }
+    showToast(LANG === 'ja' ? '保存を解除しました' : 'Removed from saved');
+  } else {
+    const doc = await db.collection('users').doc(currentUser.uid).collection('savedPapers').add({
+      paperKey: key, title: p.title, title_ja: p.title_ja || '', authors: p.authors || '',
+      field: field, subfield: p.subfield || '', source_url: p.source_url || '', doi: p.doi || '',
+      summary: p.summary || '', summary_ja: p.summary_ja || '',
+      published_date: p.published_date || '', novelty_score: p.novelty_score || 0,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    savedPapers.unshift({ id: doc.id, paperKey: key, title: p.title, title_ja: p.title_ja, field: field });
+    if (btn) { btn.classList.add('saved'); btn.textContent = LANG === 'ja' ? '保存済' : 'Saved'; }
+    showToast(LANG === 'ja' ? '論文を保存しました' : 'Paper saved');
+  }
+  updateExportBar();
+}
+
+async function savePaperFromAll(idx, btn) {
+  if (!currentUser || !PAPERS_DATA[idx]) return;
+  const p = PAPERS_DATA[idx];
+  const key = `all_${idx}`;
+
+  const existing = savedPapers.find(sp => sp.paperKey === key);
+  if (existing) {
+    await db.collection('users').doc(currentUser.uid).collection('savedPapers').doc(existing.id).delete();
+    savedPapers = savedPapers.filter(sp => sp.id !== existing.id);
+    if (btn) { btn.classList.remove('saved'); btn.textContent = LANG === 'ja' ? '保存' : 'Save'; }
+    showToast(LANG === 'ja' ? '保存を解除しました' : 'Removed from saved');
+  } else {
+    const tr = PAPERS_TRANS[idx];
+    const doc = await db.collection('users').doc(currentUser.uid).collection('savedPapers').add({
+      paperKey: key, title: p.title, title_ja: tr?.title_ja || p.title_ja || '',
+      authors: p.authors || '', field: p.field, subfield: p.subfield || '',
+      source_url: p.source_url || '', doi: p.doi || '',
+      summary: p.summary || '', summary_ja: tr?.summary_ja || p.summary_ja || '',
+      published_date: p.published_date || '',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    savedPapers.unshift({ id: doc.id, paperKey: key, title: p.title, title_ja: tr?.title_ja || '', field: p.field });
+    if (btn) { btn.classList.add('saved'); btn.textContent = LANG === 'ja' ? '保存済' : 'Saved'; }
+    showToast(LANG === 'ja' ? '論文を保存しました' : 'Paper saved');
+  }
+  updateExportBar();
+}
+
+function updateExportBar() {
+  const bar = document.getElementById('paperExportBar');
+  if (bar) bar.style.display = savedPapers.length > 0 ? 'flex' : 'none';
+}
+
+function exportSavedPapers(format) {
+  if (savedPapers.length === 0) { showToast(LANG === 'ja' ? '保存済み論文がありません' : 'No saved papers'); return; }
+
+  let output = '';
+  if (format === 'json') {
+    output = JSON.stringify(savedPapers.map(sp => ({
+      title: sp.title, title_ja: sp.title_ja, authors: sp.authors,
+      field: sp.field, source_url: sp.source_url, doi: sp.doi,
+      published_date: sp.published_date, note: paperNotes[sp.paperKey] || '',
+    })), null, 2);
+    downloadFile(output, 'saved_papers.json', 'application/json');
+  } else if (format === 'csv') {
+    output = 'Title,Title (JA),Authors,Field,URL,DOI,Date,Note\n';
+    savedPapers.forEach(sp => {
+      output += `"${(sp.title||'').replace(/"/g,'""')}","${(sp.title_ja||'').replace(/"/g,'""')}","${(sp.authors||'').replace(/"/g,'""')}","${sp.field}","${sp.source_url||''}","${sp.doi||''}","${sp.published_date||''}","${(paperNotes[sp.paperKey]||'').replace(/"/g,'""')}"\n`;
+    });
+    downloadFile(output, 'saved_papers.csv', 'text/csv');
+  } else if (format === 'markdown') {
+    output = '# Saved Papers\n\n';
+    savedPapers.forEach((sp, i) => {
+      output += `## ${i + 1}. ${sp.title_ja || sp.title}\n`;
+      if (sp.title_ja) output += `*${sp.title}*\n\n`;
+      output += `- **Field:** ${sp.field}\n`;
+      output += `- **Authors:** ${sp.authors || 'N/A'}\n`;
+      if (sp.source_url) output += `- **URL:** ${sp.source_url}\n`;
+      if (sp.published_date) output += `- **Date:** ${sp.published_date}\n`;
+      const note = paperNotes[sp.paperKey];
+      if (note) output += `\n> ${note}\n`;
+      output += '\n---\n\n';
+    });
+    downloadFile(output, 'saved_papers.md', 'text/markdown');
+  }
+  showToast(LANG === 'ja' ? `${format.toUpperCase()}形式でエクスポートしました` : `Exported as ${format.toUpperCase()}`);
+}
+
+function downloadFile(content, filename, mimeType) {
+  const blob = new Blob([content], { type: mimeType + ';charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function shareAllSavedPapers() {
+  if (savedPapers.length === 0) { showToast(LANG === 'ja' ? '保存済み論文がありません' : 'No saved papers'); return; }
+  let text = LANG === 'ja' ? '【保存済み論文一覧】\n\n' : '【Saved Papers】\n\n';
+  savedPapers.forEach((sp, i) => {
+    text += `${i + 1}. [${sp.field}] ${sp.title_ja || sp.title}\n`;
+    if (sp.source_url) text += `   ${sp.source_url}\n`;
+    text += '\n';
+  });
+  if (navigator.share) {
+    navigator.share({ title: 'Saved Papers', text }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(text).then(() => showToast(LANG === 'ja' ? 'コピーしました' : 'Copied'));
+  }
+}
+
 // Phase 1: Load only lightweight data for initial render (~1MB total)
 async function loadData() {
   const v = Date.now();
@@ -1844,6 +2536,8 @@ async function loadData() {
   if (alertsResp.status === 'fulfilled') try { ALERTS_DATA = await alertsResp.value.json(); } catch(e) {}
   if (scResp.status === 'fulfilled') try { SCENARIOS_DATA = await scResp.value.json(); } catch(e) {}
   applyI18n(); renderOverview(); renderAlerts(); renderPestle(); renderCLA(); renderScenarios(); renderSignals(); renderPapers(); restoreTabFromHash();
+  // Load daily curated papers (lightweight, ~200KB)
+  loadDailyPapers();
   // Phase 2: Load heavy data in background after initial render
   loadHeavyData(v);
 }
@@ -1866,7 +2560,7 @@ async function loadHeavyData(v) {
 }
 
 // initApp is called by the auth guard after successful authentication
-function initApp() { loadData(); loadBookmarks(); loadSharedApiKey(); loadResearchContexts(); loadNotionToken(); }
+function initApp() { loadData(); loadBookmarks(); loadSavedPapers(); loadSharedApiKey(); loadResearchContexts(); loadNotionToken(); }
 
 // === BOOKMARKS ===
 let userBookmarks = [];
