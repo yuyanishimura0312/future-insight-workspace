@@ -1,322 +1,507 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>管理画面 - Future Insight Workspace</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>管理画面 - Future Insight Workspace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@300;400;500;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f0e9e1;
+    --card: #ffffff;
+    --card-hover: #faf5f0;
+    --accent: #783c28;
+    --accent-light: #a0503c;
+    --accent-warm: #c87864;
+    --text: #292929;
+    --text-muted: #8c6d5e;
+    --border: #e0d5cc;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: "M PLUS 1p", "Noto Sans JP", "Hiragino Kaku Gothic ProN", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  /* Loading overlay */
+  .loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    font-size: 15px;
+    color: var(--text-muted);
+  }
+
+  /* Header */
+  header {
+    background: linear-gradient(135deg, #783c28 0%, #a0503c 50%, #c87864 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 32px;
+    padding-top: max(20px, env(safe-area-inset-top));
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #ffffff;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  header h1 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #ffffff;
+  }
+
+  .header-sub {
+    font-size: 0.75rem;
+    color: #ffe8d7;
+    margin-top: 2px;
+    opacity: 0.85;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .admin-name {
+    font-size: 0.85rem;
+    color: #ffe8d7;
+  }
+
+  .header-link {
+    font-size: 0.85rem;
+    color: #ffffff;
+    text-decoration: none;
+    opacity: 0.9;
+    transition: opacity 0.15s;
+  }
+
+  .header-link:hover {
+    opacity: 1;
+    text-decoration: underline;
+  }
+
+  .btn-logout {
+    padding: 6px 16px;
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 8px;
+    background: rgba(255,255,255,0.1);
+    color: #ffffff;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .btn-logout:hover {
+    background: rgba(255,255,255,0.2);
+    border-color: rgba(255,255,255,0.6);
+  }
+
+  /* Main layout */
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px;
+  }
+
+  /* Section titles */
+  .section-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--border);
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    transition: box-shadow 0.15s;
+  }
+
+  .stat-card:hover {
+    box-shadow: 0 4px 16px rgba(120,60,40,0.08);
+  }
+
+  .stat-label {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    letter-spacing: 0.03em;
+    margin-bottom: 4px;
+  }
+
+  .stat-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .stat-sub {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* Card sections */
+  .section-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 32px;
+    overflow: hidden;
+  }
+
+  .section-card:hover {
+    box-shadow: 0 4px 16px rgba(120,60,40,0.06);
+  }
+
+  /* Table */
+  .table-wrapper {
+    overflow-x: auto;
+    margin: 0 -24px -24px;
+    padding: 0 24px 24px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 1100px;
+  }
+
+  thead th {
+    text-align: left;
+    padding: 10px 12px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+  }
+
+  tbody td {
+    padding: 10px 12px;
+    font-size: 0.82rem;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  tbody tr:hover {
+    background: var(--card-hover);
+  }
+
+  /* Badges */
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.72rem;
+    font-weight: 600;
+  }
+
+  .badge-pending {
+    background: rgba(202, 138, 4, 0.12);
+    color: #92650a;
+  }
+
+  .badge-active {
+    background: rgba(22, 163, 74, 0.12);
+    color: #15803d;
+  }
+
+  .badge-disabled {
+    background: rgba(220, 38, 38, 0.12);
+    color: #b91c1c;
+  }
+
+  .badge-admin {
+    background: rgba(120, 60, 40, 0.12);
+    color: var(--accent);
+  }
+
+  .badge-user {
+    background: rgba(140, 109, 94, 0.12);
+    color: var(--text-muted);
+  }
+
+  /* Action buttons */
+  .actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    padding: 5px 12px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: opacity 0.15s;
+    font-family: inherit;
+  }
+
+  .btn:hover { opacity: 0.85; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn-approve { background: #16a34a; color: #fff; }
+  .btn-disable { background: #dc2626; color: #fff; }
+  .btn-enable { background: #2563eb; color: #fff; }
+  .btn-promote { background: var(--accent); color: #fff; }
+  .btn-demote { background: #6b7280; color: #fff; }
+
+  /* Activity counts */
+  .activity-count {
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .activity-count.zero {
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center;
+    padding: 48px 16px;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+
+  /* Database status grid */
+  .db-status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 12px;
+  }
+
+  .db-status-item {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+
+  .db-status-label {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+
+  .db-status-value {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .db-status-meta {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+  }
+
+  .status-ok {
+    color: #15803d;
+  }
+
+  .status-error {
+    color: #b91c1c;
+  }
+
+  .status-indicator {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+  }
+
+  .status-indicator.ok { background: #16a34a; }
+  .status-indicator.error { background: #dc2626; }
+  .status-indicator.loading { background: #ca8a04; }
+
+  /* Chart section */
+  .chart-container {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    height: 180px;
+    padding: 16px 0;
+  }
+
+  .chart-bar-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    justify-content: flex-end;
+  }
+
+  .chart-bar {
+    width: 100%;
+    max-width: 48px;
+    background: linear-gradient(180deg, var(--accent-warm) 0%, var(--accent) 100%);
+    border-radius: 6px 6px 0 0;
+    min-height: 2px;
+    transition: height 0.3s ease;
+  }
+
+  .chart-bar-label {
+    font-size: 0.68rem;
+    color: var(--text-muted);
+    margin-top: 8px;
+    text-align: center;
+  }
+
+  .chart-bar-value {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+
+  .chart-note {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    margin-top: 8px;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    header {
+      padding: 16px 20px;
     }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif;
-      background-color: #1a1a2e;
-      color: #e0e0e0;
-      min-height: 100vh;
+    header h1 {
+      font-size: 1.1rem;
+      width: 100%;
     }
 
-    /* Header */
-    .header {
-      background-color: #16213e;
-      border-bottom: 1px solid #2a2a4a;
-      padding: 16px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 12px;
+    .container {
+      padding: 16px 12px;
     }
 
-    .header-title {
-      font-size: 18px;
-      font-weight: 700;
-      color: #ffffff;
-    }
-
-    .header-right {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-
-    .admin-name {
-      font-size: 14px;
-      color: #a0a0c0;
-    }
-
-    .header-link {
-      font-size: 14px;
-      color: #4a90d9;
-      text-decoration: none;
-      cursor: pointer;
-    }
-
-    .header-link:hover {
-      text-decoration: underline;
-    }
-
-    /* Loading overlay */
-    .loading-overlay {
-      position: fixed;
-      inset: 0;
-      background-color: #1a1a2e;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      font-size: 16px;
-      color: #a0a0c0;
-    }
-
-    /* Main content */
-    .main {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 24px 16px;
-    }
-
-    /* Stats cards */
     .stats-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      margin-bottom: 32px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .stat-value {
+      font-size: 1.4rem;
     }
 
     .stat-card {
-      background-color: #16213e;
-      border: 1px solid #2a2a4a;
-      border-radius: 8px;
-      padding: 20px;
+      padding: 14px;
     }
 
-    .stat-card-label {
-      font-size: 13px;
-      color: #a0a0c0;
-      margin-bottom: 8px;
-    }
-
-    .stat-card-value {
-      font-size: 32px;
-      font-weight: 700;
-      color: #ffffff;
-    }
-
-    /* Table section */
-    .section-title {
-      font-size: 16px;
-      font-weight: 700;
-      color: #ffffff;
-      margin-bottom: 16px;
+    .section-card {
+      padding: 16px;
     }
 
     .table-wrapper {
-      overflow-x: auto;
-      background-color: #16213e;
-      border: 1px solid #2a2a4a;
-      border-radius: 8px;
+      margin: 0 -16px -16px;
+      padding: 0 16px 16px;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 800px;
+    .chart-container {
+      height: 140px;
     }
-
-    thead th {
-      text-align: left;
-      padding: 12px 16px;
-      font-size: 12px;
-      font-weight: 600;
-      color: #a0a0c0;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      border-bottom: 1px solid #2a2a4a;
-      white-space: nowrap;
-    }
-
-    tbody td {
-      padding: 12px 16px;
-      font-size: 14px;
-      border-bottom: 1px solid #2a2a4a;
-      white-space: nowrap;
-    }
-
-    tbody tr:last-child td {
-      border-bottom: none;
-    }
-
-    tbody tr:hover {
-      background-color: #1e2a45;
-    }
-
-    /* Status badges */
-    .badge {
-      display: inline-block;
-      padding: 3px 10px;
-      border-radius: 12px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    .badge-pending {
-      background-color: rgba(234, 179, 8, 0.15);
-      color: #eab308;
-    }
-
-    .badge-active {
-      background-color: rgba(34, 197, 94, 0.15);
-      color: #22c55e;
-    }
-
-    .badge-disabled {
-      background-color: rgba(239, 68, 68, 0.15);
-      color: #ef4444;
-    }
-
-    .badge-admin {
-      background-color: rgba(74, 144, 217, 0.15);
-      color: #4a90d9;
-    }
-
-    .badge-user {
-      background-color: rgba(160, 160, 192, 0.15);
-      color: #a0a0c0;
-    }
-
-    /* Action buttons */
-    .actions {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-
-    .btn {
-      padding: 5px 12px;
-      border: none;
-      border-radius: 4px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: opacity 0.15s;
-    }
-
-    .btn:hover {
-      opacity: 0.85;
-    }
-
-    .btn:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
-
-    .btn-approve {
-      background-color: #22c55e;
-      color: #ffffff;
-    }
-
-    .btn-disable {
-      background-color: #ef4444;
-      color: #ffffff;
-    }
-
-    .btn-enable {
-      background-color: #4a90d9;
-      color: #ffffff;
-    }
-
-    .btn-promote {
-      background-color: #8b5cf6;
-      color: #ffffff;
-    }
-
-    .btn-demote {
-      background-color: #6b7280;
-      color: #ffffff;
-    }
-
-    /* Empty state */
-    .empty-state {
-      text-align: center;
-      padding: 48px 16px;
-      color: #a0a0c0;
-      font-size: 14px;
-    }
-
-    /* Responsive */
-    @media (max-width: 640px) {
-      .header {
-        padding: 12px 16px;
-      }
-
-      .header-title {
-        font-size: 16px;
-        width: 100%;
-      }
-
-      .main {
-        padding: 16px 12px;
-      }
-
-      .stat-card-value {
-        font-size: 24px;
-      }
-
-      .stats-row {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
-      }
-
-      .stat-card {
-        padding: 14px;
-      }
-    }
-  </style>
+  }
+</style>
 </head>
 <body>
 
-  <!-- Loading overlay: shown until auth/role check completes -->
-  <div class="loading-overlay" id="loadingOverlay">読み込み中...</div>
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loadingOverlay">読み込み中...</div>
 
-  <!-- Page content: hidden until admin confirmed -->
-  <div id="pageContent" style="display:none;">
+<!-- Page content: hidden until admin confirmed -->
+<div id="pageContent" style="display:none;">
 
-    <!-- Header -->
-    <header class="header">
-      <div class="header-title">管理画面 - Future Insight Workspace</div>
-      <div class="header-right">
-        <span class="admin-name" id="adminName"></span>
-        <a class="header-link" href="app.html">アプリに戻る</a>
-        <a class="header-link" id="logoutLink" href="#">ログアウト</a>
+  <!-- Header -->
+  <header>
+    <div>
+      <h1>管理画面 - Future Insight Workspace</h1>
+      <div class="header-sub">管理者ダッシュボード</div>
+    </div>
+    <div class="header-right">
+      <span class="admin-name" id="adminName"></span>
+      <a class="header-link" href="app.html">アプリに戻る</a>
+      <button class="btn-logout" id="logoutBtn">ログアウト</button>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="container">
+
+    <!-- Stats overview -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">全ユーザー数</div>
+        <div class="stat-value" id="statTotal">-</div>
       </div>
-    </header>
-
-    <!-- Main -->
-    <main class="main">
-
-      <!-- Dashboard stats -->
-      <div class="stats-row">
-        <div class="stat-card">
-          <div class="stat-card-label">全ユーザー数</div>
-          <div class="stat-card-value" id="statTotal">-</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-card-label">有効ユーザー</div>
-          <div class="stat-card-value" id="statActive">-</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-card-label">承認待ち</div>
-          <div class="stat-card-value" id="statPending">-</div>
-        </div>
+      <div class="stat-card">
+        <div class="stat-label">有効ユーザー</div>
+        <div class="stat-value" id="statActive">-</div>
       </div>
+      <div class="stat-card">
+        <div class="stat-label">承認待ち</div>
+        <div class="stat-value" id="statPending">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">無効ユーザー</div>
+        <div class="stat-value" id="statDisabled">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">今日のアクティブ</div>
+        <div class="stat-value" id="statToday">-</div>
+        <div class="stat-sub">本日ログインしたユーザー</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">今週のアクティブ</div>
+        <div class="stat-value" id="statWeek">-</div>
+        <div class="stat-sub">直近7日間にログイン</div>
+      </div>
+    </div>
 
-      <!-- User list -->
-      <div class="section-title">ユーザー一覧</div>
+    <!-- User Activity Section -->
+    <div class="section-card">
+      <div class="section-title" style="margin-top:0;">ユーザーアクティビティ</div>
       <div class="table-wrapper">
         <table>
           <thead>
@@ -327,230 +512,500 @@
               <th>ロール</th>
               <th>登録日</th>
               <th>最終ログイン</th>
+              <th style="text-align:center;">ブックマーク</th>
+              <th style="text-align:center;">観察</th>
+              <th style="text-align:center;">駆動力</th>
+              <th style="text-align:center;">シナリオ</th>
               <th>操作</th>
             </tr>
           </thead>
           <tbody id="userTableBody">
             <tr>
-              <td colspan="7" class="empty-state">読み込み中...</td>
+              <td colspan="11" class="empty-state">読み込み中...</td>
             </tr>
           </tbody>
         </table>
       </div>
+    </div>
 
-    </main>
-  </div>
+    <!-- Database Status Section -->
+    <div class="section-card">
+      <div class="section-title" style="margin-top:0;">データベースステータス</div>
+      <div class="db-status-grid" id="dbStatusGrid">
+        <div class="db-status-item">
+          <div class="db-status-label">ステータス</div>
+          <div class="db-status-value">読み込み中...</div>
+        </div>
+      </div>
+    </div>
 
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-  <script src="js/firebase-config.js?v=2"></script>
+    <!-- User Engagement Chart -->
+    <div class="section-card">
+      <div class="section-title" style="margin-top:0;">ユーザーアクティビティ (直近7日間)</div>
+      <div class="chart-container" id="chartContainer">
+        <div class="empty-state" style="width:100%;padding:24px;">読み込み中...</div>
+      </div>
+      <div class="chart-note" id="chartNote"></div>
+    </div>
 
-  <script>
-    // ---- State ----
-    let allUsers = [];
+  </main>
+</div>
 
-    // ---- Auth & role check ----
-    auth.onAuthStateChanged(async (user) => {
-      if (!user) {
-        // Not logged in — redirect to app (which should show login)
-        window.location.href = 'app.html';
-        return;
-      }
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js?v=2"></script>
 
-      try {
-        const userDoc = await db.collection('users').doc(user.uid).get();
+<script>
+  // ---- State ----
+  let allUsers = [];
+  let userActivityCounts = {}; // uid -> { bookmarks, observations, drivingForces, myScenarios }
 
-        if (!userDoc.exists || userDoc.data().role !== 'admin') {
-          // Not admin — redirect
-          window.location.href = 'app.html';
-          return;
-        }
-
-        // Admin confirmed — show page
-        document.getElementById('loadingOverlay').style.display = 'none';
-        document.getElementById('pageContent').style.display = 'block';
-        document.getElementById('adminName').textContent = userDoc.data().displayName || user.email;
-
-        // Load users
-        await loadUsers();
-      } catch (err) {
-        console.error('Admin check failed:', err);
-        window.location.href = 'app.html';
-      }
-    });
-
-    // ---- Logout ----
-    document.getElementById('logoutLink').addEventListener('click', async (e) => {
-      e.preventDefault();
-      await auth.signOut();
+  // ---- Auth & role check ----
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) {
       window.location.href = 'app.html';
-    });
-
-    // ---- Load all users from Firestore ----
-    async function loadUsers() {
-      try {
-        const snapshot = await db.collection('users')
-          .orderBy('createdAt', 'desc')
-          .get();
-
-        allUsers = snapshot.docs.map(doc => ({
-          uid: doc.id,
-          ...doc.data()
-        }));
-
-        renderStats();
-        renderTable();
-      } catch (err) {
-        console.error('Failed to load users:', err);
-        document.getElementById('userTableBody').innerHTML =
-          '<tr><td colspan="7" class="empty-state">ユーザーの読み込みに失敗しました</td></tr>';
-      }
+      return;
     }
 
-    // ---- Render dashboard stats ----
-    function renderStats() {
-      const total = allUsers.length;
-      const active = allUsers.filter(u => u.status === 'active').length;
-      const pending = allUsers.filter(u => u.status === 'pending').length;
+    try {
+      const userDoc = await db.collection('users').doc(user.uid).get();
 
-      document.getElementById('statTotal').textContent = total;
-      document.getElementById('statActive').textContent = active;
-      document.getElementById('statPending').textContent = pending;
-    }
-
-    // ---- Render user table ----
-    function renderTable() {
-      const tbody = document.getElementById('userTableBody');
-
-      if (allUsers.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="empty-state">ユーザーがいません</td></tr>';
+      if (!userDoc.exists || userDoc.data().role !== 'admin') {
+        window.location.href = 'app.html';
         return;
       }
 
-      tbody.innerHTML = allUsers.map(user => {
-        const statusBadge = getStatusBadge(user.status);
-        const roleBadge = getRoleBadge(user.role);
-        const createdAt = formatTimestamp(user.createdAt);
-        const lastLogin = formatTimestamp(user.lastLogin);
-        const actions = buildActions(user);
+      // Admin confirmed
+      document.getElementById('loadingOverlay').style.display = 'none';
+      document.getElementById('pageContent').style.display = 'block';
+      document.getElementById('adminName').textContent = userDoc.data().displayName || user.email;
 
-        return `<tr>
-          <td>${escapeHtml(user.displayName || '-')}</td>
-          <td>${escapeHtml(user.email || '-')}</td>
-          <td>${statusBadge}</td>
-          <td>${roleBadge}</td>
-          <td>${createdAt}</td>
-          <td>${lastLogin}</td>
-          <td class="actions">${actions}</td>
-        </tr>`;
-      }).join('');
+      // Load all data in parallel
+      await Promise.all([
+        loadUsers(),
+        loadDatabaseStatus()
+      ]);
+    } catch (err) {
+      console.error('Admin check failed:', err);
+      window.location.href = 'app.html';
+    }
+  });
+
+  // ---- Logout ----
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await auth.signOut();
+    window.location.href = 'app.html';
+  });
+
+  // ---- Load all users from Firestore ----
+  async function loadUsers() {
+    try {
+      const snapshot = await db.collection('users')
+        .orderBy('createdAt', 'desc')
+        .get();
+
+      allUsers = snapshot.docs.map(doc => ({
+        uid: doc.id,
+        ...doc.data()
+      }));
+
+      renderStats();
+      renderTable();
+      renderChart();
+
+      // Load activity counts in background (non-blocking)
+      loadAllActivityCounts();
+    } catch (err) {
+      console.error('Failed to load users:', err);
+      document.getElementById('userTableBody').innerHTML =
+        '<tr><td colspan="11" class="empty-state">ユーザーの読み込みに失敗しました</td></tr>';
+    }
+  }
+
+  // ---- Load activity counts for all users ----
+  async function loadAllActivityCounts() {
+    const subcollections = ['bookmarks', 'observations', 'drivingForces', 'myScenarios'];
+
+    // Process users in parallel, but limit concurrency
+    const promises = allUsers.map(async (user) => {
+      const counts = {};
+      await Promise.all(subcollections.map(async (sub) => {
+        try {
+          const snap = await db.collection('users').doc(user.uid).collection(sub).get();
+          counts[sub] = snap.size;
+        } catch (e) {
+          counts[sub] = 0;
+        }
+      }));
+      userActivityCounts[user.uid] = counts;
+    });
+
+    await Promise.all(promises);
+
+    // Re-render table with activity counts
+    renderTable();
+  }
+
+  // ---- Render dashboard stats ----
+  function renderStats() {
+    const total = allUsers.length;
+    const active = allUsers.filter(u => u.status === 'active').length;
+    const pending = allUsers.filter(u => u.status === 'pending').length;
+    const disabled = allUsers.filter(u => u.status === 'disabled').length;
+
+    // Today and this week active users based on lastLogin
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekStart = new Date(todayStart);
+    weekStart.setDate(weekStart.getDate() - 7);
+
+    let todayActive = 0;
+    let weekActive = 0;
+
+    allUsers.forEach(u => {
+      if (!u.lastLogin) return;
+      const loginDate = u.lastLogin.toDate ? u.lastLogin.toDate() : new Date(u.lastLogin);
+      if (loginDate >= todayStart) todayActive++;
+      if (loginDate >= weekStart) weekActive++;
+    });
+
+    document.getElementById('statTotal').textContent = total;
+    document.getElementById('statActive').textContent = active;
+    document.getElementById('statPending').textContent = pending;
+    document.getElementById('statDisabled').textContent = disabled;
+    document.getElementById('statToday').textContent = todayActive;
+    document.getElementById('statWeek').textContent = weekActive;
+  }
+
+  // ---- Render user table ----
+  function renderTable() {
+    const tbody = document.getElementById('userTableBody');
+
+    if (allUsers.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="11" class="empty-state">ユーザーがいません</td></tr>';
+      return;
     }
 
-    // ---- Status badge HTML ----
-    function getStatusBadge(status) {
-      const map = {
-        pending:  { label: '承認待ち', cls: 'badge-pending' },
-        active:   { label: '有効',     cls: 'badge-active' },
-        disabled: { label: '無効',     cls: 'badge-disabled' }
-      };
-      const info = map[status] || { label: status, cls: '' };
-      return `<span class="badge ${info.cls}">${info.label}</span>`;
+    tbody.innerHTML = allUsers.map(user => {
+      const statusBadge = getStatusBadge(user.status);
+      const roleBadge = getRoleBadge(user.role);
+      const createdAt = formatTimestamp(user.createdAt);
+      const lastLogin = formatTimestamp(user.lastLogin);
+      const actions = buildActions(user);
+
+      // Activity counts
+      const counts = userActivityCounts[user.uid];
+      const bookmarks = counts ? counts.bookmarks : '-';
+      const observations = counts ? counts.observations : '-';
+      const drivingForces = counts ? counts.drivingForces : '-';
+      const scenarios = counts ? counts.myScenarios : '-';
+
+      const countClass = (val) => val === 0 ? 'activity-count zero' : 'activity-count';
+
+      return `<tr>
+        <td>${escapeHtml(user.displayName || '-')}</td>
+        <td>${escapeHtml(user.email || '-')}</td>
+        <td>${statusBadge}</td>
+        <td>${roleBadge}</td>
+        <td>${createdAt}</td>
+        <td>${lastLogin}</td>
+        <td class="${typeof bookmarks === 'number' ? countClass(bookmarks) : 'activity-count'}">${bookmarks}</td>
+        <td class="${typeof observations === 'number' ? countClass(observations) : 'activity-count'}">${observations}</td>
+        <td class="${typeof drivingForces === 'number' ? countClass(drivingForces) : 'activity-count'}">${drivingForces}</td>
+        <td class="${typeof scenarios === 'number' ? countClass(scenarios) : 'activity-count'}">${scenarios}</td>
+        <td class="actions">${actions}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // ---- Status badge ----
+  function getStatusBadge(status) {
+    const map = {
+      pending:  { label: '承認待ち', cls: 'badge-pending' },
+      active:   { label: '有効',     cls: 'badge-active' },
+      disabled: { label: '無効',     cls: 'badge-disabled' }
+    };
+    const info = map[status] || { label: status || '-', cls: '' };
+    return `<span class="badge ${info.cls}">${info.label}</span>`;
+  }
+
+  // ---- Role badge ----
+  function getRoleBadge(role) {
+    const map = {
+      admin: { label: '管理者', cls: 'badge-admin' },
+      user:  { label: 'ユーザー', cls: 'badge-user' }
+    };
+    const info = map[role] || { label: role || '-', cls: '' };
+    return `<span class="badge ${info.cls}">${info.label}</span>`;
+  }
+
+  // ---- Format Firestore timestamp ----
+  function formatTimestamp(ts) {
+    if (!ts) return '-';
+    const date = ts.toDate ? ts.toDate() : new Date(ts);
+    if (isNaN(date.getTime())) return '-';
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    const h = String(date.getHours()).padStart(2, '0');
+    const min = String(date.getMinutes()).padStart(2, '0');
+    return `${y}/${m}/${d} ${h}:${min}`;
+  }
+
+  // ---- Build action buttons ----
+  function buildActions(user) {
+    const buttons = [];
+
+    if (user.status === 'pending') {
+      buttons.push(
+        `<button class="btn btn-approve" onclick="updateUser('${user.uid}', 'status', 'active')">承認</button>`
+      );
+    }
+    if (user.status === 'active') {
+      buttons.push(
+        `<button class="btn btn-disable" onclick="updateUser('${user.uid}', 'status', 'disabled')">無効化</button>`
+      );
+    }
+    if (user.status === 'disabled') {
+      buttons.push(
+        `<button class="btn btn-enable" onclick="updateUser('${user.uid}', 'status', 'active')">有効化</button>`
+      );
+    }
+    if (user.role === 'user') {
+      buttons.push(
+        `<button class="btn btn-promote" onclick="updateUser('${user.uid}', 'role', 'admin')">管理者に昇格</button>`
+      );
+    }
+    if (user.role === 'admin') {
+      buttons.push(
+        `<button class="btn btn-demote" onclick="updateUser('${user.uid}', 'role', 'user')">ユーザーに降格</button>`
+      );
     }
 
-    // ---- Role badge HTML ----
-    function getRoleBadge(role) {
-      const map = {
-        admin: { label: '管理者', cls: 'badge-admin' },
-        user:  { label: 'ユーザー', cls: 'badge-user' }
-      };
-      const info = map[role] || { label: role, cls: '' };
-      return `<span class="badge ${info.cls}">${info.label}</span>`;
+    return buttons.join('');
+  }
+
+  // ---- Update user field in Firestore ----
+  async function updateUser(uid, field, value) {
+    document.querySelectorAll('.btn').forEach(b => b.disabled = true);
+
+    try {
+      await db.collection('users').doc(uid).update({
+        [field]: value
+      });
+
+      const user = allUsers.find(u => u.uid === uid);
+      if (user) {
+        user[field] = value;
+      }
+
+      renderStats();
+      renderTable();
+    } catch (err) {
+      console.error('Failed to update user:', err);
+      alert('ユーザーの更新に失敗しました: ' + err.message);
+      document.querySelectorAll('.btn').forEach(b => b.disabled = false);
     }
+  }
 
-    // ---- Format Firestore timestamp ----
-    function formatTimestamp(ts) {
-      if (!ts) return '-';
-      // Handle both Firestore Timestamp and plain Date
-      const date = ts.toDate ? ts.toDate() : new Date(ts);
-      const y = date.getFullYear();
-      const m = String(date.getMonth() + 1).padStart(2, '0');
-      const d = String(date.getDate()).padStart(2, '0');
-      const h = String(date.getHours()).padStart(2, '0');
-      const min = String(date.getMinutes()).padStart(2, '0');
-      return `${y}/${m}/${d} ${h}:${min}`;
-    }
+  // ---- Database Status ----
+  async function loadDatabaseStatus() {
+    const dataFiles = [
+      { key: 'latest', url: SHARED_DATA_BASE + '/latest.json', label: '最新ニュースデータ' },
+      { key: 'weak_signals', url: SHARED_DATA_BASE + '/weak_signals.json', label: '弱い信号データ' },
+      { key: 'scenarios', url: SHARED_DATA_BASE + '/scenarios.json', label: 'シナリオデータ' },
+      { key: 'articles', url: SHARED_DATA_BASE + '/articles.json', label: '記事データ' }
+    ];
 
-    // ---- Build action buttons for a user row ----
-    function buildActions(user) {
-      const buttons = [];
+    const results = await Promise.allSettled(
+      dataFiles.map(async (file) => {
+        const response = await fetch(file.url);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        return { ...file, data, ok: true };
+      })
+    );
 
-      // Status actions
-      if (user.status === 'pending') {
-        buttons.push(
-          `<button class="btn btn-approve" onclick="updateUser('${user.uid}', 'status', 'active')">承認</button>`
-        );
-      }
-      if (user.status === 'active') {
-        buttons.push(
-          `<button class="btn btn-disable" onclick="updateUser('${user.uid}', 'status', 'disabled')">無効化</button>`
-        );
-      }
-      if (user.status === 'disabled') {
-        buttons.push(
-          `<button class="btn btn-enable" onclick="updateUser('${user.uid}', 'status', 'active')">有効化</button>`
-        );
-      }
+    const grid = document.getElementById('dbStatusGrid');
+    let html = '';
 
-      // Role actions
-      if (user.role === 'user') {
-        buttons.push(
-          `<button class="btn btn-promote" onclick="updateUser('${user.uid}', 'role', 'admin')">管理者に昇格</button>`
-        );
-      }
-      if (user.role === 'admin') {
-        buttons.push(
-          `<button class="btn btn-demote" onclick="updateUser('${user.uid}', 'role', 'user')">ユーザーに降格</button>`
-        );
-      }
+    results.forEach((result, i) => {
+      const file = dataFiles[i];
 
-      return buttons.join('');
-    }
+      if (result.status === 'fulfilled' && result.value.ok) {
+        const data = result.value.data;
+        let detail = '';
+        let freshness = '';
 
-    // ---- Update a user field in Firestore and refresh ----
-    async function updateUser(uid, field, value) {
-      // Disable all buttons while updating
-      document.querySelectorAll('.btn').forEach(b => b.disabled = true);
-
-      try {
-        await db.collection('users').doc(uid).update({
-          [field]: value
-        });
-
-        // Update local state to avoid a full reload
-        const user = allUsers.find(u => u.uid === uid);
-        if (user) {
-          user[field] = value;
+        // Extract meaningful info from each data file
+        if (file.key === 'latest') {
+          // latest.json typically has articles with dates
+          if (Array.isArray(data)) {
+            const count = data.length;
+            // Try to find the most recent date
+            const dates = data
+              .map(item => item.date || item.published || item.created)
+              .filter(Boolean)
+              .sort()
+              .reverse();
+            const latestDate = dates[0] || null;
+            detail = `${count} 件の記事`;
+            if (latestDate) {
+              detail += ` / 最新: ${latestDate}`;
+              freshness = getFreshness(latestDate);
+            }
+          } else if (data && typeof data === 'object') {
+            // Might be an object with articles array or metadata
+            const articles = data.articles || data.data || data.items;
+            if (Array.isArray(articles)) {
+              detail = `${articles.length} 件の記事`;
+              const dates = articles.map(a => a.date || a.published).filter(Boolean).sort().reverse();
+              if (dates[0]) {
+                detail += ` / 最新: ${dates[0]}`;
+                freshness = getFreshness(dates[0]);
+              }
+            } else if (data.lastUpdated || data.updated || data.date) {
+              const d = data.lastUpdated || data.updated || data.date;
+              detail = `最終更新: ${d}`;
+              freshness = getFreshness(d);
+            } else {
+              detail = 'データ読み込み成功';
+            }
+          }
+        } else if (file.key === 'weak_signals') {
+          if (Array.isArray(data)) {
+            detail = `${data.length} 件の弱い信号`;
+          } else if (data && data.signals) {
+            detail = `${data.signals.length} 件の弱い信号`;
+          } else {
+            detail = 'データ読み込み成功';
+          }
+        } else if (file.key === 'scenarios') {
+          if (Array.isArray(data)) {
+            detail = `${data.length} 件のシナリオ`;
+          } else if (data && data.version) {
+            detail = `バージョン: ${data.version}`;
+            if (data.scenarios) detail += ` / ${data.scenarios.length} 件`;
+          } else {
+            detail = 'データ読み込み成功';
+          }
+        } else if (file.key === 'articles') {
+          if (Array.isArray(data)) {
+            detail = `${data.length} 件の記事`;
+          } else {
+            detail = 'データ読み込み成功';
+          }
         }
 
-        renderStats();
-        renderTable();
-      } catch (err) {
-        console.error('Failed to update user:', err);
-        alert('ユーザーの更新に失敗しました: ' + err.message);
-        // Re-enable buttons on error
-        document.querySelectorAll('.btn').forEach(b => b.disabled = false);
+        html += `
+          <div class="db-status-item">
+            <div class="db-status-label">
+              <span class="status-indicator ok"></span>${file.label}
+            </div>
+            <div class="db-status-value status-ok">${detail}</div>
+            ${freshness ? `<div class="db-status-meta">${freshness}</div>` : ''}
+          </div>`;
+      } else {
+        // Error case
+        const errMsg = result.reason ? result.reason.message : '読み込みエラー';
+        html += `
+          <div class="db-status-item">
+            <div class="db-status-label">
+              <span class="status-indicator error"></span>${file.label}
+            </div>
+            <div class="db-status-value status-error">エラー</div>
+            <div class="db-status-meta">${escapeHtml(errMsg)}</div>
+          </div>`;
       }
+    });
+
+    grid.innerHTML = html;
+  }
+
+  // ---- Calculate data freshness ----
+  function getFreshness(dateStr) {
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return '';
+      const now = new Date();
+      const diffMs = now - date;
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+      const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+      if (diffHours < 1) return '1時間以内に更新';
+      if (diffHours < 24) return `${diffHours}時間前に更新`;
+      if (diffDays < 1) return '1日以内に更新';
+      if (diffDays === 1) return '1日前に更新';
+      return `${diffDays}日前に更新`;
+    } catch {
+      return '';
+    }
+  }
+
+  // ---- Render engagement chart (last 7 days) ----
+  function renderChart() {
+    const container = document.getElementById('chartContainer');
+    const note = document.getElementById('chartNote');
+
+    // Build day buckets for the last 7 days
+    const now = new Date();
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      d.setHours(0, 0, 0, 0);
+      days.push({
+        date: d,
+        label: `${d.getMonth() + 1}/${d.getDate()}`,
+        count: 0
+      });
     }
 
-    // ---- Escape HTML to prevent XSS ----
-    function escapeHtml(str) {
-      const div = document.createElement('div');
-      div.textContent = str;
-      return div.innerHTML;
-    }
-  </script>
+    // Count logins per day
+    allUsers.forEach(u => {
+      if (!u.lastLogin) return;
+      const loginDate = u.lastLogin.toDate ? u.lastLogin.toDate() : new Date(u.lastLogin);
+      if (isNaN(loginDate.getTime())) return;
+
+      const loginDay = new Date(loginDate);
+      loginDay.setHours(0, 0, 0, 0);
+
+      days.forEach(day => {
+        if (day.date.getTime() === loginDay.getTime()) {
+          day.count++;
+        }
+      });
+    });
+
+    const maxCount = Math.max(...days.map(d => d.count), 1);
+    const maxBarHeight = 130; // px
+
+    let html = '';
+    days.forEach(day => {
+      const barHeight = Math.max(2, (day.count / maxCount) * maxBarHeight);
+      html += `
+        <div class="chart-bar-group">
+          <div class="chart-bar-value">${day.count}</div>
+          <div class="chart-bar" style="height: ${barHeight}px;"></div>
+          <div class="chart-bar-label">${day.label}</div>
+        </div>`;
+    });
+
+    container.innerHTML = html;
+
+    const totalLogins = days.reduce((sum, d) => sum + d.count, 0);
+    note.textContent = `直近7日間の合計ログインユーザー数: ${totalLogins}人 (lastLoginベース)`;
+  }
+
+  // ---- Escape HTML ----
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+</script>
 
 </body>
 </html>
