@@ -278,6 +278,37 @@
   .papers-empty-text { font-size: 0.9rem; }
   .papers-empty-sub { font-size: 0.78rem; margin-top: 4px; }
 
+  /* Papers top bar */
+  .papers-topbar {
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 20px; flex-wrap: wrap;
+  }
+  .papers-topbar-stats {
+    display: flex; gap: 6px; align-items: baseline; flex-shrink: 0;
+  }
+  .papers-topbar-total {
+    font-size: 1.8rem; font-weight: 700; color: var(--accent); line-height: 1;
+  }
+  .papers-topbar-label {
+    font-size: 0.75rem; color: var(--text-muted); margin-left: 2px;
+  }
+  .papers-topbar-search {
+    display: flex; gap: 8px; flex: 1; min-width: 200px; align-items: center;
+  }
+
+  /* Papers archive section */
+  .papers-archive-section {
+    margin-top: 32px; padding-top: 24px;
+    border-top: 2px solid var(--border);
+  }
+  .papers-archive-header {
+    margin-bottom: 16px;
+  }
+  .papers-archive-header h3 {
+    font-size: 0.9rem; font-weight: 700; color: var(--accent);
+    margin: 0 0 12px 0;
+  }
+
   /* Daily Papers - 2-column layout */
   .daily-section-wrapper {
     display: grid; grid-template-columns: 1fr 340px;
@@ -327,9 +358,15 @@
   }
   .daily-field-section {
     background: var(--card); border: 1px solid var(--border); border-radius: 10px;
-    overflow: hidden; margin-bottom: 12px;
+    overflow: hidden; margin-bottom: 10px;
   }
   .daily-field-section:hover { box-shadow: 0 2px 10px rgba(120,60,40,0.06); }
+  .daily-field-expand {
+    padding: 8px 14px; text-align: center; font-size: 0.75rem;
+    color: var(--accent); cursor: pointer; border-top: 1px solid var(--border);
+    font-weight: 500; transition: background 0.1s;
+  }
+  .daily-field-expand:hover { background: var(--card-hover); }
   .daily-field-header {
     padding: 10px 14px; font-weight: 600; font-size: 0.82rem;
     border-bottom: 1px solid var(--border);
@@ -1131,41 +1168,17 @@
 
   <!-- ===== PAPERS ===== -->
   <div class="tab-panel" id="tab-papers">
-    <!-- 2-column: Daily Papers (left) + Alerts (right) -->
-    <div class="daily-section-wrapper">
-      <div class="daily-papers-col" id="dailyPapersSection"></div>
-      <div class="daily-alerts-col" id="paperAlertsPanel"></div>
-    </div>
-
-    <!-- Stats & Filters -->
-    <div class="papers-stats-grid" id="papersStatsGrid"></div>
-    <div class="papers-toolbar">
-      <div class="papers-search-wrap">
-        <span class="search-icon">&#x1F50D;</span>
-        <input id="papersSearch" data-i18n-placeholder="search_papers" placeholder="論文を検索..." oninput="onPapersSearchInput()">
-        <button class="papers-search-clear" id="papersSearchClear" onclick="clearPapersSearch()">&times;</button>
+    <!-- 1. Top bar: Total count + Search + AI search -->
+    <div class="papers-topbar">
+      <div class="papers-topbar-stats" id="papersTopbarStats"></div>
+      <div class="papers-topbar-search">
+        <div class="papers-search-wrap">
+          <span class="search-icon">&#x1F50D;</span>
+          <input id="papersSearch" data-i18n-placeholder="search_papers" placeholder="論文を検索..." oninput="onPapersSearchInput()">
+          <button class="papers-search-clear" id="papersSearchClear" onclick="clearPapersSearch()">&times;</button>
+        </div>
+        <button class="ai-search-btn" id="papersAiSearchBtn" onclick="togglePapersAiSearch()">AI検索</button>
       </div>
-      <button class="ai-search-btn" id="papersAiSearchBtn" onclick="togglePapersAiSearch()">AI検索</button>
-      <select class="papers-filter-select" id="papersDecade" onchange="renderPapers()">
-        <option value="" data-i18n="papers_all_decades">全年代</option>
-        <option value="2020">2020s</option><option value="2010">2010s</option><option value="2000">2000s</option><option value="1990">1990s</option>
-      </select>
-      <select class="papers-filter-select" id="papersField" onchange="renderPapers()">
-        <option value="" data-i18n="papers_all_fields">全分野</option>
-        <option value="人文学" data-i18n="field_humanities">人文学</option>
-        <option value="社会科学" data-i18n="field_social">社会科学</option>
-        <option value="自然科学" data-i18n="field_natural">自然科学</option>
-        <option value="工学" data-i18n="field_engineering">工学</option>
-        <option value="芸術" data-i18n="field_arts">芸術</option>
-      </select>
-      <select class="papers-filter-select" id="papersLang" onchange="renderPapers()">
-        <option value="" data-i18n="papers_all_langs">全言語</option>
-        <option value="en" data-i18n="papers_lang_en">英語</option>
-        <option value="ja" data-i18n="papers_lang_ja">日本語</option>
-      </select>
-      <button class="papers-sort-btn" id="papersTransFilter" onclick="toggleTransFilter()" data-i18n="papers_ja_only">日本語訳のみ</button>
-      <button class="papers-sort-btn active" id="papersSortDate" onclick="setPapersSort('date')" data-i18n="papers_sort_date">新しい順</button>
-      <button class="papers-sort-btn" id="papersSortTitle" onclick="setPapersSort('title')" data-i18n="papers_sort_title">タイトル順</button>
     </div>
     <!-- AI Search Results Area -->
     <div id="papersAiSearchArea" style="display:none">
@@ -1174,16 +1187,51 @@
         <div id="papersAiResults"></div>
       </div>
     </div>
-    <!-- Saved Papers Export Bar -->
-    <div class="paper-export-bar" id="paperExportBar" style="display:none">
-      <span style="font-size:0.78rem;color:var(--text-muted);font-weight:600">保存済み論文:</span>
-      <button class="paper-export-btn" onclick="exportSavedPapers('json')">JSON出力</button>
-      <button class="paper-export-btn" onclick="exportSavedPapers('csv')">CSV出力</button>
-      <button class="paper-export-btn" onclick="exportSavedPapers('markdown')">Markdown出力</button>
-      <button class="paper-export-btn" onclick="shareAllSavedPapers()">一覧シェア</button>
+
+    <!-- 2. Two-column: Daily Papers (left) + Alerts (right) -->
+    <div class="daily-section-wrapper">
+      <div class="daily-papers-col" id="dailyPapersSection"></div>
+      <div class="daily-alerts-col" id="paperAlertsPanel"></div>
     </div>
-    <div class="papers-result-count" id="papersResultCount"></div>
-    <div class="papers-grid" id="papersGrid"></div>
+
+    <!-- 3. Archive: Filters + Full paper list -->
+    <div class="papers-archive-section">
+      <div class="papers-archive-header">
+        <h3 id="papersArchiveTitle">論文アーカイブ</h3>
+        <div class="papers-stats-grid" id="papersStatsGrid"></div>
+      </div>
+      <div class="papers-toolbar">
+        <select class="papers-filter-select" id="papersDecade" onchange="renderPapers()">
+          <option value="" data-i18n="papers_all_decades">全年代</option>
+          <option value="2020">2020s</option><option value="2010">2010s</option><option value="2000">2000s</option><option value="1990">1990s</option>
+        </select>
+        <select class="papers-filter-select" id="papersField" onchange="renderPapers()">
+          <option value="" data-i18n="papers_all_fields">全分野</option>
+          <option value="人文学" data-i18n="field_humanities">人文学</option>
+          <option value="社会科学" data-i18n="field_social">社会科学</option>
+          <option value="自然科学" data-i18n="field_natural">自然科学</option>
+          <option value="工学" data-i18n="field_engineering">工学</option>
+          <option value="芸術" data-i18n="field_arts">芸術</option>
+        </select>
+        <select class="papers-filter-select" id="papersLang" onchange="renderPapers()">
+          <option value="" data-i18n="papers_all_langs">全言語</option>
+          <option value="en" data-i18n="papers_lang_en">英語</option>
+          <option value="ja" data-i18n="papers_lang_ja">日本語</option>
+        </select>
+        <button class="papers-sort-btn" id="papersTransFilter" onclick="toggleTransFilter()" data-i18n="papers_ja_only">日本語訳のみ</button>
+        <button class="papers-sort-btn active" id="papersSortDate" onclick="setPapersSort('date')" data-i18n="papers_sort_date">新しい順</button>
+        <button class="papers-sort-btn" id="papersSortTitle" onclick="setPapersSort('title')" data-i18n="papers_sort_title">タイトル順</button>
+        <!-- Saved Papers Export -->
+        <div class="paper-export-bar" id="paperExportBar" style="display:none;margin-left:auto">
+          <button class="paper-export-btn" onclick="exportSavedPapers('json')">JSON</button>
+          <button class="paper-export-btn" onclick="exportSavedPapers('csv')">CSV</button>
+          <button class="paper-export-btn" onclick="exportSavedPapers('markdown')">MD</button>
+          <button class="paper-export-btn" onclick="shareAllSavedPapers()">Share</button>
+        </div>
+      </div>
+      <div class="papers-result-count" id="papersResultCount"></div>
+      <div class="papers-grid" id="papersGrid"></div>
+    </div>
   </div>
 
   <!-- ===== CLA ===== -->
@@ -1489,7 +1537,7 @@ function t(key) { return I18N[LANG][key] || I18N['ja'][key] || key; }
 function toggleLang() {
   LANG = LANG === 'ja' ? 'en' : 'ja';
   document.getElementById('langToggleBtn').textContent = LANG === 'ja' ? 'EN' : 'JA';
-  applyI18n(); renderOverview(); renderAlerts(); renderPestle(); renderPapers(); renderCLA(); renderSignals(); renderDailyPapers(); renderPaperAlerts();
+  applyI18n(); renderOverview(); renderAlerts(); renderPestle(); renderPapers(); renderCLA(); renderSignals(); renderDailyPapers(); renderPaperAlerts(); renderPapersTopbar();
 }
 
 function applyI18n() {
@@ -1766,6 +1814,25 @@ function loadMorePapers(field) { _papersShowCount[field] = (_papersShowCount[fie
 function filterByField(field) { document.getElementById('papersField').value = field; renderPapers(); }
 let _papersJaOnly = false;
 function toggleTransFilter() { _papersJaOnly = !_papersJaOnly; document.getElementById('papersTransFilter').classList.toggle('active', _papersJaOnly); renderPapers(); }
+
+// Topbar: total count display
+function renderPapersTopbar() {
+  const el = document.getElementById('papersTopbarStats');
+  if (!el) return;
+  const total = PAPERS_STATS?.total || PAPERS_DATA.length;
+  const dailyCount = DAILY_PAPERS?.summary?.total_papers || 0;
+  el.innerHTML = `<span class="papers-topbar-total">${total.toLocaleString()}</span><span class="papers-topbar-label">${LANG === 'ja' ? '論文' : 'papers'}</span>${dailyCount ? `<span style="font-size:0.72rem;color:var(--accent-warm);margin-left:8px;font-weight:600">${LANG === 'ja' ? '本日+' + dailyCount : 'Today +' + dailyCount}</span>` : ''}`;
+  // Update archive title
+  const archiveTitle = document.getElementById('papersArchiveTitle');
+  if (archiveTitle) archiveTitle.textContent = LANG === 'ja' ? '論文アーカイブ' : 'Paper Archive';
+}
+
+// Track which daily fields are expanded
+let _dailyFieldExpanded = {};
+function toggleDailyFieldExpand(field) {
+  _dailyFieldExpanded[field] = !_dailyFieldExpanded[field];
+  renderDailyPapers();
+}
 
 function renderPapersStats(byField, totalShown) {
   const statsGrid = document.getElementById('papersStatsGrid'); if (!statsGrid) return;
@@ -2062,6 +2129,7 @@ async function loadDailyPapers() {
     if (dpResp.status === 'fulfilled') {
       DAILY_PAPERS = await dpResp.value.json();
       renderDailyPapers();
+      renderPapersTopbar();
     }
     if (paResp.status === 'fulfilled') {
       PAPER_ALERTS = await paResp.value.json();
@@ -2149,14 +2217,20 @@ function renderDailyPapers() {
   html += `<button class="${_dailyPapersView === 'list' ? 'active' : ''}" onclick="setDailyView('list')">List</button>`;
   html += `</div></div></div>`;
 
+  const PREVIEW_COUNT = 3;
+
   if (_dailyPapersView === 'grid') {
     for (const field of fieldOrder) {
       const info = fields[field];
       if (!info || !info.papers || info.papers.length === 0) continue;
       const color = FIELD_COLORS[field] || 'var(--accent)';
+      const isExpanded = _dailyFieldExpanded[field];
+      const showCount = isExpanded ? info.papers.length : Math.min(PREVIEW_COUNT, info.papers.length);
+      const hasMore = info.papers.length > PREVIEW_COUNT;
+
       html += `<div class="daily-field-section">`;
       html += `<div class="daily-field-header"><span class="paper-field-badge" style="background:${color}">${esc(field)}</span><span style="margin-left:auto;font-size:0.72rem;color:var(--text-muted)">${info.count}${LANG === 'ja' ? '件' : ''}</span></div>`;
-      for (let i = 0; i < info.papers.length; i++) {
+      for (let i = 0; i < showCount; i++) {
         const p = info.papers[i];
         const title = LANG === 'ja' ? (p.title_ja || p.title) : p.title;
         const novelty = p.novelty_score || 0;
@@ -2177,10 +2251,14 @@ function renderDailyPapers() {
         if (p.novelty_reason && novelty >= 7) html += `<div class="daily-paper-novelty-reason">${esc(p.novelty_reason)}</div>`;
         html += `</div>`;
       }
+      if (hasMore) {
+        const remaining = info.papers.length - PREVIEW_COUNT;
+        html += `<div class="daily-field-expand" onclick="toggleDailyFieldExpand('${esc(field)}')">${isExpanded ? (LANG === 'ja' ? '折りたたむ' : 'Collapse') : (LANG === 'ja' ? `他${remaining}件を表示` : `Show ${remaining} more`)}</div>`;
+      }
       html += `</div>`;
     }
   } else {
-    // List view - flat list sorted by novelty
+    // List view - flat list sorted by novelty, also with fold
     const allDaily = [];
     for (const field of fieldOrder) {
       const info = fields[field];
@@ -2188,7 +2266,10 @@ function renderDailyPapers() {
       info.papers.forEach((p, i) => allDaily.push({ ...p, _field: field, _idx: i }));
     }
     allDaily.sort((a, b) => (b.novelty_score || 0) - (a.novelty_score || 0));
-    for (const p of allDaily) {
+    const listExpanded = _dailyFieldExpanded['_list'];
+    const listShow = listExpanded ? allDaily.length : Math.min(PREVIEW_COUNT * 5, allDaily.length);
+    for (let j = 0; j < listShow; j++) {
+      const p = allDaily[j];
       const title = LANG === 'ja' ? (p.title_ja || p.title) : p.title;
       const color = FIELD_COLORS[p._field] || 'var(--accent)';
       const novelty = p.novelty_score || 0;
@@ -2205,6 +2286,10 @@ function renderDailyPapers() {
       html += `<div style="font-size:0.8rem;font-weight:500;margin-top:4px;line-height:1.45">${esc(title)}</div>`;
       html += `<div style="font-size:0.68rem;color:var(--text-muted);margin-top:2px">${esc((p.authors || '').substring(0, 70))}</div>`;
       html += `</div>`;
+    }
+    if (allDaily.length > PREVIEW_COUNT * 5) {
+      const remaining = allDaily.length - PREVIEW_COUNT * 5;
+      html += `<div class="daily-field-expand" style="background:var(--card);border:1px solid var(--border);border-radius:8px;border-top:none" onclick="toggleDailyFieldExpand('_list')">${listExpanded ? (LANG === 'ja' ? '折りたたむ' : 'Collapse') : (LANG === 'ja' ? `他${remaining}件を表示` : `Show ${remaining} more`)}</div>`;
     }
   }
 
@@ -2575,7 +2660,7 @@ async function loadData() {
   if (statsResp.status === 'fulfilled') PAPERS_STATS = await statsResp.value.json();
   if (alertsResp.status === 'fulfilled') try { ALERTS_DATA = await alertsResp.value.json(); } catch(e) {}
   if (scResp.status === 'fulfilled') try { SCENARIOS_DATA = await scResp.value.json(); } catch(e) {}
-  applyI18n(); renderOverview(); renderAlerts(); renderPestle(); renderCLA(); renderScenarios(); renderSignals(); renderPapers(); restoreTabFromHash();
+  applyI18n(); renderOverview(); renderAlerts(); renderPestle(); renderCLA(); renderScenarios(); renderSignals(); renderPapers(); renderPapersTopbar(); restoreTabFromHash();
   // Load daily curated papers (lightweight, ~200KB)
   loadDailyPapers();
   // Phase 2: Load heavy data in background after initial render
