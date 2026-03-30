@@ -1,12 +1,12 @@
 // Firebase Configuration
-// TODO: Replace with your Firebase project config from console.firebase.google.com
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyB5ubJobtiCOelI-hI6vQ9cyMnBBewyNwg",
+  authDomain: "miratuku-afa2c.firebaseapp.com",
+  projectId: "miratuku-afa2c",
+  storageBucket: "miratuku-afa2c.firebasestorage.app",
+  messagingSenderId: "344400461535",
+  appId: "1:344400461535:web:544ebe32ad4add42f4b36a",
+  measurementId: "G-4RX7K7D04W"
 };
 
 // Initialize Firebase
