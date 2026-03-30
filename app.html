@@ -2764,34 +2764,18 @@ async function fetchRefUrl() {
     let text = '';
 
     if (isNotion) {
-      // Try Notion API
-      if (!_notionToken) await loadNotionToken();
-      if (!_notionToken) throw new Error('Notion APIトークンが未設定です');
-
+      // Use Vercel-hosted Notion API proxy
       const pageId = extractNotionPageId(url);
       if (!pageId) throw new Error('NotionページIDを取得できませんでした');
 
-      // Fetch page blocks via Notion API (through CORS proxy)
-      const notionUrl = `https://api.notion.com/v1/blocks/${pageId}/children?page_size=100`;
-      const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(notionUrl);
-      const resp = await fetch(proxyUrl, {
-        headers: { 'Authorization': `Bearer ${_notionToken}`, 'Notion-Version': '2022-06-28' }
-      });
+      const resp = await fetch(`https://notion-proxy-ecru.vercel.app/api/notion?page_id=${pageId}`);
       if (!resp.ok) {
-        const errText = await resp.text().catch(() => '');
-        throw new Error('Notion API エラー - ページが共有されているか確認してください');
+        const err = await resp.json().catch(() => ({}));
+        throw new Error(err.error || 'Notion APIエラー');
       }
       const data = await resp.json();
-      // Extract text from blocks
-      text = (data.results || []).map(block => {
-        const type = block.type;
-        const content = block[type];
-        if (!content) return '';
-        if (content.rich_text) return content.rich_text.map(t => t.plain_text).join('');
-        if (content.caption) return content.caption.map(t => t.plain_text).join('');
-        if (type === 'child_page') return '[ページ: ' + (content.title || '') + ']';
-        return '';
-      }).filter(Boolean).join('\n');
+      text = data.text || '';
+      if (data.title) statusEl.textContent = `「${data.title}」を取得中...`;
 
     } else {
       // General URL - try multiple CORS proxies
