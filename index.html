@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Future Insight Workspace</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+            background-color: #1a1a2e;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .app-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .app-header h1 {
+            color: #ffffff;
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .app-header p {
+            color: #a0aec0;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 36px 32px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .tab-toggle {
+            display: flex;
+            margin-bottom: 28px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .tab-toggle button {
+            flex: 1;
+            background: none;
+            border: none;
+            padding: 10px 0;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #a0aec0;
+            cursor: pointer;
+            position: relative;
+            transition: color 0.2s;
+        }
+
+        .tab-toggle button.active {
+            color: #4a90d9;
+        }
+
+        .tab-toggle button.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #4a90d9;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 6px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            color: #333;
+            background: #f7fafc;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #4a90d9;
+            box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.15);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background: #4a90d9;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 8px;
+        }
+
+        .submit-btn:hover {
+            background: #3a7bc8;
+        }
+
+        .submit-btn:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+        }
+
+        .error-message {
+            background: #fff5f5;
+            color: #c53030;
+            border: 1px solid #fed7d7;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 0.85rem;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .info-message {
+            background: #ebf8ff;
+            color: #2b6cb0;
+            border: 1px solid #bee3f8;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 0.85rem;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .form-section {
+            display: none;
+        }
+
+        .form-section.active {
+            display: block;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 24px;
+            color: #4a5568;
+            font-size: 0.8rem;
+        }
+
+        /* Loading spinner */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(26, 26, 46, 0.7);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-top-color: #4a90d9;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 480px) {
+            .card {
+                padding: 28px 20px;
+            }
+
+            .app-header h1 {
+                font-size: 1.3rem;
+            }
+
+            .app-header p {
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+    </div>
+
+    <div class="container">
+        <div class="app-header">
+            <h1>Future Insight Workspace</h1>
+            <p>未来洞察ワークスペース - PESTLE分析、CLA、シナリオプランニングを通じて、あなた自身の未来洞察を行うためのツール</p>
+        </div>
+
+        <div class="card">
+            <div class="tab-toggle">
+                <button id="tabLogin" class="active" onclick="showTab('login')">ログイン</button>
+                <button id="tabSignup" onclick="showTab('signup')">新規登録</button>
+            </div>
+
+            <div id="errorMessage" class="error-message"></div>
+            <div id="infoMessage" class="info-message"></div>
+
+            <!-- Login Form -->
+            <div id="loginForm" class="form-section active">
+                <form onsubmit="handleLogin(event)">
+                    <div class="form-group">
+                        <label for="loginEmail">メールアドレス</label>
+                        <input type="email" id="loginEmail" required autocomplete="email" placeholder="example@mail.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">パスワード</label>
+                        <input type="password" id="loginPassword" required autocomplete="current-password" placeholder="パスワードを入力">
+                    </div>
+                    <button type="submit" class="submit-btn" id="loginBtn">ログイン</button>
+                </form>
+            </div>
+
+            <!-- Signup Form -->
+            <div id="signupForm" class="form-section">
+                <form onsubmit="handleSignup(event)">
+                    <div class="form-group">
+                        <label for="signupName">表示名</label>
+                        <input type="text" id="signupName" required autocomplete="name" placeholder="お名前を入力">
+                    </div>
+                    <div class="form-group">
+                        <label for="signupEmail">メールアドレス</label>
+                        <input type="email" id="signupEmail" required autocomplete="email" placeholder="example@mail.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="signupPassword">パスワード</label>
+                        <input type="password" id="signupPassword" required autocomplete="new-password" minlength="6" placeholder="6文字以上のパスワード">
+                    </div>
+                    <button type="submit" class="submit-btn" id="signupBtn">新規登録</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Future Insight Workspace</p>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+    <script src="js/firebase-config.js"></script>
+
+    <script>
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        // --- UI Helpers ---
+
+        function showTab(tab) {
+            document.getElementById('loginForm').classList.toggle('active', tab === 'login');
+            document.getElementById('signupForm').classList.toggle('active', tab === 'signup');
+            document.getElementById('tabLogin').classList.toggle('active', tab === 'login');
+            document.getElementById('tabSignup').classList.toggle('active', tab === 'signup');
+            clearMessages();
+        }
+
+        function showError(message) {
+            const el = document.getElementById('errorMessage');
+            el.textContent = message;
+            el.style.display = 'block';
+            document.getElementById('infoMessage').style.display = 'none';
+        }
+
+        function showInfo(message) {
+            const el = document.getElementById('infoMessage');
+            el.textContent = message;
+            el.style.display = 'block';
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        function clearMessages() {
+            document.getElementById('errorMessage').style.display = 'none';
+            document.getElementById('infoMessage').style.display = 'none';
+        }
+
+        function setLoading(on) {
+            document.getElementById('loadingOverlay').classList.toggle('active', on);
+            document.getElementById('loginBtn').disabled = on;
+            document.getElementById('signupBtn').disabled = on;
+        }
+
+        // Translate Firebase error codes to Japanese messages
+        function getErrorMessage(code) {
+            const messages = {
+                'auth/email-already-in-use': 'このメールアドレスは既に登録されています。',
+                'auth/invalid-email': 'メールアドレスの形式が正しくありません。',
+                'auth/operation-not-allowed': 'この操作は許可されていません。',
+                'auth/weak-password': 'パスワードが弱すぎます。6文字以上で入力してください。',
+                'auth/user-disabled': 'このアカウントは無効化されています。',
+                'auth/user-not-found': 'このメールアドレスは登録されていません。',
+                'auth/wrong-password': 'パスワードが正しくありません。',
+                'auth/invalid-credential': 'メールアドレスまたはパスワードが正しくありません。',
+                'auth/too-many-requests': 'ログイン試行回数が多すぎます。しばらく待ってから再度お試しください。',
+                'auth/network-request-failed': 'ネットワークエラーが発生しました。接続を確認してください。',
+            };
+            return messages[code] || 'エラーが発生しました。もう一度お試しください。';
+        }
+
+        // --- Auth State Observer ---
+        // If user is already logged in, redirect immediately
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                try {
+                    const doc = await db.collection('users').doc(user.uid).get();
+                    if (doc.exists) {
+                        const status = doc.data().status;
+                        if (status === 'active') {
+                            window.location.href = 'app.html';
+                            return;
+                        }
+                        if (status === 'pending') {
+                            showInfo('管理者の承認をお待ちください。');
+                            await auth.signOut();
+                            return;
+                        }
+                        if (status === 'disabled') {
+                            showError('このアカウントは無効化されています。');
+                            await auth.signOut();
+                            return;
+                        }
+                    }
+                    // If no user doc exists yet (e.g. during signup flow), do nothing
+                } catch (e) {
+                    console.error('Error checking user status:', e);
+                }
+            }
+        });
+
+        // --- Signup ---
+        async function handleSignup(e) {
+            e.preventDefault();
+            clearMessages();
+            setLoading(true);
+
+            const displayName = document.getElementById('signupName').value.trim();
+            const email = document.getElementById('signupEmail').value.trim();
+            const password = document.getElementById('signupPassword').value;
+
+            try {
+                const credential = await auth.createUserWithEmailAndPassword(email, password);
+                const user = credential.user;
+
+                // Update the Firebase Auth profile display name
+                await user.updateProfile({ displayName: displayName });
+
+                // Create Firestore user document
+                await db.collection('users').doc(user.uid).set({
+                    email: email,
+                    displayName: displayName,
+                    status: 'pending',
+                    role: 'user',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                // Sign out because new users must wait for admin approval
+                await auth.signOut();
+
+                setLoading(false);
+                showInfo('アカウントを作成しました。管理者の承認をお待ちください。');
+            } catch (error) {
+                setLoading(false);
+                showError(getErrorMessage(error.code));
+            }
+        }
+
+        // --- Login ---
+        async function handleLogin(e) {
+            e.preventDefault();
+            clearMessages();
+            setLoading(true);
+
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const credential = await auth.signInWithEmailAndPassword(email, password);
+                const user = credential.user;
+
+                // Check user status in Firestore
+                const doc = await db.collection('users').doc(user.uid).get();
+
+                if (!doc.exists) {
+                    // Edge case: auth user exists but no Firestore doc
+                    setLoading(false);
+                    showError('ユーザーデータが見つかりません。管理者にお問い合わせください。');
+                    await auth.signOut();
+                    return;
+                }
+
+                const status = doc.data().status;
+
+                if (status === 'pending') {
+                    setLoading(false);
+                    showInfo('管理者の承認をお待ちください。');
+                    await auth.signOut();
+                    return;
+                }
+
+                if (status === 'disabled') {
+                    setLoading(false);
+                    showError('このアカウントは無効化されています。');
+                    await auth.signOut();
+                    return;
+                }
+
+                if (status === 'active') {
+                    // Redirect to app
+                    window.location.href = 'app.html';
+                    return;
+                }
+
+                // Unknown status
+                setLoading(false);
+                showError('不明なアカウント状態です。管理者にお問い合わせください。');
+                await auth.signOut();
+            } catch (error) {
+                setLoading(false);
+                showError(getErrorMessage(error.code));
+            }
+        }
+    </script>
+
+</body>
+</html>

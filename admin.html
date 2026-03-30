@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理画面 - Future Insight Workspace</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif;
+      background-color: #1a1a2e;
+      color: #e0e0e0;
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .header {
+      background-color: #16213e;
+      border-bottom: 1px solid #2a2a4a;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .header-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .admin-name {
+      font-size: 14px;
+      color: #a0a0c0;
+    }
+
+    .header-link {
+      font-size: 14px;
+      color: #4a90d9;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .header-link:hover {
+      text-decoration: underline;
+    }
+
+    /* Loading overlay */
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background-color: #1a1a2e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      font-size: 16px;
+      color: #a0a0c0;
+    }
+
+    /* Main content */
+    .main {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 16px;
+    }
+
+    /* Stats cards */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 32px;
+    }
+
+    .stat-card {
+      background-color: #16213e;
+      border: 1px solid #2a2a4a;
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .stat-card-label {
+      font-size: 13px;
+      color: #a0a0c0;
+      margin-bottom: 8px;
+    }
+
+    .stat-card-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    /* Table section */
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 16px;
+    }
+
+    .table-wrapper {
+      overflow-x: auto;
+      background-color: #16213e;
+      border: 1px solid #2a2a4a;
+      border-radius: 8px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 800px;
+    }
+
+    thead th {
+      text-align: left;
+      padding: 12px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #a0a0c0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid #2a2a4a;
+      white-space: nowrap;
+    }
+
+    tbody td {
+      padding: 12px 16px;
+      font-size: 14px;
+      border-bottom: 1px solid #2a2a4a;
+      white-space: nowrap;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    tbody tr:hover {
+      background-color: #1e2a45;
+    }
+
+    /* Status badges */
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .badge-pending {
+      background-color: rgba(234, 179, 8, 0.15);
+      color: #eab308;
+    }
+
+    .badge-active {
+      background-color: rgba(34, 197, 94, 0.15);
+      color: #22c55e;
+    }
+
+    .badge-disabled {
+      background-color: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+    }
+
+    .badge-admin {
+      background-color: rgba(74, 144, 217, 0.15);
+      color: #4a90d9;
+    }
+
+    .badge-user {
+      background-color: rgba(160, 160, 192, 0.15);
+      color: #a0a0c0;
+    }
+
+    /* Action buttons */
+    .actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 5px 12px;
+      border: none;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: opacity 0.15s;
+    }
+
+    .btn:hover {
+      opacity: 0.85;
+    }
+
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .btn-approve {
+      background-color: #22c55e;
+      color: #ffffff;
+    }
+
+    .btn-disable {
+      background-color: #ef4444;
+      color: #ffffff;
+    }
+
+    .btn-enable {
+      background-color: #4a90d9;
+      color: #ffffff;
+    }
+
+    .btn-promote {
+      background-color: #8b5cf6;
+      color: #ffffff;
+    }
+
+    .btn-demote {
+      background-color: #6b7280;
+      color: #ffffff;
+    }
+
+    /* Empty state */
+    .empty-state {
+      text-align: center;
+      padding: 48px 16px;
+      color: #a0a0c0;
+      font-size: 14px;
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .header {
+        padding: 12px 16px;
+      }
+
+      .header-title {
+        font-size: 16px;
+        width: 100%;
+      }
+
+      .main {
+        padding: 16px 12px;
+      }
+
+      .stat-card-value {
+        font-size: 24px;
+      }
+
+      .stats-row {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+      }
+
+      .stat-card {
+        padding: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Loading overlay: shown until auth/role check completes -->
+  <div class="loading-overlay" id="loadingOverlay">読み込み中...</div>
+
+  <!-- Page content: hidden until admin confirmed -->
+  <div id="pageContent" style="display:none;">
+
+    <!-- Header -->
+    <header class="header">
+      <div class="header-title">管理画面 - Future Insight Workspace</div>
+      <div class="header-right">
+        <span class="admin-name" id="adminName"></span>
+        <a class="header-link" href="app.html">アプリに戻る</a>
+        <a class="header-link" id="logoutLink" href="#">ログアウト</a>
+      </div>
+    </header>
+
+    <!-- Main -->
+    <main class="main">
+
+      <!-- Dashboard stats -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-card-label">全ユーザー数</div>
+          <div class="stat-card-value" id="statTotal">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">有効ユーザー</div>
+          <div class="stat-card-value" id="statActive">-</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-label">承認待ち</div>
+          <div class="stat-card-value" id="statPending">-</div>
+        </div>
+      </div>
+
+      <!-- User list -->
+      <div class="section-title">ユーザー一覧</div>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>名前</th>
+              <th>メール</th>
+              <th>ステータス</th>
+              <th>ロール</th>
+              <th>登録日</th>
+              <th>最終ログイン</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="userTableBody">
+            <tr>
+              <td colspan="7" class="empty-state">読み込み中...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+
+  <script>
+    // ---- State ----
+    let allUsers = [];
+
+    // ---- Auth & role check ----
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) {
+        // Not logged in — redirect to app (which should show login)
+        window.location.href = 'app.html';
+        return;
+      }
+
+      try {
+        const userDoc = await db.collection('users').doc(user.uid).get();
+
+        if (!userDoc.exists || userDoc.data().role !== 'admin') {
+          // Not admin — redirect
+          window.location.href = 'app.html';
+          return;
+        }
+
+        // Admin confirmed — show page
+        document.getElementById('loadingOverlay').style.display = 'none';
+        document.getElementById('pageContent').style.display = 'block';
+        document.getElementById('adminName').textContent = userDoc.data().displayName || user.email;
+
+        // Load users
+        await loadUsers();
+      } catch (err) {
+        console.error('Admin check failed:', err);
+        window.location.href = 'app.html';
+      }
+    });
+
+    // ---- Logout ----
+    document.getElementById('logoutLink').addEventListener('click', async (e) => {
+      e.preventDefault();
+      await auth.signOut();
+      window.location.href = 'app.html';
+    });
+
+    // ---- Load all users from Firestore ----
+    async function loadUsers() {
+      try {
+        const snapshot = await db.collection('users')
+          .orderBy('createdAt', 'desc')
+          .get();
+
+        allUsers = snapshot.docs.map(doc => ({
+          uid: doc.id,
+          ...doc.data()
+        }));
+
+        renderStats();
+        renderTable();
+      } catch (err) {
+        console.error('Failed to load users:', err);
+        document.getElementById('userTableBody').innerHTML =
+          '<tr><td colspan="7" class="empty-state">ユーザーの読み込みに失敗しました</td></tr>';
+      }
+    }
+
+    // ---- Render dashboard stats ----
+    function renderStats() {
+      const total = allUsers.length;
+      const active = allUsers.filter(u => u.status === 'active').length;
+      const pending = allUsers.filter(u => u.status === 'pending').length;
+
+      document.getElementById('statTotal').textContent = total;
+      document.getElementById('statActive').textContent = active;
+      document.getElementById('statPending').textContent = pending;
+    }
+
+    // ---- Render user table ----
+    function renderTable() {
+      const tbody = document.getElementById('userTableBody');
+
+      if (allUsers.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty-state">ユーザーがいません</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = allUsers.map(user => {
+        const statusBadge = getStatusBadge(user.status);
+        const roleBadge = getRoleBadge(user.role);
+        const createdAt = formatTimestamp(user.createdAt);
+        const lastLogin = formatTimestamp(user.lastLogin);
+        const actions = buildActions(user);
+
+        return `<tr>
+          <td>${escapeHtml(user.displayName || '-')}</td>
+          <td>${escapeHtml(user.email || '-')}</td>
+          <td>${statusBadge}</td>
+          <td>${roleBadge}</td>
+          <td>${createdAt}</td>
+          <td>${lastLogin}</td>
+          <td class="actions">${actions}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    // ---- Status badge HTML ----
+    function getStatusBadge(status) {
+      const map = {
+        pending:  { label: '承認待ち', cls: 'badge-pending' },
+        active:   { label: '有効',     cls: 'badge-active' },
+        disabled: { label: '無効',     cls: 'badge-disabled' }
+      };
+      const info = map[status] || { label: status, cls: '' };
+      return `<span class="badge ${info.cls}">${info.label}</span>`;
+    }
+
+    // ---- Role badge HTML ----
+    function getRoleBadge(role) {
+      const map = {
+        admin: { label: '管理者', cls: 'badge-admin' },
+        user:  { label: 'ユーザー', cls: 'badge-user' }
+      };
+      const info = map[role] || { label: role, cls: '' };
+      return `<span class="badge ${info.cls}">${info.label}</span>`;
+    }
+
+    // ---- Format Firestore timestamp ----
+    function formatTimestamp(ts) {
+      if (!ts) return '-';
+      // Handle both Firestore Timestamp and plain Date
+      const date = ts.toDate ? ts.toDate() : new Date(ts);
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      const h = String(date.getHours()).padStart(2, '0');
+      const min = String(date.getMinutes()).padStart(2, '0');
+      return `${y}/${m}/${d} ${h}:${min}`;
+    }
+
+    // ---- Build action buttons for a user row ----
+    function buildActions(user) {
+      const buttons = [];
+
+      // Status actions
+      if (user.status === 'pending') {
+        buttons.push(
+          `<button class="btn btn-approve" onclick="updateUser('${user.uid}', 'status', 'active')">承認</button>`
+        );
+      }
+      if (user.status === 'active') {
+        buttons.push(
+          `<button class="btn btn-disable" onclick="updateUser('${user.uid}', 'status', 'disabled')">無効化</button>`
+        );
+      }
+      if (user.status === 'disabled') {
+        buttons.push(
+          `<button class="btn btn-enable" onclick="updateUser('${user.uid}', 'status', 'active')">有効化</button>`
+        );
+      }
+
+      // Role actions
+      if (user.role === 'user') {
+        buttons.push(
+          `<button class="btn btn-promote" onclick="updateUser('${user.uid}', 'role', 'admin')">管理者に昇格</button>`
+        );
+      }
+      if (user.role === 'admin') {
+        buttons.push(
+          `<button class="btn btn-demote" onclick="updateUser('${user.uid}', 'role', 'user')">ユーザーに降格</button>`
+        );
+      }
+
+      return buttons.join('');
+    }
+
+    // ---- Update a user field in Firestore and refresh ----
+    async function updateUser(uid, field, value) {
+      // Disable all buttons while updating
+      document.querySelectorAll('.btn').forEach(b => b.disabled = true);
+
+      try {
+        await db.collection('users').doc(uid).update({
+          [field]: value
+        });
+
+        // Update local state to avoid a full reload
+        const user = allUsers.find(u => u.uid === uid);
+        if (user) {
+          user[field] = value;
+        }
+
+        renderStats();
+        renderTable();
+      } catch (err) {
+        console.error('Failed to update user:', err);
+        alert('ユーザーの更新に失敗しました: ' + err.message);
+        // Re-enable buttons on error
+        document.querySelectorAll('.btn').forEach(b => b.disabled = false);
+      }
+    }
+
+    // ---- Escape HTML to prevent XSS ----
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+  </script>
+
+</body>
+</html>

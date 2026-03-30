@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Future Insight Workspace</title>
+  <style>
+    :root {
+      --bg: #1a1a2e;
+      --bg-card: #16213e;
+      --bg-card2: #1c2a4a;
+      --accent: #4a90d9;
+      --accent2: #27ae60;
+      --text: #e0e0e0;
+      --text-muted: #8899aa;
+      --border: #2a3a5a;
+      --danger: #e74c3c;
+      --warning: #f39c12;
+      --political: #e74c3c;
+      --economic: #e67e22;
+      --social: #27ae60;
+      --technological: #3498db;
+      --legal: #9b59b6;
+      --environmental: #1abc9c;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* Header */
+    .header { background: var(--bg-card); border-bottom: 1px solid var(--border); padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+    .header h1 { font-size: 1.1rem; color: var(--accent); }
+    .header-right { display: flex; align-items: center; gap: 16px; font-size: 0.85rem; }
+    .header-right a { color: var(--text-muted); text-decoration: none; cursor: pointer; }
+    .header-right a:hover { color: var(--text); }
+    .user-name { color: var(--text-muted); }
+
+    /* Tabs */
+    .tabs { background: var(--bg-card); border-bottom: 1px solid var(--border); padding: 0 24px; display: flex; gap: 0; overflow-x: auto; }
+    .tab { padding: 12px 20px; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; font-size: 0.9rem; white-space: nowrap; transition: all 0.2s; }
+    .tab:hover { color: var(--text); background: var(--bg-card2); }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab.workspace-tab { color: var(--accent2); }
+    .tab.workspace-tab.active { color: var(--accent2); border-bottom-color: var(--accent2); }
+
+    /* Main */
+    .main { max-width: 1400px; margin: 0 auto; padding: 24px; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Cards */
+    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+    .card h3 { font-size: 1rem; margin-bottom: 12px; color: var(--text); }
+    .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+
+    /* Stats */
+    .stats-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-bottom: 24px; }
+    .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; text-align: center; }
+    .stat-card .label { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; }
+    .stat-card .value { font-size: 1.5rem; font-weight: bold; }
+
+    /* PESTLE colors */
+    .pestle-badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+    .pestle-Political { background: var(--political); color: #fff; }
+    .pestle-Economic { background: var(--economic); color: #fff; }
+    .pestle-Social { background: var(--social); color: #fff; }
+    .pestle-Technological { background: var(--technological); color: #fff; }
+    .pestle-Legal { background: var(--legal); color: #fff; }
+    .pestle-Environmental { background: var(--environmental); color: #fff; }
+
+    /* Article list */
+    .article-item { padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .article-item:last-child { border-bottom: none; }
+    .article-title { font-size: 0.95rem; color: var(--text); margin-bottom: 4px; }
+    .article-title a { color: var(--accent); text-decoration: none; }
+    .article-title a:hover { text-decoration: underline; }
+    .article-meta { font-size: 0.8rem; color: var(--text-muted); display: flex; gap: 12px; flex-wrap: wrap; }
+    .article-summary { font-size: 0.85rem; color: var(--text-muted); margin-top: 6px; line-height: 1.5; }
+    .relevance { color: var(--warning); font-weight: 600; }
+
+    /* CLA */
+    .cla-layer { margin-bottom: 12px; }
+    .cla-layer-label { font-size: 0.8rem; color: var(--accent); font-weight: 600; margin-bottom: 4px; text-transform: uppercase; }
+    .cla-layer-text { font-size: 0.9rem; line-height: 1.6; color: var(--text-muted); }
+
+    /* Scenarios */
+    .scenario-matrix { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 16px 0; }
+    .scenario-card { background: var(--bg-card2); border: 1px solid var(--border); border-radius: 8px; padding: 16px; cursor: pointer; transition: border-color 0.2s; }
+    .scenario-card:hover { border-color: var(--accent); }
+    .scenario-card h4 { font-size: 0.95rem; margin-bottom: 8px; }
+    .scenario-card p { font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; }
+    .axis-label { text-align: center; font-size: 0.85rem; color: var(--text-muted); padding: 8px; }
+
+    /* Signals */
+    .signal-item { padding: 16px; background: var(--bg-card2); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; }
+    .signal-item h4 { font-size: 0.95rem; margin-bottom: 6px; }
+    .signal-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+    .badge { padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; background: var(--bg-card); border: 1px solid var(--border); }
+    .badge.high { border-color: var(--danger); color: var(--danger); }
+    .badge.medium { border-color: var(--warning); color: var(--warning); }
+
+    /* Workspace */
+    .workspace-nav { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+    .ws-nav-btn { padding: 8px 16px; background: var(--bg-card2); border: 1px solid var(--border); border-radius: 4px; color: var(--text-muted); cursor: pointer; font-size: 0.85rem; }
+    .ws-nav-btn:hover { border-color: var(--accent2); color: var(--text); }
+    .ws-nav-btn.active { background: var(--accent2); color: #fff; border-color: var(--accent2); }
+    .ws-section { display: none; }
+    .ws-section.active { display: block; }
+
+    /* Bookmark button */
+    .bookmark-btn { background: none; border: 1px solid var(--border); color: var(--text-muted); padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
+    .bookmark-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+    .bookmark-btn.bookmarked { background: var(--accent2); color: #fff; border-color: var(--accent2); }
+
+    /* Forms */
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 4px; }
+    .form-group input, .form-group textarea, .form-group select {
+      width: 100%; padding: 10px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font-size: 0.9rem; font-family: inherit;
+    }
+    .form-group textarea { min-height: 100px; resize: vertical; }
+    .form-group input:focus, .form-group textarea:focus { outline: none; border-color: var(--accent); }
+    .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 0.9rem; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { background: #3a7bc8; }
+    .btn-success { background: var(--accent2); color: #fff; }
+    .btn-success:hover { background: #219a52; }
+    .btn-danger { background: var(--danger); color: #fff; }
+    .btn-danger:hover { background: #c0392b; }
+    .btn-sm { padding: 4px 12px; font-size: 0.8rem; }
+
+    /* DF Sliders */
+    .slider-group { display: flex; align-items: center; gap: 12px; }
+    .slider-group input[type=range] { flex: 1; accent-color: var(--accent); }
+    .slider-value { min-width: 24px; text-align: center; font-weight: bold; }
+
+    /* Modal */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 200; align-items: center; justify-content: center; }
+    .modal-overlay.active { display: flex; }
+    .modal { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 24px; max-width: 700px; width: 90%; max-height: 80vh; overflow-y: auto; }
+    .modal h3 { margin-bottom: 16px; }
+    .modal-close { float: right; background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer; }
+
+    /* Scenario builder */
+    .matrix-preview { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 16px 0; }
+    .matrix-cell { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 16px; min-height: 120px; }
+    .matrix-cell textarea { width: 100%; min-height: 80px; background: transparent; border: none; color: var(--text); font-size: 0.85rem; resize: vertical; }
+    .matrix-cell textarea:focus { outline: none; }
+    .matrix-cell h5 { font-size: 0.85rem; color: var(--accent); margin-bottom: 8px; }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .header { padding: 12px 16px; }
+      .tabs { padding: 0 8px; }
+      .tab { padding: 10px 14px; font-size: 0.8rem; }
+      .main { padding: 16px; }
+      .scenario-matrix { grid-template-columns: 1fr; }
+      .card-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Loading */
+    .loading { text-align: center; padding: 40px; color: var(--text-muted); }
+    .spinner { display: inline-block; width: 24px; height: 24px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .empty-state { text-align: center; padding: 40px; color: var(--text-muted); font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <h1>Future Insight Workspace</h1>
+    <div class="header-right">
+      <span class="user-name" id="userName"></span>
+      <a id="adminLink" style="display:none;" href="admin.html">管理画面</a>
+      <a onclick="logout()">ログアウト</a>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <div class="tab active" data-tab="dashboard">ダッシュボード</div>
+    <div class="tab" data-tab="pestle">PESTLE</div>
+    <div class="tab" data-tab="cla">CLA分析</div>
+    <div class="tab" data-tab="scenarios">シナリオ</div>
+    <div class="tab" data-tab="signals">弱いシグナル</div>
+    <div class="tab workspace-tab" data-tab="workspace">マイワークスペース</div>
+  </div>
+
+  <!-- Content -->
+  <div class="main">
+    <!-- Dashboard -->
+    <div class="tab-content active" id="tab-dashboard">
+      <div class="stats-row" id="dashboardStats"></div>
+      <div class="card-grid">
+        <div class="card">
+          <h3>最新PESTLEニュース</h3>
+          <div id="dashboardNews"><div class="loading"><div class="spinner"></div></div></div>
+        </div>
+        <div class="card">
+          <h3>マイワークスペース</h3>
+          <div id="dashboardWorkspace"><div class="loading"><div class="spinner"></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PESTLE -->
+    <div class="tab-content" id="tab-pestle">
+      <div id="pestleContent"><div class="loading"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- CLA -->
+    <div class="tab-content" id="tab-cla">
+      <div id="claContent"><div class="loading"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- Scenarios -->
+    <div class="tab-content" id="tab-scenarios">
+      <div id="scenariosContent"><div class="loading"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- Signals -->
+    <div class="tab-content" id="tab-signals">
+      <div id="signalsContent"><div class="loading"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- Workspace -->
+    <div class="tab-content" id="tab-workspace">
+      <div class="workspace-nav">
+        <div class="ws-nav-btn active" data-ws="bookmarks">ブックマーク</div>
+        <div class="ws-nav-btn" data-ws="observations">観察ジャーナル</div>
+        <div class="ws-nav-btn" data-ws="driving-forces">ドライビングフォース</div>
+        <div class="ws-nav-btn" data-ws="my-scenarios">マイシナリオ</div>
+        <div class="ws-nav-btn" data-ws="signal-tracking">シグナル追跡</div>
+      </div>
+      <div class="ws-section active" id="ws-bookmarks"></div>
+      <div class="ws-section" id="ws-observations"></div>
+      <div class="ws-section" id="ws-driving-forces"></div>
+      <div class="ws-section" id="ws-my-scenarios"></div>
+      <div class="ws-section" id="ws-signal-tracking"></div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+      <h3 id="modalTitle"></h3>
+      <div id="modalBody"></div>
+    </div>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+
+  <script>
+    // ============================================================
+    // STATE
+    // ============================================================
+    let currentUser = null;
+    let userData = null;
+    // Shared data from the original app
+    let NEWS = null;
+    let AI = null;
+    let SCENARIOS = null;
+    let ALERTS = null;
+    // User workspace data (from Firestore)
+    let bookmarks = [];
+    let observations = [];
+    let drivingForces = [];
+    let myScenarios = [];
+    let signalTracking = [];
+
+    const PESTLE_JA = {
+      Political: '政治', Economic: '経済', Social: '社会',
+      Technological: '技術', Legal: '法律', Environmental: '環境'
+    };
+
+    // ============================================================
+    // AUTH
+    // ============================================================
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) { window.location.href = 'index.html'; return; }
+      currentUser = user;
+
+      // Check user status
+      const doc = await db.collection('users').doc(user.uid).get();
+      if (!doc.exists || doc.data().status !== 'active') {
+        await auth.signOut();
+        window.location.href = 'index.html';
+        return;
+      }
+      userData = doc.data();
+      document.getElementById('userName').textContent = userData.displayName || user.email;
+      if (userData.role === 'admin') {
+        document.getElementById('adminLink').style.display = 'inline';
+      }
+
+      // Update last login
+      db.collection('users').doc(user.uid).update({ lastLogin: firebase.firestore.FieldValue.serverTimestamp() });
+
+      // Load data
+      await Promise.all([loadSharedData(), loadWorkspaceData()]);
+      renderDashboard();
+    });
+
+    function logout() {
+      auth.signOut().then(() => window.location.href = 'index.html');
+    }
+
+    // ============================================================
+    // DATA LOADING
+    // ============================================================
+    async function fetchJSON(path) {
+      const res = await fetch(`${SHARED_DATA_BASE}/${path}`);
+      if (!res.ok) throw new Error(`Failed to load ${path}`);
+      return res.json();
+    }
+
+    async function loadSharedData() {
+      try {
+        [NEWS, AI, SCENARIOS, ALERTS] = await Promise.all([
+          fetchJSON('latest.json'),
+          fetchJSON('ai_analysis.json'),
+          fetchJSON('scenarios.json'),
+          fetchJSON('alerts.json'),
+        ]);
+      } catch (e) {
+        console.error('Failed to load shared data:', e);
+      }
+    }
+
+    async function loadWorkspaceData() {
+      const uid = currentUser.uid;
+      const cols = ['bookmarks', 'observations', 'drivingForces', 'myScenarios', 'signalTracking'];
+      const results = await Promise.all(cols.map(c =>
+        db.collection('users').doc(uid).collection(c).orderBy('createdAt', 'desc').get()
+      ));
+      bookmarks = results[0].docs.map(d => ({ id: d.id, ...d.data() }));
+      observations = results[1].docs.map(d => ({ id: d.id, ...d.data() }));
+      drivingForces = results[2].docs.map(d => ({ id: d.id, ...d.data() }));
+      myScenarios = results[3].docs.map(d => ({ id: d.id, ...d.data() }));
+      signalTracking = results[4].docs.map(d => ({ id: d.id, ...d.data() }));
+    }
+
+    // ============================================================
+    // TAB NAVIGATION
+    // ============================================================
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        tab.classList.add('active');
+        const target = tab.dataset.tab;
+        document.getElementById(`tab-${target}`).classList.add('active');
+        // Render on first visit
+        if (target === 'pestle' && !document.getElementById('pestleContent').dataset.loaded) renderPESTLE();
+        if (target === 'cla' && !document.getElementById('claContent').dataset.loaded) renderCLA();
+        if (target === 'scenarios' && !document.getElementById('scenariosContent').dataset.loaded) renderScenarios();
+        if (target === 'signals' && !document.getElementById('signalsContent').dataset.loaded) renderSignals();
+        if (target === 'workspace') renderWorkspace();
+      });
+    });
+
+    // Workspace sub-navigation
+    document.querySelectorAll('.ws-nav-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.ws-nav-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.ws-section').forEach(s => s.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(`ws-${btn.dataset.ws}`).classList.add('active');
+        renderWorkspaceSection(btn.dataset.ws);
+      });
+    });
+
+    // ============================================================
+    // DASHBOARD
+    // ============================================================
+    function renderDashboard() {
+      const newsDate = NEWS?.date || '-';
+      const totalArticles = NEWS ? Object.values(NEWS.pestle).reduce((s, c) => s + (c.count || 0), 0) : 0;
+      const signalCount = AI?.weak_signals?.length || 0;
+
+      document.getElementById('dashboardStats').innerHTML = `
+        <div class="stat-card"><div class="label">ニュース日付</div><div class="value">${newsDate}</div></div>
+        <div class="stat-card"><div class="label">記事数</div><div class="value">${totalArticles}</div></div>
+        <div class="stat-card"><div class="label">弱いシグナル</div><div class="value">${signalCount}</div></div>
+        <div class="stat-card"><div class="label">ブックマーク</div><div class="value">${bookmarks.length}</div></div>
+        <div class="stat-card"><div class="label">観察メモ</div><div class="value">${observations.length}</div></div>
+        <div class="stat-card"><div class="label">マイDF</div><div class="value">${drivingForces.length}</div></div>
+      `;
+
+      // Latest news summary
+      let newsHtml = '';
+      if (NEWS) {
+        Object.entries(NEWS.pestle).forEach(([cat, data]) => {
+          const top = data.articles?.[0];
+          if (top) {
+            newsHtml += `<div class="article-item">
+              <span class="pestle-badge pestle-${cat}">${PESTLE_JA[cat]}</span>
+              <div class="article-title" style="margin-top:4px;">${esc(getTitle(top, cat, 0))}</div>
+            </div>`;
+          }
+        });
+      }
+      document.getElementById('dashboardNews').innerHTML = newsHtml || '<div class="empty-state">データなし</div>';
+
+      // Workspace summary
+      let wsHtml = `<div style="font-size:0.9rem; line-height:1.8; color:var(--text-muted);">`;
+      wsHtml += `ブックマーク: ${bookmarks.length}件<br>`;
+      wsHtml += `観察ジャーナル: ${observations.length}件<br>`;
+      wsHtml += `ドライビングフォース: ${drivingForces.length}件<br>`;
+      wsHtml += `マイシナリオ: ${myScenarios.length}セット<br>`;
+      wsHtml += `シグナル追跡: ${signalTracking.length}件`;
+      wsHtml += `</div>`;
+      document.getElementById('dashboardWorkspace').innerHTML = wsHtml;
+    }
+
+    // ============================================================
+    // PESTLE
+    // ============================================================
+    function renderPESTLE() {
+      if (!NEWS) { document.getElementById('pestleContent').innerHTML = '<div class="empty-state">データを読み込めませんでした</div>'; return; }
+      document.getElementById('pestleContent').dataset.loaded = '1';
+
+      let html = `<p style="color:var(--text-muted); margin-bottom:16px;">日付: ${NEWS.date} / 記事にブックマークを付けてワークスペースに保存できます</p>`;
+
+      Object.entries(NEWS.pestle).forEach(([cat, data]) => {
+        html += `<div class="card">
+          <h3><span class="pestle-badge pestle-${cat}">${PESTLE_JA[cat]}</span> ${cat} (${data.count}件)</h3>`;
+        (data.articles || []).forEach((art, idx) => {
+          const isBookmarked = bookmarks.some(b => b.type === 'news' && b.category === cat && b.articleIndex === idx);
+          html += `<div class="article-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+              <div class="article-title"><a href="${esc(art.url)}" target="_blank">${esc(getTitle(art, cat, idx))}</a></div>
+              <button class="bookmark-btn ${isBookmarked ? 'bookmarked' : ''}" onclick="toggleBookmark('news','${cat}',${idx},this)">
+                ${isBookmarked ? '保存済' : '保存'}
+              </button>
+            </div>
+            <div class="article-meta">
+              <span>${esc(art.source)}</span>
+              <span>${art.published ? new Date(art.published).toLocaleDateString('ja-JP') : ''}</span>
+              <span class="relevance">関連度: ${art.relevance_score}</span>
+            </div>
+            <div class="article-summary">${esc(art.summary || '')}</div>
+          </div>`;
+        });
+        html += `</div>`;
+      });
+
+      document.getElementById('pestleContent').innerHTML = html;
+    }
+
+    // ============================================================
+    // CLA
+    // ============================================================
+    function renderCLA() {
+      if (!AI?.cla) { document.getElementById('claContent').innerHTML = '<div class="empty-state">CLAデータなし</div>'; return; }
+      document.getElementById('claContent').dataset.loaded = '1';
+
+      const layers = [
+        { key: 'litany', label: 'リタニー（表層の出来事）' },
+        { key: 'systemic_causes', label: 'システム的原因（構造）' },
+        { key: 'worldview', label: '世界観（文化的前提）' },
+        { key: 'myth_metaphor', label: '神話・メタファー（深層）' },
+      ];
+
+      let html = `<p style="color:var(--text-muted); margin-bottom:16px;">因果階層分析（Causal Layered Analysis） - 日付: ${AI.date}</p>`;
+      html += `<div class="card-grid">`;
+
+      Object.entries(AI.cla).forEach(([cat, data]) => {
+        html += `<div class="card">
+          <h3>${cat === 'Overall' ? '総合' : `<span class="pestle-badge pestle-${cat}">${PESTLE_JA[cat] || cat}</span> ${cat}`}</h3>`;
+        layers.forEach(l => {
+          html += `<div class="cla-layer">
+            <div class="cla-layer-label">${l.label}</div>
+            <div class="cla-layer-text">${esc(data[l.key] || '')}</div>
+          </div>`;
+        });
+        if (data.key_tension) {
+          html += `<div class="cla-layer"><div class="cla-layer-label" style="color:var(--warning);">主要な緊張</div><div class="cla-layer-text">${esc(data.key_tension)}</div></div>`;
+        }
+        if (data.emerging_narrative) {
+          html += `<div class="cla-layer"><div class="cla-layer-label" style="color:var(--accent2);">新興ナラティブ</div><div class="cla-layer-text">${esc(data.emerging_narrative)}</div></div>`;
+        }
+        html += `</div>`;
+      });
+      html += `</div>`;
+      document.getElementById('claContent').innerHTML = html;
+    }
+
+    // ============================================================
+    // SCENARIOS (shared)
+    // ============================================================
+    function renderScenarios() {
+      if (!SCENARIOS) { document.getElementById('scenariosContent').innerHTML = '<div class="empty-state">シナリオデータなし</div>'; return; }
+      document.getElementById('scenariosContent').dataset.loaded = '1';
+
+      const ax = SCENARIOS.axes || {};
+      let html = `<div class="card">
+        <h3>フォーカル・クエスチョン</h3>
+        <p style="font-size:0.95rem; line-height:1.6; color:var(--text);">${esc(SCENARIOS.focal_question || '')}</p>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-top:8px;">時間軸: ${SCENARIOS.time_horizon || '-'}</p>
+      </div>`;
+
+      // Axes
+      html += `<div class="card"><h3>シナリオ軸</h3>
+        <p style="margin-bottom:8px;"><strong>X軸:</strong> ${esc(ax.x?.label || '')}</p>
+        <p style="font-size:0.85rem; color:var(--text-muted);">${esc(ax.x?.pole_negative || '')} ←→ ${esc(ax.x?.pole_positive || '')}</p>
+        <p style="margin-top:12px;"><strong>Y軸:</strong> ${esc(ax.y?.label || '')}</p>
+        <p style="font-size:0.85rem; color:var(--text-muted);">${esc(ax.y?.pole_negative || '')} ←→ ${esc(ax.y?.pole_positive || '')}</p>
+      </div>`;
+
+      // Matrix
+      const quadrants = { top_right: 0, top_left: 1, bottom_left: 2, bottom_right: 3 };
+      const sorted = [...(SCENARIOS.scenarios || [])].sort((a, b) => (quadrants[a.quadrant] ?? 0) - (quadrants[b.quadrant] ?? 0));
+
+      html += `<div class="axis-label">${esc(ax.y?.pole_positive || '')}</div>`;
+      html += `<div class="scenario-matrix">`;
+      sorted.forEach(sc => {
+        html += `<div class="scenario-card" style="border-left: 3px solid ${sc.color || 'var(--accent)'};" onclick="showScenarioDetail('${sc.id}')">
+          <h4>${esc(sc.name)}</h4>
+          <p style="font-size:0.8rem; color:var(--accent); margin-bottom:6px;">${esc(sc.subtitle || '')}</p>
+          <p>${esc((sc.narrative || '').substring(0, 150))}...</p>
+        </div>`;
+      });
+      html += `</div>`;
+      html += `<div class="axis-label">${esc(ax.y?.pole_negative || '')}</div>`;
+      html += `<div style="display:flex; justify-content:space-between; font-size:0.85rem; color:var(--text-muted);">
+        <span>${esc(ax.x?.pole_negative || '')}</span>
+        <span>${esc(ax.x?.pole_positive || '')}</span>
+      </div>`;
+
+      // Driving Forces
+      if (SCENARIOS.driving_forces?.length) {
+        html += `<div class="card" style="margin-top:16px;"><h3>ドライビングフォース (${SCENARIOS.driving_forces.length})</h3>`;
+        SCENARIOS.driving_forces.forEach(df => {
+          html += `<div style="padding:8px 0; border-bottom:1px solid var(--border);">
+            <strong>${esc(df.name)}</strong>
+            <span style="font-size:0.8rem; color:var(--text-muted); margin-left:8px;">
+              インパクト:${df.impact} / 不確実性:${df.uncertainty} / ${df.quadrant}
+            </span>
+            <p style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">${esc(df.description || '')}</p>
+          </div>`;
+        });
+        html += `</div>`;
+      }
+
+      document.getElementById('scenariosContent').innerHTML = html;
+    }
+
+    function showScenarioDetail(id) {
+      const sc = SCENARIOS?.scenarios?.find(s => s.id === id);
+      if (!sc) return;
+      const layers = [
+        { key: 'litany', label: 'リタニー' },
+        { key: 'systemic_causes', label: 'システム的原因' },
+        { key: 'worldview', label: '世界観' },
+        { key: 'myth_metaphor', label: '神話・メタファー' },
+      ];
+      let html = `<p style="color:var(--accent); margin-bottom:12px;">${esc(sc.subtitle || '')}</p>`;
+      html += `<div style="line-height:1.8; margin-bottom:16px;">${esc(sc.narrative || '')}</div>`;
+
+      if (sc.cla) {
+        html += `<h4 style="margin:16px 0 8px;">CLA分析</h4>`;
+        layers.forEach(l => {
+          if (sc.cla[l.key]) {
+            html += `<div class="cla-layer"><div class="cla-layer-label">${l.label}</div><div class="cla-layer-text">${esc(sc.cla[l.key])}</div></div>`;
+          }
+        });
+      }
+
+      if (sc.key_events?.length) {
+        html += `<h4 style="margin:16px 0 8px;">主要イベント</h4>`;
+        sc.key_events.forEach(ev => {
+          html += `<p style="font-size:0.85rem; color:var(--text-muted);">${ev.year}: ${esc(ev.event)}</p>`;
+        });
+      }
+
+      if (sc.signposts?.length) {
+        html += `<h4 style="margin:16px 0 8px;">シグナルポスト（早期指標）</h4>`;
+        sc.signposts.forEach(sp => {
+          html += `<div style="padding:8px 0; border-bottom:1px solid var(--border); font-size:0.85rem;">
+            <strong>${esc(sp.indicator)}</strong><br>
+            <span style="color:var(--text-muted);">現状: ${esc(sp.current_state)} / トリガー: ${esc(sp.trigger_condition)}</span>
+          </div>`;
+        });
+      }
+
+      openModal(sc.name, html);
+    }
+
+    // ============================================================
+    // SIGNALS
+    // ============================================================
+    function renderSignals() {
+      if (!AI?.weak_signals?.length) { document.getElementById('signalsContent').innerHTML = '<div class="empty-state">シグナルデータなし</div>'; return; }
+      document.getElementById('signalsContent').dataset.loaded = '1';
+
+      let html = `<p style="color:var(--text-muted); margin-bottom:16px;">${AI.weak_signals.length}件の弱いシグナルを検出 - シグナルを追跡リストに追加できます</p>`;
+
+      AI.weak_signals.forEach((sig, idx) => {
+        const isTracked = signalTracking.some(t => t.signalIndex === idx);
+        html += `<div class="signal-item">
+          <div style="display:flex; justify-content:space-between; align-items:start;">
+            <h4>${esc(sig.signal)}</h4>
+            <button class="bookmark-btn ${isTracked ? 'bookmarked' : ''}" onclick="toggleSignalTrack(${idx}, this)">
+              ${isTracked ? '追跡中' : '追跡する'}
+            </button>
+          </div>
+          <p style="font-size:0.85rem; color:var(--text-muted); margin-top:6px; line-height:1.6;">${esc(sig.description)}</p>
+          <div class="signal-badges">
+            ${(sig.pestle_categories || []).map(c => `<span class="pestle-badge pestle-${c}">${PESTLE_JA[c] || c}</span>`).join('')}
+            <span class="badge ${sig.potential_impact === 'High' || sig.potential_impact === '高' ? 'high' : 'medium'}">
+              影響: ${esc(sig.potential_impact)}
+            </span>
+            <span class="badge">${esc(sig.time_horizon)}</span>
+          </div>
+        </div>`;
+      });
+
+      document.getElementById('signalsContent').innerHTML = html;
+    }
+
+    // ============================================================
+    // WORKSPACE
+    // ============================================================
+    function renderWorkspace() {
+      const activeBtn = document.querySelector('.ws-nav-btn.active');
+      if (activeBtn) renderWorkspaceSection(activeBtn.dataset.ws);
+    }
+
+    function renderWorkspaceSection(section) {
+      switch (section) {
+        case 'bookmarks': renderBookmarks(); break;
+        case 'observations': renderObservations(); break;
+        case 'driving-forces': renderDrivingForces(); break;
+        case 'my-scenarios': renderMyScenarios(); break;
+        case 'signal-tracking': renderSignalTracking(); break;
+      }
+    }
+
+    // --- Bookmarks ---
+    function renderBookmarks() {
+      let html = '';
+      if (bookmarks.length === 0) {
+        html = '<div class="empty-state">ブックマークはありません。PESTLEタブでニュースを保存してください。</div>';
+      } else {
+        html = `<p style="color:var(--text-muted); margin-bottom:16px;">${bookmarks.length}件のブックマーク</p>`;
+        bookmarks.forEach(bm => {
+          const art = getArticleByBookmark(bm);
+          html += `<div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+              <div>
+                <span class="pestle-badge pestle-${bm.category}">${PESTLE_JA[bm.category] || bm.category}</span>
+                <div class="article-title" style="margin-top:4px;">${art ? esc(getTitle(art, bm.category, bm.articleIndex)) : '(記事データなし)'}</div>
+                ${bm.note ? `<p style="font-size:0.85rem; color:var(--accent2); margin-top:6px;">メモ: ${esc(bm.note)}</p>` : ''}
+              </div>
+              <div>
+                <button class="btn btn-sm btn-primary" onclick="editBookmarkNote('${bm.id}')">メモ</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteDoc('bookmarks','${bm.id}')">削除</button>
+              </div>
+            </div>
+          </div>`;
+        });
+      }
+      document.getElementById('ws-bookmarks').innerHTML = html;
+    }
+
+    function getArticleByBookmark(bm) {
+      if (bm.type === 'news' && NEWS?.pestle?.[bm.category]?.articles) {
+        return NEWS.pestle[bm.category].articles[bm.articleIndex];
+      }
+      return null;
+    }
+
+    // --- Observations ---
+    function renderObservations() {
+      let html = `<div style="margin-bottom:16px;">
+        <button class="btn btn-success" onclick="showObservationForm()">新しい観察を記録</button>
+      </div>`;
+
+      if (observations.length === 0) {
+        html += '<div class="empty-state">まだ観察記録がありません。ニュースやシグナルから気づいたことを記録しましょう。</div>';
+      } else {
+        observations.forEach(obs => {
+          const date = obs.createdAt?.toDate ? obs.createdAt.toDate().toLocaleDateString('ja-JP') : '-';
+          html += `<div class="card">
+            <div style="display:flex; justify-content:space-between;">
+              <span style="font-size:0.8rem; color:var(--text-muted);">${date}</span>
+              <div>
+                <button class="btn btn-sm btn-primary" onclick="editObservation('${obs.id}')">編集</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteDoc('observations','${obs.id}')">削除</button>
+              </div>
+            </div>
+            ${obs.title ? `<h4 style="margin:8px 0;">${esc(obs.title)}</h4>` : ''}
+            <p style="font-size:0.9rem; line-height:1.7; white-space:pre-wrap;">${esc(obs.text)}</p>
+            ${obs.tags?.length ? `<div style="margin-top:8px;">${obs.tags.map(t => `<span class="badge">${esc(t)}</span>`).join(' ')}</div>` : ''}
+          </div>`;
+        });
+      }
+      document.getElementById('ws-observations').innerHTML = html;
+    }
+
+    // --- Driving Forces ---
+    function renderDrivingForces() {
+      let html = `<div style="margin-bottom:16px;">
+        <button class="btn btn-success" onclick="showDFForm()">ドライビングフォースを追加</button>
+      </div>`;
+
+      if (drivingForces.length === 0) {
+        html += '<div class="empty-state">ドライビングフォースがありません。CLA分析やシグナルから重要な変化の原動力を特定しましょう。</div>';
+      } else {
+        html += '<div class="card-grid">';
+        drivingForces.forEach(df => {
+          html += `<div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+              <h3>${esc(df.name)}</h3>
+              <div>
+                <button class="btn btn-sm btn-primary" onclick="editDF('${df.id}')">編集</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteDoc('drivingForces','${df.id}')">削除</button>
+              </div>
+            </div>
+            <p style="font-size:0.85rem; color:var(--text-muted); margin:8px 0;">${esc(df.description || '')}</p>
+            <div style="font-size:0.85rem; margin-top:8px;">
+              <span style="color:var(--accent);">+</span> ${esc(df.polePositive || '')}
+              <span style="color:var(--danger); margin-left:12px;">-</span> ${esc(df.poleNegative || '')}
+            </div>
+            <div style="font-size:0.8rem; color:var(--text-muted); margin-top:8px;">
+              インパクト: <strong>${df.impact || '-'}</strong> / 不確実性: <strong>${df.uncertainty || '-'}</strong>
+            </div>
+            ${df.pestleCategories?.length ? `<div style="margin-top:8px;">${df.pestleCategories.map(c => `<span class="pestle-badge pestle-${c}">${PESTLE_JA[c]||c}</span>`).join(' ')}</div>` : ''}
+          </div>`;
+        });
+        html += '</div>';
+      }
+      document.getElementById('ws-driving-forces').innerHTML = html;
+    }
+
+    // --- My Scenarios ---
+    function renderMyScenarios() {
+      let html = `<div style="margin-bottom:16px;">
+        <button class="btn btn-success" onclick="showScenarioBuilder()">新しいシナリオセットを作成</button>
+      </div>`;
+
+      if (drivingForces.length < 2) {
+        html += '<div class="empty-state">シナリオを作成するには、まずドライビングフォースを2つ以上定義してください。</div>';
+      } else if (myScenarios.length === 0) {
+        html += '<div class="empty-state">まだシナリオセットがありません。2つのドライビングフォースを軸にしてシナリオを構築しましょう。</div>';
+      } else {
+        myScenarios.forEach(set => {
+          html += `<div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+              <h3>${esc(set.name)}</h3>
+              <div>
+                <button class="btn btn-sm btn-primary" onclick="editScenarioSet('${set.id}')">編集</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteDoc('myScenarios','${set.id}')">削除</button>
+              </div>
+            </div>
+            <p style="font-size:0.85rem; color:var(--text-muted);">X: ${esc(set.axisX?.label || '')} / Y: ${esc(set.axisY?.label || '')}</p>
+            <div class="scenario-matrix" style="margin-top:12px;">
+              ${(set.scenarios || []).map(sc => `
+                <div class="scenario-card">
+                  <h4>${esc(sc.name || '(未命名)')}</h4>
+                  <p>${esc((sc.narrative || '').substring(0, 100))}${sc.narrative?.length > 100 ? '...' : ''}</p>
+                </div>
+              `).join('')}
+            </div>
+          </div>`;
+        });
+      }
+      document.getElementById('ws-my-scenarios').innerHTML = html;
+    }
+
+    // --- Signal Tracking ---
+    function renderSignalTracking() {
+      let html = `<p style="color:var(--text-muted); margin-bottom:16px;">弱いシグナルタブから追跡するシグナルを選択できます。</p>`;
+
+      if (signalTracking.length === 0) {
+        html += '<div class="empty-state">追跡中のシグナルはありません。</div>';
+      } else {
+        signalTracking.forEach(track => {
+          const sig = AI?.weak_signals?.[track.signalIndex];
+          html += `<div class="signal-item">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+              <h4>${esc(sig?.signal || track.customName || '(不明)')}</h4>
+              <div>
+                <select onchange="updateTrackStatus('${track.id}', this.value)" style="background:var(--bg); color:var(--text); border:1px solid var(--border); border-radius:4px; padding:4px 8px; font-size:0.8rem;">
+                  <option value="emerging" ${track.status === 'emerging' ? 'selected' : ''}>出現中</option>
+                  <option value="growing" ${track.status === 'growing' ? 'selected' : ''}>成長中</option>
+                  <option value="mature" ${track.status === 'mature' ? 'selected' : ''}>成熟</option>
+                  <option value="fading" ${track.status === 'fading' ? 'selected' : ''}>衰退</option>
+                </select>
+                <button class="btn btn-sm btn-danger" onclick="deleteDoc('signalTracking','${track.id}')">削除</button>
+              </div>
+            </div>
+            ${sig ? `<p style="font-size:0.85rem; color:var(--text-muted); margin-top:6px;">${esc(sig.description)}</p>` : ''}
+            ${track.notes?.length ? `<div style="margin-top:8px; font-size:0.85rem;">
+              ${track.notes.map(n => `<div style="padding:4px 0; border-top:1px solid var(--border);">${n.date}: ${esc(n.text)}</div>`).join('')}
+            </div>` : ''}
+            <div style="margin-top:8px;">
+              <button class="btn btn-sm btn-primary" onclick="addTrackNote('${track.id}')">メモを追加</button>
+            </div>
+          </div>`;
+        });
+      }
+      document.getElementById('ws-signal-tracking').innerHTML = html;
+    }
+
+    // ============================================================
+    // FIRESTORE OPERATIONS
+    // ============================================================
+    async function toggleBookmark(type, category, articleIndex, btn) {
+      const uid = currentUser.uid;
+      const ref = db.collection('users').doc(uid).collection('bookmarks');
+      const existing = bookmarks.find(b => b.type === type && b.category === category && b.articleIndex === articleIndex);
+
+      if (existing) {
+        await ref.doc(existing.id).delete();
+        bookmarks = bookmarks.filter(b => b.id !== existing.id);
+        btn.classList.remove('bookmarked');
+        btn.textContent = '保存';
+      } else {
+        const doc = await ref.add({
+          type, category, articleIndex,
+          note: '',
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+        bookmarks.unshift({ id: doc.id, type, category, articleIndex, note: '' });
+        btn.classList.add('bookmarked');
+        btn.textContent = '保存済';
+      }
+    }
+
+    async function toggleSignalTrack(signalIndex, btn) {
+      const uid = currentUser.uid;
+      const ref = db.collection('users').doc(uid).collection('signalTracking');
+      const existing = signalTracking.find(t => t.signalIndex === signalIndex);
+
+      if (existing) {
+        await ref.doc(existing.id).delete();
+        signalTracking = signalTracking.filter(t => t.id !== existing.id);
+        btn.classList.remove('bookmarked');
+        btn.textContent = '追跡する';
+      } else {
+        const doc = await ref.add({
+          signalIndex, status: 'emerging', notes: [],
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+        signalTracking.unshift({ id: doc.id, signalIndex, status: 'emerging', notes: [] });
+        btn.classList.add('bookmarked');
+        btn.textContent = '追跡中';
+      }
+    }
+
+    async function deleteDoc(collection, docId) {
+      if (!confirm('削除しますか？')) return;
+      await db.collection('users').doc(currentUser.uid).collection(collection).doc(docId).delete();
+      // Refresh local data
+      if (collection === 'bookmarks') bookmarks = bookmarks.filter(b => b.id !== docId);
+      if (collection === 'observations') observations = observations.filter(o => o.id !== docId);
+      if (collection === 'drivingForces') drivingForces = drivingForces.filter(d => d.id !== docId);
+      if (collection === 'myScenarios') myScenarios = myScenarios.filter(s => s.id !== docId);
+      if (collection === 'signalTracking') signalTracking = signalTracking.filter(t => t.id !== docId);
+      renderWorkspace();
+    }
+
+    async function updateTrackStatus(trackId, status) {
+      await db.collection('users').doc(currentUser.uid).collection('signalTracking').doc(trackId).update({ status });
+      const track = signalTracking.find(t => t.id === trackId);
+      if (track) track.status = status;
+    }
+
+    // ============================================================
+    // FORMS & MODALS
+    // ============================================================
+    function openModal(title, bodyHtml) {
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('modalBody').innerHTML = bodyHtml;
+      document.getElementById('modalOverlay').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.remove('active');
+    }
+
+    document.getElementById('modalOverlay').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) closeModal();
+    });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+
+    function editBookmarkNote(bmId) {
+      const bm = bookmarks.find(b => b.id === bmId);
+      openModal('ブックマークメモ', `
+        <div class="form-group">
+          <textarea id="bmNote">${esc(bm?.note || '')}</textarea>
+        </div>
+        <button class="btn btn-primary" onclick="saveBookmarkNote('${bmId}')">保存</button>
+      `);
+    }
+
+    async function saveBookmarkNote(bmId) {
+      const note = document.getElementById('bmNote').value;
+      await db.collection('users').doc(currentUser.uid).collection('bookmarks').doc(bmId).update({ note });
+      const bm = bookmarks.find(b => b.id === bmId);
+      if (bm) bm.note = note;
+      closeModal();
+      renderBookmarks();
+    }
+
+    function showObservationForm(editId) {
+      const obs = editId ? observations.find(o => o.id === editId) : null;
+      openModal(obs ? '観察を編集' : '新しい観察を記録', `
+        <div class="form-group">
+          <label>タイトル（任意）</label>
+          <input type="text" id="obsTitle" value="${esc(obs?.title || '')}">
+        </div>
+        <div class="form-group">
+          <label>観察内容</label>
+          <textarea id="obsText" style="min-height:150px;">${esc(obs?.text || '')}</textarea>
+        </div>
+        <div class="form-group">
+          <label>タグ（カンマ区切り）</label>
+          <input type="text" id="obsTags" value="${esc(obs?.tags?.join(', ') || '')}">
+        </div>
+        <button class="btn btn-primary" onclick="saveObservation('${editId || ''}')">保存</button>
+      `);
+    }
+
+    function editObservation(id) { showObservationForm(id); }
+
+    async function saveObservation(editId) {
+      const data = {
+        title: document.getElementById('obsTitle').value.trim(),
+        text: document.getElementById('obsText').value.trim(),
+        tags: document.getElementById('obsTags').value.split(',').map(t => t.trim()).filter(Boolean),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      };
+      if (!data.text) { alert('内容を入力してください'); return; }
+
+      const ref = db.collection('users').doc(currentUser.uid).collection('observations');
+      if (editId) {
+        await ref.doc(editId).update(data);
+        const idx = observations.findIndex(o => o.id === editId);
+        if (idx >= 0) observations[idx] = { ...observations[idx], ...data };
+      } else {
+        data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+        const doc = await ref.add(data);
+        observations.unshift({ id: doc.id, ...data });
+      }
+      closeModal();
+      renderObservations();
+    }
+
+    function showDFForm(editId) {
+      const df = editId ? drivingForces.find(d => d.id === editId) : null;
+      const cats = ['Political', 'Economic', 'Social', 'Technological', 'Legal', 'Environmental'];
+      openModal(df ? 'ドライビングフォースを編集' : 'ドライビングフォースを追加', `
+        <div class="form-group">
+          <label>名称</label>
+          <input type="text" id="dfName" value="${esc(df?.name || '')}" placeholder="例: AI技術の社会浸透">
+        </div>
+        <div class="form-group">
+          <label>説明</label>
+          <textarea id="dfDesc">${esc(df?.description || '')}</textarea>
+        </div>
+        <div class="form-group">
+          <label>方向性（+）</label>
+          <input type="text" id="dfPosDir" value="${esc(df?.polePositive || '')}" placeholder="例: 協調的なAIガバナンス">
+        </div>
+        <div class="form-group">
+          <label>方向性（-）</label>
+          <input type="text" id="dfNegDir" value="${esc(df?.poleNegative || '')}" placeholder="例: 技術独占と規制の分断">
+        </div>
+        <div class="form-group">
+          <label>インパクト</label>
+          <div class="slider-group">
+            <input type="range" id="dfImpact" min="1" max="10" value="${df?.impact || 5}" oninput="document.getElementById('dfImpactVal').textContent=this.value">
+            <span class="slider-value" id="dfImpactVal">${df?.impact || 5}</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>不確実性</label>
+          <div class="slider-group">
+            <input type="range" id="dfUncertainty" min="1" max="10" value="${df?.uncertainty || 5}" oninput="document.getElementById('dfUncVal').textContent=this.value">
+            <span class="slider-value" id="dfUncVal">${df?.uncertainty || 5}</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>PESTLE分類</label>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            ${cats.map(c => `<label style="font-size:0.85rem; cursor:pointer;">
+              <input type="checkbox" value="${c}" class="dfCatCheck" ${df?.pestleCategories?.includes(c) ? 'checked' : ''}> ${PESTLE_JA[c]}
+            </label>`).join('')}
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="saveDF('${editId || ''}')">保存</button>
+      `);
+    }
+
+    function editDF(id) { showDFForm(id); }
+
+    async function saveDF(editId) {
+      const data = {
+        name: document.getElementById('dfName').value.trim(),
+        description: document.getElementById('dfDesc').value.trim(),
+        polePositive: document.getElementById('dfPosDir').value.trim(),
+        poleNegative: document.getElementById('dfNegDir').value.trim(),
+        impact: parseInt(document.getElementById('dfImpact').value),
+        uncertainty: parseInt(document.getElementById('dfUncertainty').value),
+        pestleCategories: [...document.querySelectorAll('.dfCatCheck:checked')].map(c => c.value),
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      };
+      if (!data.name) { alert('名称を入力してください'); return; }
+
+      const ref = db.collection('users').doc(currentUser.uid).collection('drivingForces');
+      if (editId) {
+        await ref.doc(editId).update(data);
+        const idx = drivingForces.findIndex(d => d.id === editId);
+        if (idx >= 0) drivingForces[idx] = { ...drivingForces[idx], ...data };
+      } else {
+        data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+        const doc = await ref.add(data);
+        drivingForces.unshift({ id: doc.id, ...data });
+      }
+      closeModal();
+      renderDrivingForces();
+    }
+
+    function showScenarioBuilder(editId) {
+      const set = editId ? myScenarios.find(s => s.id === editId) : null;
+      const dfOptions = drivingForces.map(df => `<option value="${df.id}">${esc(df.name)}</option>`).join('');
+
+      openModal(set ? 'シナリオセットを編集' : 'シナリオセットを作成', `
+        <div class="form-group">
+          <label>セット名</label>
+          <input type="text" id="scName" value="${esc(set?.name || '')}" placeholder="例: 2030年テクノロジー社会シナリオ">
+        </div>
+        <div class="form-group">
+          <label>X軸（ドライビングフォース）</label>
+          <select id="scAxisX">${dfOptions}</select>
+        </div>
+        <div class="form-group">
+          <label>Y軸（ドライビングフォース）</label>
+          <select id="scAxisY">${dfOptions}</select>
+        </div>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin:16px 0 8px;">各象限のシナリオ名とナラティブを記入してください：</p>
+        <div class="matrix-preview">
+          <div class="matrix-cell">
+            <h5>左上: Y+ / X-</h5>
+            <input type="text" id="scQ1Name" value="${esc(set?.scenarios?.[0]?.name || '')}" placeholder="シナリオ名" style="margin-bottom:4px;">
+            <textarea id="scQ1Narr" placeholder="ナラティブ...">${esc(set?.scenarios?.[0]?.narrative || '')}</textarea>
+          </div>
+          <div class="matrix-cell">
+            <h5>右上: Y+ / X+</h5>
+            <input type="text" id="scQ2Name" value="${esc(set?.scenarios?.[1]?.name || '')}" placeholder="シナリオ名" style="margin-bottom:4px;">
+            <textarea id="scQ2Narr" placeholder="ナラティブ...">${esc(set?.scenarios?.[1]?.narrative || '')}</textarea>
+          </div>
+          <div class="matrix-cell">
+            <h5>左下: Y- / X-</h5>
+            <input type="text" id="scQ3Name" value="${esc(set?.scenarios?.[2]?.name || '')}" placeholder="シナリオ名" style="margin-bottom:4px;">
+            <textarea id="scQ3Narr" placeholder="ナラティブ...">${esc(set?.scenarios?.[2]?.narrative || '')}</textarea>
+          </div>
+          <div class="matrix-cell">
+            <h5>右下: Y- / X+</h5>
+            <input type="text" id="scQ4Name" value="${esc(set?.scenarios?.[3]?.name || '')}" placeholder="シナリオ名" style="margin-bottom:4px;">
+            <textarea id="scQ4Narr" placeholder="ナラティブ...">${esc(set?.scenarios?.[3]?.narrative || '')}</textarea>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="saveScenarioSet('${editId || ''}')">保存</button>
+      `);
+
+      // Set selected axes if editing
+      if (set) {
+        if (set.axisX?.dfId) document.getElementById('scAxisX').value = set.axisX.dfId;
+        if (set.axisY?.dfId) document.getElementById('scAxisY').value = set.axisY.dfId;
+      }
+    }
+
+    function editScenarioSet(id) { showScenarioBuilder(id); }
+
+    async function saveScenarioSet(editId) {
+      const xDfId = document.getElementById('scAxisX').value;
+      const yDfId = document.getElementById('scAxisY').value;
+      const xDf = drivingForces.find(d => d.id === xDfId);
+      const yDf = drivingForces.find(d => d.id === yDfId);
+
+      if (xDfId === yDfId) { alert('X軸とY軸は異なるドライビングフォースを選択してください'); return; }
+
+      const data = {
+        name: document.getElementById('scName').value.trim() || '無題のシナリオセット',
+        axisX: { dfId: xDfId, label: xDf?.name || '', polePositive: xDf?.polePositive || '', poleNegative: xDf?.poleNegative || '' },
+        axisY: { dfId: yDfId, label: yDf?.name || '', polePositive: yDf?.polePositive || '', poleNegative: yDf?.poleNegative || '' },
+        scenarios: [
+          { quadrant: 'top_left', name: document.getElementById('scQ1Name').value, narrative: document.getElementById('scQ1Narr').value },
+          { quadrant: 'top_right', name: document.getElementById('scQ2Name').value, narrative: document.getElementById('scQ2Narr').value },
+          { quadrant: 'bottom_left', name: document.getElementById('scQ3Name').value, narrative: document.getElementById('scQ3Narr').value },
+          { quadrant: 'bottom_right', name: document.getElementById('scQ4Name').value, narrative: document.getElementById('scQ4Narr').value },
+        ],
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+      };
+
+      const ref = db.collection('users').doc(currentUser.uid).collection('myScenarios');
+      if (editId) {
+        await ref.doc(editId).update(data);
+        const idx = myScenarios.findIndex(s => s.id === editId);
+        if (idx >= 0) myScenarios[idx] = { ...myScenarios[idx], ...data };
+      } else {
+        data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+        const doc = await ref.add(data);
+        myScenarios.unshift({ id: doc.id, ...data });
+      }
+      closeModal();
+      renderMyScenarios();
+    }
+
+    async function addTrackNote(trackId) {
+      const text = prompt('メモを入力:');
+      if (!text) return;
+      const track = signalTracking.find(t => t.id === trackId);
+      if (!track) return;
+      const notes = [...(track.notes || []), { date: new Date().toLocaleDateString('ja-JP'), text }];
+      await db.collection('users').doc(currentUser.uid).collection('signalTracking').doc(trackId).update({ notes });
+      track.notes = notes;
+      renderSignalTracking();
+    }
+
+    // ============================================================
+    // UTILITIES
+    // ============================================================
+    function esc(str) {
+      if (!str) return '';
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function getTitle(article, cat, idx) {
+      // Try to get Japanese translation from AI data
+      if (AI?.translations?.[cat]?.[idx]?.title_ja) {
+        return AI.translations[cat][idx].title_ja;
+      }
+      return article.title || '';
+    }
+  </script>
+</body>
+</html>
