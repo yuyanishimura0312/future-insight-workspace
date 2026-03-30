@@ -811,6 +811,41 @@
     .sc-axes-legend { flex-direction: column; gap: 8px; }
     .sc-detail-body { padding: 0 12px 16px; }
   }
+
+  /* Bookmark button on articles */
+  .bookmark-btn-inline {
+    background: none; border: 1px solid var(--border); border-radius: 6px;
+    padding: 2px 8px; font-size: 0.7rem; color: var(--text-muted); cursor: pointer;
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .bookmark-btn-inline:hover { border-color: var(--S); color: var(--S); }
+  .bookmark-btn-inline.active { background: var(--S); color: white; border-color: var(--S); }
+
+  /* Share button */
+  .share-btn-inline {
+    background: none; border: 1px solid var(--border); border-radius: 6px;
+    padding: 2px 8px; font-size: 0.7rem; color: var(--text-muted); cursor: pointer;
+    transition: all 0.15s; white-space: nowrap;
+  }
+  .share-btn-inline:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Insight result */
+  .insight-result-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 24px; margin-bottom: 16px; line-height: 1.8;
+  }
+  .insight-result-card h4 { color: var(--accent); font-size: 0.95rem; margin-bottom: 8px; }
+  .insight-result-card p { font-size: 0.88rem; color: var(--text); margin-bottom: 12px; }
+  .insight-section { margin-bottom: 20px; }
+  .insight-section-title { font-size: 0.85rem; font-weight: 700; color: var(--accent); border-bottom: 1px solid var(--border); padding-bottom: 4px; margin-bottom: 8px; }
+
+  /* Toast */
+  .toast-notification {
+    position: fixed; bottom: 24px; right: 24px; background: var(--accent); color: white;
+    padding: 12px 20px; border-radius: 8px; font-size: 0.85rem; z-index: 2000;
+    opacity: 0; transition: opacity 0.3s; pointer-events: none;
+  }
+  .toast-notification.show { opacity: 1; }
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
@@ -842,6 +877,8 @@
     <button class="tab-btn" onclick="switchTab('scenarios')" data-i18n="tab_scenarios">シナリオ</button>
     <button class="tab-btn" onclick="switchTab('signals')" data-i18n="tab_signals">ウィークシグナル</button>
     <button class="tab-btn" onclick="switchTab('search')" data-i18n="tab_search">横断検索</button>
+    <button class="tab-btn" onclick="switchTab('bookmarks')" style="color:var(--S);font-weight:600">ブックマーク</button>
+    <button class="tab-btn" onclick="switchTab('insight')" style="color:var(--P);font-weight:600">回答生成</button>
   </div>
 
   <!-- ===== OVERVIEW ===== -->
@@ -941,6 +978,41 @@
     </div>
     <div id="searchStatus" style="font-size:0.75rem;color:var(--text-muted);padding:4px 0;min-height:1.4em"></div>
     <div id="searchResults"></div>
+  </div>
+
+  <!-- ===== BOOKMARKS ===== -->
+  <div class="tab-panel" id="tab-bookmarks">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div>
+        <h3 style="font-size:1rem;color:var(--accent);margin-bottom:4px">ブックマーク</h3>
+        <p style="font-size:0.8rem;color:var(--text-muted)">保存した記事・シグナルの一覧</p>
+      </div>
+      <button onclick="shareAllBookmarks()" class="btn btn-accent" style="font-size:0.82rem">ブックマーク一覧をシェア</button>
+    </div>
+    <div id="bookmarksList"></div>
+  </div>
+
+  <!-- ===== INSIGHT ===== -->
+  <div class="tab-panel" id="tab-insight">
+    <div style="margin-bottom:20px">
+      <h3 style="font-size:1.1rem;color:var(--accent);margin-bottom:6px;font-weight:700">回答生成</h3>
+      <p style="font-size:0.82rem;color:var(--text-muted);line-height:1.6">あなたの問題意識を入力すると、CLA（因果階層分析）やシナリオプランニングのデータを基に、多角的な分析と回答を生成します。</p>
+    </div>
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px">
+      <div style="margin-bottom:12px">
+        <label style="font-size:0.85rem;font-weight:600;display:block;margin-bottom:6px">問題意識・質問</label>
+        <textarea id="insightQuestion" style="width:100%;min-height:120px;padding:12px;border:1px solid var(--border);border-radius:8px;font-size:0.9rem;line-height:1.7;resize:vertical;background:var(--bg);color:var(--text);font-family:inherit" placeholder="例: AIの急速な普及が雇用構造にどのような影響を与えるか？私たちの組織はどう備えるべきか？"></textarea>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button onclick="generateInsight()" class="btn btn-accent" id="insightGenBtn" style="font-size:0.9rem;padding:10px 24px">分析・回答を生成</button>
+        <span id="insightStatus" style="font-size:0.8rem;color:var(--text-muted)"></span>
+      </div>
+      <div style="margin-top:12px">
+        <p style="font-size:0.75rem;color:var(--text-muted)">Claude APIキーが必要です。<a href="#" onclick="promptApiKey();return false" style="color:var(--accent)">APIキーを設定</a></p>
+      </div>
+    </div>
+    <div id="insightResult"></div>
+    <div id="insightHistory"></div>
   </div>
 
 </div>
@@ -1214,7 +1286,7 @@ function localizedSubfield(sf) { if (!sf) return ''; if (LANG === 'ja' && SUBFIE
 function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
 function formatPubDate(s) { if (!s) return ''; if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s; const d = new Date(s); if (isNaN(d.getTime())) return s; return d.toISOString().slice(0, 10); }
 
-const VALID_TABS = ['overview','pestle','papers','cla','scenarios','signals','search'];
+const VALID_TABS = ['overview','pestle','papers','cla','scenarios','signals','search','bookmarks','insight'];
 function switchTab(name, pushState) {
   if (!VALID_TABS.includes(name)) name = 'overview';
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
@@ -1223,6 +1295,7 @@ function switchTab(name, pushState) {
   const btns = document.querySelectorAll('.tab-btn');
   const idx = VALID_TABS.indexOf(name);
   if (idx >= 0 && btns[idx]) btns[idx].classList.add('active');
+  if (name === 'bookmarks') renderBookmarks();
   if (pushState !== false) history.replaceState(null, '', '#' + name);
 }
 function restoreTabFromHash() { const hash = location.hash.replace('#', ''); if (VALID_TABS.includes(hash)) switchTab(hash, false); }
@@ -1386,7 +1459,7 @@ async function renderPestle() {
     if (q) articles = articles.filter(a => ((a.title||'') + (a.summary||'') + (a.source||'')).toLowerCase().includes(q));
     totalCount += articles.length;
     articles.sort((a, b) => ((b.published_date||'').localeCompare(a.published_date||'')));
-    html += `<div class="pestle-section"><div class="pestle-header" style="background:linear-gradient(135deg, ${meta.color} 0%, ${meta.color}cc 100%)"><div class="pestle-badge"></div>${meta.icon} <strong>${meta.ja}</strong><span class="pestle-count">${articles.length.toLocaleString()}件</span></div><div class="article-list">${articles.slice(0, 50).map((a, i) => { const title = (yearFilter === 'latest') ? localizedTitle(a, cat, i) : a.title; const summary = (yearFilter === 'latest') ? localizedSummary(a, cat, i) : (a.summary || ''); const snippet = (summary || '').substring(0, 120); const relScore = a.relevance_score || 0; const relPct = Math.min(relScore / 10 * 100, 100); return `<div class="article-item" ${yearFilter === 'latest' ? `onclick="showArticle('${cat}', ${i})"` : (a.url ? `onclick="window.open('${esc(a.url)}','_blank')" style="cursor:pointer"` : '')}><div class="article-title">${esc(title)}</div>${snippet ? `<div class="article-snippet">${esc(snippet)}${summary.length > 120 ? '...' : ''}</div>` : ''}<div class="article-meta"><span class="article-source">${esc(a.source)}</span>${(a.published_date || a.published) ? `<span>${esc(formatPubDate(a.published_date || a.published))}</span>` : ''}${relScore ? `<span class="article-relevance"><span class="article-relevance-bar"><span class="article-relevance-fill" style="width:${relPct}%;background:${meta.color}"></span></span>${relScore}</span>` : ''}</div></div>`; }).join('')}${articles.length > 50 ? `<div style="padding:10px;text-align:center;color:var(--text-muted);font-size:0.8rem">他 ${(articles.length - 50).toLocaleString()}件</div>` : ''}</div></div>`;
+    html += `<div class="pestle-section"><div class="pestle-header" style="background:linear-gradient(135deg, ${meta.color} 0%, ${meta.color}cc 100%)"><div class="pestle-badge"></div>${meta.icon} <strong>${meta.ja}</strong><span class="pestle-count">${articles.length.toLocaleString()}件</span></div><div class="article-list">${articles.slice(0, 50).map((a, i) => { const title = (yearFilter === 'latest') ? localizedTitle(a, cat, i) : a.title; const summary = (yearFilter === 'latest') ? localizedSummary(a, cat, i) : (a.summary || ''); const snippet = (summary || '').substring(0, 120); const relScore = a.relevance_score || 0; const relPct = Math.min(relScore / 10 * 100, 100); return `<div class="article-item" ${yearFilter === 'latest' ? `onclick="showArticle('${cat}', ${i})"` : (a.url ? `onclick="window.open('${esc(a.url)}','_blank')" style="cursor:pointer"` : '')}><div class="article-title">${esc(title)}</div>${snippet ? `<div class="article-snippet">${esc(snippet)}${summary.length > 120 ? '...' : ''}</div>` : ''}<div class="article-meta"><span class="article-source">${esc(a.source)}</span>${(a.published_date || a.published) ? `<span>${esc(formatPubDate(a.published_date || a.published))}</span>` : ''}${relScore ? `<span class="article-relevance"><span class="article-relevance-bar"><span class="article-relevance-fill" style="width:${relPct}%;background:${meta.color}"></span></span>${relScore}</span>` : ''}</div><div style="display:flex;gap:6px;margin-top:4px"><button class="bookmark-btn-inline ${isBookmarked('news',cat,i) ? 'active' : ''}" onclick="event.stopPropagation();toggleBookmark('news','${cat}',${i},'${esc(title).replace(/'/g,"\\'")}','${esc(a.url||'').replace(/'/g,"\\'")}',this)">${isBookmarked('news',cat,i) ? '保存済' : '保存'}</button><button class="share-btn-inline" onclick="event.stopPropagation();shareItem('${esc(title).replace(/'/g,"\\'")}','${esc(a.url||'').replace(/'/g,"\\'")}')">シェア</button></div></div>`; }).join('')}${articles.length > 50 ? `<div style="padding:10px;text-align:center;color:var(--text-muted);font-size:0.8rem">他 ${(articles.length - 50).toLocaleString()}件</div>` : ''}</div></div>`;
   }
   const countEl = document.getElementById('pestleTotalCount');
   if (countEl) countEl.textContent = `計 ${totalCount.toLocaleString()}件`;
@@ -1520,7 +1593,7 @@ let signalsShowAll = false;
 function renderSignals() {
   if (!AI_DATA || !AI_DATA.weak_signals || AI_DATA.weak_signals.length === 0) { document.getElementById('signalsGrid').innerHTML = `<div style="color:var(--text-muted);padding:20px;">${t('no_signals')}</div>`; return; }
   const allSignals = AI_DATA.weak_signals; const displaySignals = signalsShowAll ? allSignals : allSignals.slice(0, 100);
-  let html = displaySignals.map(s => `<div class="signal-card"><div class="signal-header"><div class="signal-name">${esc(s.signal)}</div><span class="signal-impact ${(s.potential_impact || '').toLowerCase()}">${esc(s.potential_impact || '?')}</span></div><div class="signal-desc">${esc(s.description)}</div><div class="signal-meta">${s.detected_date ? `<span style="font-size:0.7rem;color:var(--text-muted)">${esc(s.detected_date)}</span>` : ''}${s.source_date ? `<span style="font-size:0.7rem;color:var(--text-muted)">${esc(s.source_date)}</span>` : ''}<span class="signal-horizon">${esc(s.time_horizon || '?')}</span>${(s.pestle_categories || []).map(c => { const m = PESTLE_META[c]; return m ? `<span style="font-size:0.65rem;padding:2px 6px;border-radius:3px;background:${m.color};color:white">${m.ja}</span>` : `<span class="lang-badge">${esc(c)}</span>`; }).join('')}</div>${s.counter_trend ? `<div class="signal-counter">${esc(s.counter_trend)}</div>` : ''}${s.related_headlines && s.related_headlines.length > 0 ? `<details style="margin-top:8px;font-size:0.75rem;color:var(--text-muted)"><summary style="cursor:pointer">関連記事 (${s.related_headlines.length})</summary><ul style="margin-top:4px;padding-left:16px">${s.related_headlines.map(h => `<li>${esc(h)}</li>`).join('')}</ul></details>` : ''}</div>`).join('');
+  let html = displaySignals.map((s, si) => `<div class="signal-card"><div class="signal-header"><div class="signal-name">${esc(s.signal)}</div><span class="signal-impact ${(s.potential_impact || '').toLowerCase()}">${esc(s.potential_impact || '?')}</span></div><div class="signal-desc">${esc(s.description)}</div><div class="signal-meta">${s.detected_date ? `<span style="font-size:0.7rem;color:var(--text-muted)">${esc(s.detected_date)}</span>` : ''}${s.source_date ? `<span style="font-size:0.7rem;color:var(--text-muted)">${esc(s.source_date)}</span>` : ''}<span class="signal-horizon">${esc(s.time_horizon || '?')}</span>${(s.pestle_categories || []).map(c => { const m = PESTLE_META[c]; return m ? `<span style="font-size:0.65rem;padding:2px 6px;border-radius:3px;background:${m.color};color:white">${m.ja}</span>` : `<span class="lang-badge">${esc(c)}</span>`; }).join('')}</div>${s.counter_trend ? `<div class="signal-counter">${esc(s.counter_trend)}</div>` : ''}${s.related_headlines && s.related_headlines.length > 0 ? `<details style="margin-top:8px;font-size:0.75rem;color:var(--text-muted)"><summary style="cursor:pointer">関連記事 (${s.related_headlines.length})</summary><ul style="margin-top:4px;padding-left:16px">${s.related_headlines.map(h => `<li>${esc(h)}</li>`).join('')}</ul></details>` : ''}<div style="display:flex;gap:6px;margin-top:8px"><button class="bookmark-btn-inline ${isBookmarked('signal','signal',si) ? 'active' : ''}" onclick="event.stopPropagation();toggleBookmark('signal','signal',${si},'${esc(s.signal).replace(/'/g,"\\'")}','',this)">${isBookmarked('signal','signal',si) ? '保存済' : '保存'}</button><button class="share-btn-inline" onclick="event.stopPropagation();shareItem('${esc(s.signal).replace(/'/g,"\\'")}','')">シェア</button></div></div>`).join('');
   if (!signalsShowAll && allSignals.length > 100) html += `<div style="text-align:center;padding:20px"><button onclick="signalsShowAll=true;renderSignals()" style="padding:10px 24px;border:1px solid var(--border);border-radius:8px;background:var(--card);cursor:pointer;font-size:0.88rem;color:var(--accent)">さらに表示（残り${allSignals.length - 100}件）</button></div>`;
   document.getElementById('signalsGrid').innerHTML = html;
 }
@@ -1716,7 +1789,284 @@ async function loadHeavyData(v) {
 }
 
 // initApp is called by the auth guard after successful authentication
-function initApp() { loadData(); }
+function initApp() { loadData(); loadBookmarks(); }
+
+// === BOOKMARKS ===
+let userBookmarks = [];
+
+async function loadBookmarks() {
+  if (!currentUser) return;
+  try {
+    const snap = await db.collection('users').doc(currentUser.uid).collection('bookmarks').orderBy('createdAt', 'desc').get();
+    userBookmarks = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch (e) { console.warn('Bookmark load failed:', e); }
+}
+
+function isBookmarked(type, category, index) {
+  return userBookmarks.some(b => b.type === type && b.category === category && b.articleIndex === index);
+}
+
+async function toggleBookmark(type, category, index, title, url, btn) {
+  if (!currentUser) return;
+  const ref = db.collection('users').doc(currentUser.uid).collection('bookmarks');
+  const existing = userBookmarks.find(b => b.type === type && b.category === category && b.articleIndex === index);
+  if (existing) {
+    await ref.doc(existing.id).delete();
+    userBookmarks = userBookmarks.filter(b => b.id !== existing.id);
+    if (btn) { btn.classList.remove('active'); btn.textContent = '保存'; }
+  } else {
+    const doc = await ref.add({ type, category, articleIndex: index, title: title || '', url: url || '', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+    userBookmarks.unshift({ id: doc.id, type, category, articleIndex: index, title: title || '', url: url || '' });
+    if (btn) { btn.classList.add('active'); btn.textContent = '保存済'; }
+  }
+  showToast(existing ? 'ブックマークを解除しました' : 'ブックマークに保存しました');
+}
+
+function renderBookmarks() {
+  const el = document.getElementById('bookmarksList');
+  if (!el) return;
+  if (userBookmarks.length === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">ブックマークはありません。PESTLEニュースやウィークシグナルタブで記事を保存してください。</div>';
+    return;
+  }
+  let html = '';
+  userBookmarks.forEach(bm => {
+    const catMeta = PESTLE_META[bm.category];
+    const color = catMeta ? catMeta.color : 'var(--accent)';
+    const catLabel = catMeta ? catMeta.ja : (bm.type === 'signal' ? 'シグナル' : bm.category || '');
+    html += `<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:10px;border-left:4px solid ${color}">
+      <div style="display:flex;justify-content:space-between;align-items:start;gap:12px">
+        <div style="flex:1">
+          <span style="font-size:0.7rem;padding:2px 8px;border-radius:4px;background:${color};color:white;font-weight:600">${esc(catLabel)}</span>
+          <div style="font-size:0.88rem;font-weight:500;margin-top:6px;line-height:1.5">${esc(bm.title)}</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0">
+          <button class="share-btn-inline" onclick="shareItem('${esc(bm.title)}', '${esc(bm.url || '')}')">シェア</button>
+          <button class="bookmark-btn-inline active" onclick="removeBookmark('${bm.id}', this.closest('div').closest('div'))">削除</button>
+        </div>
+      </div>
+    </div>`;
+  });
+  el.innerHTML = html;
+}
+
+async function removeBookmark(bmId, parentEl) {
+  if (!currentUser) return;
+  await db.collection('users').doc(currentUser.uid).collection('bookmarks').doc(bmId).delete();
+  userBookmarks = userBookmarks.filter(b => b.id !== bmId);
+  if (parentEl) parentEl.remove();
+  if (userBookmarks.length === 0) renderBookmarks();
+  showToast('ブックマークを削除しました');
+}
+
+// === SHARE ===
+function shareItem(title, url) {
+  const text = url ? `${title}\n${url}` : title;
+  if (navigator.share) {
+    navigator.share({ title: title, text: text, url: url || undefined }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(text).then(() => showToast('クリップボードにコピーしました'));
+  }
+}
+
+function shareAllBookmarks() {
+  if (userBookmarks.length === 0) { showToast('ブックマークがありません'); return; }
+  let text = '【Future Insight Workspace - ブックマーク一覧】\n\n';
+  userBookmarks.forEach((bm, i) => {
+    const catMeta = PESTLE_META[bm.category];
+    const catLabel = catMeta ? catMeta.ja : (bm.type === 'signal' ? 'シグナル' : bm.category || '');
+    text += `${i + 1}. [${catLabel}] ${bm.title}`;
+    if (bm.url) text += `\n   ${bm.url}`;
+    text += '\n\n';
+  });
+  if (navigator.share) {
+    navigator.share({ title: 'ブックマーク一覧', text: text }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(text).then(() => showToast('ブックマーク一覧をコピーしました'));
+  }
+}
+
+// === TOAST ===
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+// === INSIGHT GENERATION ===
+let insightHistory = [];
+
+function promptInsightApiKey() {
+  const current = localStorage.getItem('ANTHROPIC_API_KEY') || '';
+  const key = prompt('Anthropic APIキーを入力してください:', current);
+  if (key !== null) { localStorage.setItem('ANTHROPIC_API_KEY', key); showToast('APIキーを保存しました'); }
+}
+
+function getInsightApiKey() {
+  return localStorage.getItem('ANTHROPIC_API_KEY') || getApiKey() || '';
+}
+
+async function generateInsight() {
+  const question = document.getElementById('insightQuestion').value.trim();
+  if (!question) { showToast('問題意識を入力してください'); return; }
+  const apiKey = getInsightApiKey();
+  if (!apiKey) { promptApiKey(); return; }
+
+  const btn = document.getElementById('insightGenBtn');
+  const status = document.getElementById('insightStatus');
+  btn.disabled = true;
+  status.textContent = '分析中...（30秒ほどかかります）';
+
+  // Build context from CLA, scenarios, signals
+  let context = '';
+  if (AI_DATA && AI_DATA.cla) {
+    context += '【因果階層分析（CLA）データ】\n';
+    for (const [cat, data] of Object.entries(AI_DATA.cla)) {
+      context += `\n[${cat}]\n`;
+      context += `リタニー: ${data.litany || ''}\n`;
+      context += `システム的原因: ${data.systemic_causes || ''}\n`;
+      context += `世界観: ${data.worldview || ''}\n`;
+      context += `神話/メタファー: ${data.myth_metaphor || ''}\n`;
+      if (data.key_tension) context += `主要な緊張: ${data.key_tension}\n`;
+      if (data.emerging_narrative) context += `新興ナラティブ: ${data.emerging_narrative}\n`;
+    }
+  }
+  if (SCENARIOS_DATA) {
+    context += '\n【シナリオプランニングデータ】\n';
+    context += `フォーカル・クエスチョン: ${SCENARIOS_DATA.focal_question || ''}\n`;
+    context += `時間軸: ${SCENARIOS_DATA.time_horizon || ''}\n`;
+    if (SCENARIOS_DATA.scenarios) {
+      SCENARIOS_DATA.scenarios.forEach(sc => {
+        context += `\nシナリオ「${sc.name}」: ${(sc.narrative || '').substring(0, 500)}\n`;
+      });
+    }
+    if (SCENARIOS_DATA.driving_forces) {
+      context += '\nドライビングフォース:\n';
+      SCENARIOS_DATA.driving_forces.forEach(df => {
+        context += `- ${df.name} (インパクト:${df.impact}, 不確実性:${df.uncertainty}): ${df.description || ''}\n`;
+      });
+    }
+  }
+  if (AI_DATA && AI_DATA.weak_signals) {
+    context += '\n【弱いシグナル（上位20件）】\n';
+    AI_DATA.weak_signals.slice(0, 20).forEach(sig => {
+      context += `- ${sig.signal}: ${sig.description} (影響:${sig.potential_impact}, 時間軸:${sig.time_horizon})\n`;
+    });
+  }
+
+  const systemPrompt = `あなたは戦略的未来洞察の専門家です。PESTLE分析、因果階層分析（CLA）、シナリオプランニング、弱いシグナル分析の手法を熟知しています。
+
+以下のデータを踏まえて、ユーザーの問題意識に対して多角的な分析と回答を提供してください。
+
+回答は以下の構成で記述してください：
+1. 問題の構造分析（CLAの4層で分析: 表層の出来事→システム的原因→世界観→深層の神話/メタファー）
+2. シナリオ別の影響分析（各シナリオにおいて、この問題がどう展開するか）
+3. 注目すべき弱いシグナル（この問題に関連する兆し）
+4. 戦略的提言（不確実性を踏まえた具体的なアクション案）
+5. 今後注視すべき指標（この問題の進展を判断するためのシグナルポスト）
+
+日本語で回答してください。データに基づいた具体的な分析を心がけてください。`;
+
+  const userMessage = `${context}\n\n---\n\n【ユーザーの問題意識】\n${question}`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 8000,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userMessage }]
+      })
+    });
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.error?.message || `API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const answer = data.content?.[0]?.text || '回答を取得できませんでした。';
+
+    // Render result
+    const resultHtml = `<div class="insight-result-card">
+      <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:16px">
+        <h4 style="flex:1">分析結果</h4>
+        <button class="share-btn-inline" onclick="shareInsight()">シェア</button>
+      </div>
+      <div style="background:var(--bg);border-radius:8px;padding:12px 16px;margin-bottom:16px">
+        <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:4px">問題意識:</div>
+        <div style="font-size:0.88rem;font-weight:500">${esc(question)}</div>
+      </div>
+      <div id="insightAnswerText" style="font-size:0.88rem;line-height:1.9;white-space:pre-wrap">${formatInsightAnswer(answer)}</div>
+    </div>`;
+    document.getElementById('insightResult').innerHTML = resultHtml;
+
+    // Save to history
+    insightHistory.unshift({ question, answer, date: new Date().toISOString() });
+    renderInsightHistory();
+
+    // Save to Firestore
+    if (currentUser) {
+      db.collection('users').doc(currentUser.uid).collection('insights').add({
+        question, answer, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      }).catch(e => console.warn('Failed to save insight:', e));
+    }
+
+    status.textContent = '';
+  } catch (e) {
+    status.textContent = 'エラー: ' + e.message;
+    console.error('Insight generation failed:', e);
+  }
+  btn.disabled = false;
+}
+
+function formatInsightAnswer(text) {
+  // Convert markdown-like headers and bold to HTML
+  return esc(text)
+    .replace(/^### (.+)$/gm, '<div class="insight-section-title">$1</div>')
+    .replace(/^## (.+)$/gm, '<h4 style="color:var(--accent);margin:16px 0 8px">$1</h4>')
+    .replace(/^# (.+)$/gm, '<h3 style="color:var(--accent);margin:20px 0 10px">$1</h3>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/^- (.+)$/gm, '<div style="padding-left:16px;margin:2px 0">- $1</div>')
+    .replace(/^\d+\. (.+)$/gm, (m, p1, offset, str) => `<div style="padding-left:16px;margin:4px 0">${m}</div>`);
+}
+
+function shareInsight() {
+  const question = document.getElementById('insightQuestion').value;
+  const answer = document.getElementById('insightAnswerText')?.innerText || '';
+  const text = `【Future Insight - 回答生成】\n\n問題意識: ${question}\n\n${answer}`;
+  if (navigator.share) {
+    navigator.share({ title: '未来洞察分析', text: text }).catch(() => {});
+  } else {
+    navigator.clipboard.writeText(text).then(() => showToast('分析結果をコピーしました'));
+  }
+}
+
+function renderInsightHistory() {
+  const el = document.getElementById('insightHistory');
+  if (!el || insightHistory.length <= 1) { if (el) el.innerHTML = ''; return; }
+  let html = '<h4 style="font-size:0.9rem;color:var(--text-muted);margin:24px 0 12px">過去の分析</h4>';
+  insightHistory.slice(1).forEach((item, i) => {
+    const date = new Date(item.date).toLocaleDateString('ja-JP');
+    html += `<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:10px;cursor:pointer" onclick="this.querySelector('.insight-hist-body').style.display=this.querySelector('.insight-hist-body').style.display==='none'?'block':'none'">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="font-size:0.85rem;font-weight:500">${esc(item.question.substring(0, 80))}${item.question.length > 80 ? '...' : ''}</div>
+        <span style="font-size:0.72rem;color:var(--text-muted)">${date}</span>
+      </div>
+      <div class="insight-hist-body" style="display:none;margin-top:12px;font-size:0.85rem;line-height:1.8;white-space:pre-wrap;color:var(--text-muted)">${formatInsightAnswer(item.answer)}</div>
+    </div>`;
+  });
+  el.innerHTML = html;
+}
 </script>
+<div class="toast-notification" id="toast"></div>
 </body>
 </html>
