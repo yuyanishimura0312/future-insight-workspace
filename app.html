@@ -1678,24 +1678,41 @@ function resetToOriginalScenarios() { if (ORIGINAL_SCENARIOS_DATA) { SCENARIOS_D
 
 let PAPERS_STATS = null; let _pestleHistoryLoaded = false; let _papersFullLoaded = false;
 
+// Phase 1: Load only lightweight data for initial render (~1MB total)
 async function loadData() {
   const v = Date.now();
-  const [newsResp, papersLightResp, aiResp, statsResp] = await Promise.allSettled([
+  const [newsResp, aiResp, statsResp, alertsResp, scResp] = await Promise.allSettled([
     fetch(DATA_BASE_URL + 'data/latest.json?v=' + v),
-    fetch(DATA_BASE_URL + 'data/papers_light.json?v=' + v),
     fetch(DATA_BASE_URL + 'data/ai_analysis.json?v=' + v),
     fetch(DATA_BASE_URL + 'data/papers_stats.json?v=' + v),
+    fetch(DATA_BASE_URL + 'data/alerts.json?v=' + v),
+    fetch(DATA_BASE_URL + 'data/scenarios.json?v=' + v),
   ]);
   if (newsResp.status === 'fulfilled') { NEWS_DATA = await newsResp.value.json(); document.getElementById('lastUpdated').textContent = `${t('last_updated')}: ${NEWS_DATA.date}`; }
-  if (papersLightResp.status === 'fulfilled') PAPERS_DATA = await papersLightResp.value.json();
   if (aiResp.status === 'fulfilled') AI_DATA = await aiResp.value.json();
   if (statsResp.status === 'fulfilled') PAPERS_STATS = await statsResp.value.json();
-  try { const alertsResp = await fetch(DATA_BASE_URL + 'data/alerts.json?v=' + v); ALERTS_DATA = await alertsResp.json(); } catch (e) {}
-  try { const scResp = await fetch(DATA_BASE_URL + 'data/scenarios.json?v=' + v); if (scResp.ok) SCENARIOS_DATA = await scResp.json(); } catch (e) {}
-  try { const trResp = await fetch(DATA_BASE_URL + 'data/papers_translations.json?v=' + v); if (trResp.ok) { const trArr = await trResp.json(); trArr.forEach(tr => { if (tr && tr.index != null) PAPERS_TRANS[tr.index] = tr; }); } } catch (e) {}
-  try { const idxResp = await fetch(DATA_BASE_URL + 'data/pestle_index.json?v=' + v); const idx = await idxResp.json(); if (!PESTLE_HISTORY) PESTLE_HISTORY = {}; PESTLE_HISTORY._index = idx; PESTLE_HISTORY._quarterCount = Object.keys(idx).length; } catch (e) {}
-  applyI18n(); renderOverview(); renderAlerts(); renderPestle(); renderPapers(); renderCLA(); renderScenarios(); renderSignals(); restoreTabFromHash();
-  if (Object.keys(PAPERS_TRANS).length > 0) { renderPapers(); renderOverview(); }
+  if (alertsResp.status === 'fulfilled') try { ALERTS_DATA = await alertsResp.value.json(); } catch(e) {}
+  if (scResp.status === 'fulfilled') try { SCENARIOS_DATA = await scResp.value.json(); } catch(e) {}
+  applyI18n(); renderOverview(); renderAlerts(); renderPestle(); renderCLA(); renderScenarios(); renderSignals(); renderPapers(); restoreTabFromHash();
+  // Phase 2: Load heavy data in background after initial render
+  loadHeavyData(v);
+}
+
+// Phase 2: papers_light (37MB), translations (5.5MB), pestle_index - loaded in background
+let _heavyDataLoaded = false;
+async function loadHeavyData(v) {
+  if (_heavyDataLoaded) return;
+  _heavyDataLoaded = true;
+  try {
+    const [papersResp, trResp, idxResp] = await Promise.allSettled([
+      fetch(DATA_BASE_URL + 'data/papers_light.json?v=' + v),
+      fetch(DATA_BASE_URL + 'data/papers_translations.json?v=' + v),
+      fetch(DATA_BASE_URL + 'data/pestle_index.json?v=' + v),
+    ]);
+    if (papersResp.status === 'fulfilled') { PAPERS_DATA = await papersResp.value.json(); renderPapers(); }
+    if (trResp.status === 'fulfilled') { const trArr = await trResp.value.json(); trArr.forEach(tr => { if (tr && tr.index != null) PAPERS_TRANS[tr.index] = tr; }); renderPapers(); renderOverview(); }
+    if (idxResp.status === 'fulfilled') { const idx = await idxResp.value.json(); if (!PESTLE_HISTORY) PESTLE_HISTORY = {}; PESTLE_HISTORY._index = idx; PESTLE_HISTORY._quarterCount = Object.keys(idx).length; }
+  } catch (e) { console.warn('Heavy data load error:', e); }
 }
 
 // initApp is called by the auth guard after successful authentication
