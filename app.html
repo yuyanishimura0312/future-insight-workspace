@@ -1972,55 +1972,210 @@ function renderGlobalSearch() {
 
 let claCatFilter = 'Overall'; let claViewMode = 'timeline';
 
-function renderMythTransition(qcla, quarters) {
-  // Build myth/metaphor transition analysis from 1990 to present across all categories
-  const catOptions = [{ key: 'Overall', label: '全体', color: 'var(--accent)' }, ...Object.entries(PESTLE_META).map(([k, m]) => ({ key: k, label: m.ja, color: m.color }))];
-  let html = `<div style="background:linear-gradient(135deg, #2c3e50 0%, #34495e 100%);border-radius:12px;padding:24px;margin-bottom:24px;color:#fff">`;
-  html += `<h3 style="font-size:1.05rem;font-weight:700;margin-bottom:4px;color:#f0e9e1">神話/メタファーの変遷（1990年〜現在）</h3>`;
-  html += `<p style="font-size:0.78rem;color:#bdc3c7;margin-bottom:16px">CLA Layer 4（最深層）の通時的分析 — 社会の根底にある物語がどのように変化してきたか</p>`;
+// === MYTH TRANSITION ANALYSIS REPORT ===
+let _mythReportCache = null;
+let _mythReportGenerating = false;
 
-  // Collect myth data per category across all quarters
-  for (const opt of catOptions) {
-    const myths = [];
-    for (const q of quarters) {
-      const data = qcla[q];
-      if (data && data[opt.key] && data[opt.key].myth_metaphor) {
-        myths.push({ period: q, text: data[opt.key].myth_metaphor });
+function renderMythTransition(qcla, quarters) {
+  let html = `<div id="mythTransitionReport" style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px 28px;margin-bottom:24px">`;
+  html += `<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">`;
+  html += `<div><h3 style="font-size:1.1rem;font-weight:700;color:var(--accent);margin-bottom:4px">神話/メタファーの変遷分析（1990年〜現在）</h3>`;
+  html += `<p style="font-size:0.78rem;color:var(--text-muted);line-height:1.5">CLA Layer 4（最深層）の通時的分析 — 社会の根底にある物語がどのように変化してきたか</p></div>`;
+  html += `<button onclick="generateMythReport(true)" class="btn" style="font-size:0.75rem;padding:6px 14px;white-space:nowrap" id="mythRegenBtn">再生成</button>`;
+  html += `</div>`;
+  html += `<div id="mythReportContent">`;
+
+  if (_mythReportCache) {
+    html += formatMythReport(_mythReportCache);
+  } else {
+    html += `<div style="color:var(--text-muted);font-size:0.85rem;line-height:1.8;padding:16px 0">`;
+    html += `<div id="mythReportLoading" style="display:flex;align-items:center;gap:8px">`;
+    html += `<span style="display:inline-block;width:14px;height:14px;border:2px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite"></span>`;
+    html += `分析レポートを生成中... 65期間分のCLA神話データを解析しています</div></div>`;
+  }
+
+  html += `</div></div>`;
+
+  // Trigger generation if not cached
+  if (!_mythReportCache && !_mythReportGenerating) {
+    setTimeout(() => generateMythReport(false), 100);
+  }
+
+  return html;
+}
+
+function formatMythReport(text) {
+  let html = esc(text);
+  // Section headers
+  html = html.replace(/^### (.+)$/gm, '<h5 style="font-size:0.92rem;font-weight:700;color:var(--accent);margin:20px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--border)">$1</h5>');
+  html = html.replace(/^## (.+)$/gm, '<h4 style="font-size:1rem;font-weight:700;color:var(--accent);margin:24px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--accent)">$1</h4>');
+  // Bold
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong style="color:var(--accent)">$1</strong>');
+  // Paragraphs
+  html = html.replace(/\n\n/g, '</p><p style="font-size:0.88rem;line-height:2;color:var(--text);margin-bottom:12px">');
+  html = '<p style="font-size:0.88rem;line-height:2;color:var(--text);margin-bottom:12px">' + html + '</p>';
+  html = html.replace(/<p[^>]*><(h[45])/g, '<$1');
+  html = html.replace(/<\/(h[45])><\/p>/g, '</$1>');
+  html = html.replace(/<p[^>]*><\/p>/g, '');
+  return html;
+}
+
+async function generateMythReport(forceRegen) {
+  if (_mythReportGenerating) return;
+  const qcla = AI_DATA?.quarterly_cla;
+  if (!qcla) return;
+
+  // Try loading from Firestore cache first (unless forcing regen)
+  if (!forceRegen && currentUser) {
+    try {
+      const cached = await db.collection('users').doc(currentUser.uid)
+        .collection('settings').doc('mythReport').get();
+      if (cached.exists) {
+        const data = cached.data();
+        // Use cache if generated within last 7 days
+        const cacheAge = Date.now() - (data.generatedAt?.toMillis?.() || 0);
+        if (cacheAge < 7 * 24 * 60 * 60 * 1000 && data.report) {
+          _mythReportCache = data.report;
+          const el = document.getElementById('mythReportContent');
+          if (el) el.innerHTML = formatMythReport(_mythReportCache);
+          return;
+        }
+      }
+    } catch (e) { console.warn('Myth report cache load failed:', e); }
+  }
+
+  const apiKey = getInsightApiKey();
+  if (!apiKey) {
+    const el = document.getElementById('mythReportContent');
+    if (el) el.innerHTML = `<div style="color:var(--text-muted);font-size:0.85rem;padding:16px 0">分析レポートの生成にはAPIキーが必要です。<a href="#" onclick="promptInsightApiKey();return false" style="color:var(--accent)">APIキーを設定</a></div>`;
+    return;
+  }
+
+  _mythReportGenerating = true;
+  const loadingEl = document.getElementById('mythReportLoading') || document.getElementById('mythReportContent');
+  if (loadingEl) {
+    if (loadingEl.id === 'mythReportContent') {
+      loadingEl.innerHTML = `<div style="display:flex;align-items:center;gap:8px;color:var(--text-muted);font-size:0.85rem;padding:16px 0"><span style="display:inline-block;width:14px;height:14px;border:2px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite"></span>分析レポートを生成中...</div>`;
+    }
+  }
+  const regenBtn = document.getElementById('mythRegenBtn');
+  if (regenBtn) regenBtn.disabled = true;
+
+  // Build decade-level myth summaries for the prompt
+  const quarters = Object.keys(qcla).sort();
+  const decades = {};
+  const categories = ['Overall', 'Political', 'Economic', 'Social', 'Technological', 'Legal', 'Environmental'];
+  const catJa = { Overall: '全体', Political: '政治', Economic: '経済', Social: '社会', Technological: '技術', Legal: '法律', Environmental: '環境' };
+
+  for (const q of quarters) {
+    const yr = parseInt(q.substring(0, 4));
+    if (isNaN(yr)) continue;
+    const decade = Math.floor(yr / 10) * 10 + 's';
+    if (!decades[decade]) decades[decade] = {};
+    for (const cat of categories) {
+      const myth = qcla[q]?.[cat]?.myth_metaphor;
+      if (myth) {
+        if (!decades[decade][cat]) decades[decade][cat] = [];
+        decades[decade][cat].push({ period: q, text: myth });
       }
     }
-    if (myths.length === 0) continue;
+  }
 
-    html += `<div style="margin-bottom:14px">`;
-    html += `<div style="font-size:0.82rem;font-weight:600;color:${opt.color === 'var(--accent)' ? '#e8c5b0' : opt.color};margin-bottom:6px;display:flex;align-items:center;gap:6px">`;
-    html += `<span style="width:10px;height:10px;border-radius:50%;background:${opt.color};display:inline-block;flex-shrink:0"></span>${opt.label}</div>`;
-    html += `<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:6px">`;
-    for (const m of myths) {
-      const label = m.period.includes('-') ? m.period.replace('-0', '年').replace('-1', '年1').replace('-', '年') + '月' : m.period;
-      const isCurrent = m.period === quarters[quarters.length - 1];
-      html += `<div style="min-width:200px;max-width:280px;flex-shrink:0;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,${isCurrent ? '0.4' : '0.12'});border-radius:8px;padding:10px 12px;${isCurrent ? 'box-shadow:0 0 0 1px rgba(255,255,255,0.3)' : ''}">`;
-      html += `<div style="font-size:0.68rem;color:${isCurrent ? '#f0e9e1' : '#95a5a6'};font-weight:600;margin-bottom:4px">${label}${isCurrent ? '（現在）' : ''}</div>`;
-      html += `<div style="font-size:0.76rem;line-height:1.5;color:#ecf0f1">${esc(m.text)}</div>`;
-      html += `</div>`;
+  // Build concise data for prompt (sample representative entries per decade)
+  let dataContext = '';
+  for (const [decade, cats] of Object.entries(decades).sort()) {
+    dataContext += `\n## ${decade}\n`;
+    for (const cat of categories) {
+      const entries = cats[cat] || [];
+      if (entries.length === 0) continue;
+      // Sample: first, middle, last of each decade
+      const samples = [];
+      if (entries.length <= 3) { samples.push(...entries); }
+      else { samples.push(entries[0], entries[Math.floor(entries.length / 2)], entries[entries.length - 1]); }
+      dataContext += `[${catJa[cat]}]\n`;
+      samples.forEach(s => { dataContext += `  ${s.period}: ${s.text}\n`; });
     }
-    html += `</div></div>`;
   }
 
-  // Add transition arrows / summary
-  const overallMyths = quarters.map(q => qcla[q]?.Overall?.myth_metaphor).filter(Boolean);
-  if (overallMyths.length >= 2) {
-    html += `<div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.15)">`;
-    html += `<div style="font-size:0.78rem;font-weight:600;color:#f0e9e1;margin-bottom:6px">変遷の流れ</div>`;
-    html += `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">`;
-    overallMyths.forEach((myth, i) => {
-      const short = myth.length > 60 ? myth.substring(0, 60) + '...' : myth;
-      html += `<span style="font-size:0.72rem;padding:4px 10px;border-radius:6px;background:rgba(255,255,255,0.1);color:#ecf0f1">${esc(short)}</span>`;
-      if (i < overallMyths.length - 1) html += `<span style="color:#7f8c8d;font-size:0.9rem">&#8594;</span>`;
+  const prompt = `あなたはCausal Layered Analysis (CLA) の専門研究者です。以下は1990年から2026年現在までの、PESTLE各分野における「神話/メタファー」（CLA Layer 4 — 最深層）の変遷データです。
+
+${dataContext}
+
+## 指示
+
+上記データに基づき、「社会の根底にある物語（神話/メタファー）がどのように変遷してきたか」を分析するレポートを作成してください。
+
+### レポート構成
+
+1. **全体の変遷概要**（約1,000字）
+   - 1990年から現在に至る大きな潮流を、社会の深層にある物語の転換という視点で概説する
+
+2. **1990年代: [この年代を象徴するフレーズ]**（約800字）
+   - 冷戦後の「歴史の終わり」的楽観主義がどのような深層的物語を形成したか
+
+3. **2000年代: [この年代を象徴するフレーズ]**（約800字）
+   - 9.11、グローバリゼーション、金融危機がどのように物語を書き換えたか
+
+4. **2010年代: [この年代を象徴するフレーズ]**（約800字）
+   - SNS、ポスト真実、気候変動意識がどのような新しい神話を生み出したか
+
+5. **2020年代（〜現在）: [この年代を象徴するフレーズ]**（約800字）
+   - パンデミック、AI革命、地政学的再編がどのような深層的物語の転換を促しているか
+
+各セクションでは、**政治・経済・社会・技術・法律・環境の横断的な視点**を含めてください。
+
+### 執筆要件
+- 全体で約5,000字
+- 学術的な分析でありながら読みやすい散文（地の文）で記述する
+- 箇条書きではなく文章で書く
+- データに基づいた具体的な指摘を含める
+- セクションタイトルは ## で、サブセクションは ### で記述
+- 日本語で執筆`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 8000,
+        messages: [{ role: 'user', content: prompt }]
+      })
     });
-    html += `</div></div>`;
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error?.message || `API error: ${response.status}`);
+    }
+
+    const result = await response.json();
+    const report = result.content?.[0]?.text || '';
+    _mythReportCache = report;
+
+    // Render
+    const el = document.getElementById('mythReportContent');
+    if (el) el.innerHTML = formatMythReport(report);
+
+    // Cache in Firestore
+    if (currentUser) {
+      db.collection('users').doc(currentUser.uid)
+        .collection('settings').doc('mythReport')
+        .set({ report, generatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true })
+        .catch(e => console.warn('Failed to cache myth report:', e));
+    }
+  } catch (e) {
+    console.error('Myth report generation failed:', e);
+    const el = document.getElementById('mythReportContent');
+    if (el) el.innerHTML = `<div style="color:#b92a38;font-size:0.85rem;padding:16px 0">レポート生成エラー: ${esc(e.message)}<br><a href="#" onclick="generateMythReport(true);return false" style="color:var(--accent)">再試行</a></div>`;
   }
 
-  html += `</div>`;
-  return html;
+  _mythReportGenerating = false;
+  if (regenBtn) regenBtn.disabled = false;
 }
 
 function renderCLA() {
