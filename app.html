@@ -2025,16 +2025,13 @@ async function generateMythReport(forceRegen) {
   const qcla = AI_DATA?.quarterly_cla;
   if (!qcla) return;
 
-  // Try loading from Firestore cache first (unless forcing regen)
-  if (!forceRegen && currentUser) {
+  // Try loading from shared Firestore cache first (unless forcing regen)
+  if (!forceRegen) {
     try {
-      const cached = await db.collection('users').doc(currentUser.uid)
-        .collection('settings').doc('mythReport').get();
+      const cached = await db.collection('config').doc('mythReport').get();
       if (cached.exists) {
         const data = cached.data();
-        // Use cache if generated within last 7 days
-        const cacheAge = Date.now() - (data.generatedAt?.toMillis?.() || 0);
-        if (cacheAge < 7 * 24 * 60 * 60 * 1000 && data.report) {
+        if (data.report) {
           _mythReportCache = data.report;
           const el = document.getElementById('mythReportContent');
           if (el) el.innerHTML = formatMythReport(_mythReportCache);
@@ -2161,13 +2158,10 @@ ${dataContext}
     const el = document.getElementById('mythReportContent');
     if (el) el.innerHTML = formatMythReport(report);
 
-    // Cache in Firestore
-    if (currentUser) {
-      db.collection('users').doc(currentUser.uid)
-        .collection('settings').doc('mythReport')
-        .set({ report, generatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true })
-        .catch(e => console.warn('Failed to cache myth report:', e));
-    }
+    // Cache in shared Firestore (all users read the same report)
+    db.collection('config').doc('mythReport')
+      .set({ report, generatedAt: firebase.firestore.FieldValue.serverTimestamp() })
+      .catch(e => console.warn('Failed to cache myth report:', e));
   } catch (e) {
     console.error('Myth report generation failed:', e);
     const el = document.getElementById('mythReportContent');
