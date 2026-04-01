@@ -1211,9 +1211,10 @@
       </div>
     </div>
 
-    <!-- 2. Two-column: Daily Papers (left) + Alerts (right) -->
-    <div class="daily-section-wrapper">
-      <div class="daily-papers-col" id="dailyPapersSection"></div>
+    <!-- 2. Research Pickup + Alerts -->
+    <div id="papersResearchPickup" style="margin-bottom:20px"></div>
+    <div class="daily-section-wrapper" style="grid-template-columns:1fr 340px">
+      <div style="display:none" id="dailyPapersSection"></div>
       <div class="daily-alerts-col" id="paperAlertsPanel"></div>
     </div>
 
@@ -1242,8 +1243,8 @@
           <option value="ja" data-i18n="papers_lang_ja">日本語</option>
         </select>
         <button class="papers-sort-btn" id="papersTransFilter" onclick="toggleTransFilter()" data-i18n="papers_ja_only">日本語訳のみ</button>
-        <button class="papers-sort-btn" id="papersSortRelevance" onclick="setPapersSort('relevance')">関連度順</button>
-        <button class="papers-sort-btn active" id="papersSortDate" onclick="setPapersSort('date')" data-i18n="papers_sort_date">新しい順</button>
+        <button class="papers-sort-btn active" id="papersSortRelevance" onclick="setPapersSort('relevance')">関連度順</button>
+        <button class="papers-sort-btn" id="papersSortDate" onclick="setPapersSort('date')" data-i18n="papers_sort_date">新しい順</button>
         <button class="papers-sort-btn" id="papersSortTitle" onclick="setPapersSort('title')" data-i18n="papers_sort_title">タイトル順</button>
         <!-- Saved Papers Export -->
         <div class="paper-export-bar" id="paperExportBar" style="display:none;margin-left:auto">
@@ -2029,6 +2030,71 @@ function renderPickupCards(el, picks, totalAvailable) {
   el.innerHTML = html;
 }
 
+// Render Research Pickup on the Papers page (reuses scoring from overview)
+let _papersPickupShowCount = 6;
+function renderPapersPagePickup() {
+  const el = document.getElementById('papersResearchPickup');
+  if (!el) return;
+
+  // Build candidates from daily papers (same as overview)
+  const candidates = [];
+  if (DAILY_PAPERS?.fields) {
+    const fieldOrder = ['人文学', '社会科学', '自然科学', '工学', '芸術'];
+    for (const field of fieldOrder) {
+      const info = DAILY_PAPERS.fields[field];
+      if (!info?.papers) continue;
+      for (let i = 0; i < info.papers.length; i++) {
+        const p = info.papers[i];
+        const title = LANG === 'ja' ? (p.title_ja || p.title) : p.title;
+        const summary = LANG === 'ja' ? (p.summary_ja || p.summary || '') : (p.summary || '');
+        const result = scoreByContextKeywords(title, summary, p.novelty_score || 0);
+        candidates.push({
+          title, field, authors: p.authors || '', date: p.published_date || '',
+          novelty: p.novelty_score || 0, summary,
+          onclick: `showDailyPaper('${esc(field)}', ${i})`,
+          relevanceScore: result.score, matchedContexts: result.matched
+        });
+      }
+    }
+  }
+  if (candidates.length === 0) { el.innerHTML = ''; return; }
+
+  candidates.sort((a, b) => b.relevanceScore - a.relevanceScore);
+  const all = candidates.slice(0, 100);
+  const picks = all.slice(0, _papersPickupShowCount);
+
+  let html = `<div style="margin-bottom:4px;display:flex;justify-content:space-between;align-items:center">`;
+  html += `<h3 style="font-size:0.95rem;color:var(--accent);font-weight:700">Research Pickup</h3>`;
+  html += `<span style="font-size:0.72rem;color:var(--text-muted)">${picks.length} / ${all.length}件 — CLA / シナリオ / ウィークシグナルとの関連度で選定</span>`;
+  html += `</div>`;
+  html += `<div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(min(380px, 100%), 1fr));gap:10px">`;
+
+  for (const p of picks) {
+    const color = FIELD_COLORS[p.field] || 'var(--accent)';
+    const summaryShort = p.summary.length > 100 ? p.summary.substring(0, 100) + '...' : p.summary;
+    html += `<div class="pickup-card" style="border-left-color:${color}" onclick="${p.onclick}">`;
+    html += `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:6px">`;
+    html += `<span class="pickup-tag" style="background:${color}">${esc(p.field)}</span>`;
+    if (p.novelty >= 7) html += `<span class="pickup-tag" style="background:var(--highlight)">Novelty ${p.novelty}</span>`;
+    if (p.matchedContexts.length > 0) {
+      for (const ctx of p.matchedContexts) {
+        html += `<span style="font-size:0.6rem;padding:1px 5px;border-radius:3px;border:1px solid var(--border);color:var(--text-muted)">${esc(ctx)}</span>`;
+      }
+    }
+    html += `<span style="font-size:0.65rem;color:var(--text-muted);margin-left:auto">${esc(p.date)}</span>`;
+    html += `</div>`;
+    html += `<div style="font-size:0.84rem;font-weight:500;line-height:1.45;margin-bottom:4px">${esc(p.title)}</div>`;
+    if (summaryShort) html += `<div style="font-size:0.73rem;color:var(--text-muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(summaryShort)}</div>`;
+    html += `<div style="font-size:0.68rem;color:var(--text-muted);margin-top:4px">${esc(p.authors.substring(0, 60))}${p.authors.length > 60 ? '...' : ''}</div>`;
+    html += `</div>`;
+  }
+  html += `</div>`;
+  if (_papersPickupShowCount < all.length) {
+    html += `<div style="text-align:center;padding:12px"><button onclick="_papersPickupShowCount=Math.min(_papersPickupShowCount+12,100);renderPapersPagePickup()" style="padding:8px 24px;border:1px solid var(--border);border-radius:8px;background:var(--card);cursor:pointer;font-size:0.82rem;color:var(--accent);font-weight:500">もっと見る（残り${all.length - _papersPickupShowCount}件）</button></div>`;
+  }
+  el.innerHTML = html;
+}
+
 async function ensurePestleHistoryLoaded() {
   if (_pestleHistoryLoaded) return;
   try { const resp = await fetch(DATA_BASE_URL + 'data/pestle_history.json?v=' + Date.now()); const full = await resp.json(); PESTLE_HISTORY = { ...PESTLE_HISTORY, ...full }; _pestleHistoryLoaded = true; } catch (e) { console.warn('Failed to load history:', e); }
@@ -2084,7 +2150,7 @@ async function renderPestle() {
   document.getElementById('pestleGrid').innerHTML = html;
 }
 
-let _papersSort = 'date'; let _papersShowCount = {};
+let _papersSort = 'relevance'; let _papersShowCount = {};
 function onPapersSearchInput() { const q = document.getElementById('papersSearch').value; const clearBtn = document.getElementById('papersSearchClear'); if (clearBtn) clearBtn.classList.toggle('show', q.length > 0); renderPapers(); }
 function clearPapersSearch() { document.getElementById('papersSearch').value = ''; document.getElementById('papersSearchClear').classList.remove('show'); renderPapers(); }
 function setPapersSort(mode) { _papersSort = mode; document.getElementById('papersSortDate').classList.toggle('active', mode === 'date'); document.getElementById('papersSortTitle').classList.toggle('active', mode === 'title'); document.getElementById('papersSortRelevance').classList.toggle('active', mode === 'relevance'); renderPapers(); }
@@ -2701,6 +2767,7 @@ async function loadDailyPapers() {
       DAILY_PAPERS = await dpResp.value.json();
       renderDailyPapers();
       renderPapersTopbar();
+      renderPapersPagePickup();
     }
     if (paResp.status === 'fulfilled') {
       PAPER_ALERTS = await paResp.value.json();
