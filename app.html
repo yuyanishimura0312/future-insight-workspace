@@ -1327,7 +1327,7 @@
   <div class="tab-panel" id="tab-insight">
     <div style="margin-bottom:20px">
       <h3 style="font-size:1.1rem;color:var(--accent);margin-bottom:6px;font-weight:700">回答生成</h3>
-      <p style="font-size:0.82rem;color:var(--text-muted);line-height:1.6">問題意識を入力し、参考情報やリサーチを追加することで、CLA・シナリオプランニングのデータと合わせて多角的な分析・回答を生成します。</p>
+      <p style="font-size:0.82rem;color:var(--text-muted);line-height:1.6">問題意識を入力し、CLA（因果階層分析）とシナリオプランニングのデータに基づいた未来洞察レポートを生成します。今後注目すべきシグナルやウォッチテーマを提示し、認知の拡張をサポートします。</p>
     </div>
 
     <!-- Step 1: Question input -->
@@ -3815,18 +3815,32 @@ async function generateInsight() {
     });
   }
 
-  const systemPrompt = `あなたは戦略的未来洞察の専門家です。PESTLE分析、因果階層分析（CLA）、シナリオプランニング、弱いシグナル分析の手法を熟知しています。
+  const systemPrompt = `あなたは未来洞察（Foresight）の専門家です。因果階層分析（CLA）、シナリオプランニング、ウィークシグナル分析の手法を熟知しています。
 
-以下のデータを踏まえて、ユーザーの問題意識に対して多角的な分析と回答を提供してください。
+あなたの目的は、ユーザーの問題意識に対して「未来洞察に基づいた回答」を提供することです。
+ユーザーが普段認知していない領域への気づきを促し、今後何に注目すべきかを明確にすることに集中してください。
 
-回答は以下の構成で記述してください：
-1. 問題の構造分析（CLAの4層で分析: 表層の出来事→システム的原因→世界観→深層の神話/メタファー）
-2. シナリオ別の影響分析（各シナリオにおいて、この問題がどう展開するか）
-3. 注目すべき弱いシグナル（この問題に関連する兆し）
-4. 戦略的提言（不確実性を踏まえた具体的なアクション案）
-5. 今後注視すべき指標（この問題の進展を判断するためのシグナルポスト）
+回答は以下の構成で、散文（地の文）を中心に記述してください：
 
-日本語で回答してください。データに基づいた具体的な分析を心がけてください。`;
+## 1. 問題の深層構造（CLA分析）
+CLAの4層で問題を分析する。表層の出来事（リタニー）から、システム的原因、背景にある世界観、そして最深層の神話/メタファーまでを掘り下げ、この問題が「なぜ今この形で現れているのか」を構造的に説明する。
+
+## 2. 複数の未来シナリオにおける展開
+提供されたシナリオデータを踏まえ、この問題が各シナリオにおいてどのように異なる形で展開し得るかを描写する。「一つの確定した未来」ではなく、複数の蓋然性ある未来の可能性を示す。
+
+## 3. 今後注目すべきウィークシグナル
+この問題に関連して、今後どのようなシグナル（兆し）が出現したら注目すべきかを提示する。既に観測されたシグナルではなく、「今後これが見えてきたら重要な変化の兆候である」という先行指標を示す。各シグナルについて、なぜそれが重要なのかの背景も説明する。
+
+## 4. ウォッチすべきテーマと認知の拡張
+ユーザーが今後注目・追跡すべきテーマを提示する。それぞれのテーマについて、概要と背景を丁寧に説明し、ユーザーの認知の外側にある重要な論点や視座を提供する。ユーザーが「知らなかったが、知るべきだったこと」に気づけるような内容を目指す。
+
+## 執筆上の注意
+- 箇条書きの羅列ではなく、文章（地の文）で記述する
+- データに基づいた具体的な指摘を含める
+- 「戦略的提言」や「こうすべき」というアクション提案は行わない
+- 代わりに、認知の拡張と注目点の提示に集中する
+
+日本語で回答してください。`;
 
   const userMessage = `${context}\n\n---\n\n【ユーザーの問題意識】\n${question}`;
 
@@ -3860,12 +3874,12 @@ async function generateInsight() {
     const dateStr = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
     const resultHtml = `<div class="insight-result-card" id="insightResultCard">
       <div class="insight-result-header">
-        <h4>Future Insight - 分析レポート</h4>
+        <h4>Future Insight - 未来洞察レポート</h4>
         <div class="insight-result-actions">
-          <button class="share-btn-inline" onclick="copyInsightText()">テキストコピー</button>
+          <button class="share-btn-inline" onclick="copyInsightText()">コピー</button>
           <button class="share-btn-inline" onclick="shareInsight()">シェア</button>
           <button class="share-btn-inline" onclick="bookmarkInsight()">ブックマーク</button>
-          <button class="btn btn-accent" style="font-size:0.75rem;padding:4px 12px" onclick="downloadInsightPDF()">PDFダウンロード</button>
+          <button class="btn btn-accent" style="font-size:0.75rem;padding:4px 12px" onclick="downloadInsightPDF()">PDF</button>
         </div>
       </div>
       <div class="insight-question-box">
@@ -3875,7 +3889,13 @@ async function generateInsight() {
       <div class="insight-answer" id="insightAnswerText">${formatInsightAnswer(answer)}</div>
       <div class="insight-meta">
         <span>生成日時: ${dateStr}</span>
-        <span>データソース: CLA分析 / シナリオプランニング / ウィークシグナル</span>
+        <span>分析基盤: CLA（因果階層分析） / シナリオプランニング / ウィークシグナル</span>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;padding:16px 24px;border-top:1px solid var(--border);background:var(--bg);border-radius:0 0 12px 12px">
+        <button class="btn" style="font-size:0.82rem" onclick="copyInsightText()">テキストをコピー</button>
+        <button class="btn" style="font-size:0.82rem" onclick="shareInsight()">シェア</button>
+        <button class="btn" style="font-size:0.82rem" onclick="bookmarkInsight()">ブックマークに保存</button>
+        <button class="btn btn-accent" style="font-size:0.82rem" onclick="downloadInsightPDF()">PDFダウンロード</button>
       </div>
     </div>`;
     document.getElementById('insightResult').innerHTML = resultHtml;
@@ -3937,7 +3957,7 @@ function formatInsightAnswer(text) {
 function shareInsight() {
   const question = document.getElementById('insightQuestion').value;
   const answer = document.getElementById('insightAnswerText')?.innerText || '';
-  const text = `【Future Insight - 分析レポート】\n\n問題意識: ${question}\n\n${answer}`;
+  const text = `【Future Insight - 未来洞察レポート】\n\n問題意識: ${question}\n\n${answer}`;
   if (navigator.share) {
     navigator.share({ title: '未来洞察分析', text: text }).catch(() => {});
   } else {
@@ -3978,7 +3998,7 @@ function downloadInsightPDF() {
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>Future Insight - 分析レポート</title>
+<title>Future Insight - 未来洞察レポート</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
   @page { size: A4; margin: 24mm 20mm; }
@@ -4001,8 +4021,8 @@ function downloadInsightPDF() {
 </head>
 <body>
 <div class="report-header">
-  <h1>Future Insight - 分析レポート</h1>
-  <div class="sub">PESTLE / CLA / シナリオプランニング / ウィークシグナルに基づく多角的分析</div>
+  <h1>Future Insight - 未来洞察レポート</h1>
+  <div class="sub">CLA（因果階層分析）/ シナリオプランニング / ウィークシグナルに基づく未来洞察</div>
 </div>
 <div class="question-box">
   <div class="label">問題意識</div>
