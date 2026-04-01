@@ -1137,9 +1137,9 @@
     <button class="tab-btn" onclick="switchTab('cla')" data-i18n="tab_cla">CLA分析</button>
     <button class="tab-btn" onclick="switchTab('scenarios')" data-i18n="tab_scenarios">シナリオ</button>
     <button class="tab-btn" onclick="switchTab('signals')" data-i18n="tab_signals">ウィークシグナル</button>
-    <button class="tab-btn" onclick="switchTab('search')" data-i18n="tab_search">横断検索</button>
     <button class="tab-btn" onclick="switchTab('bookmarks')" style="color:var(--S);font-weight:600">ブックマーク</button>
     <button class="tab-btn" onclick="switchTab('insight')" style="color:var(--P);font-weight:600">回答生成</button>
+    <button class="tab-btn" onclick="switchTab('search')" data-i18n="tab_search" style="margin-left:auto">横断検索</button>
   </div>
 
   <!-- ===== OVERVIEW ===== -->
@@ -1158,6 +1158,8 @@
       <input class="search-input" id="pestleSearch" data-i18n-placeholder="search_news" placeholder="ニュースを検索..." oninput="renderPestle()" style="flex:1;min-width:180px">
       <select id="pestleYearFilter" onchange="renderPestle()" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card);font-size:0.85rem">
         <option value="latest">最新（当日）</option>
+        <option value="1week">1週間</option>
+        <option value="1month">1ヶ月</option>
         <option value="all">全期間</option>
       </select>
       <span id="pestleTotalCount" style="font-size:0.78rem;color:var(--text-muted)"></span>
@@ -1261,6 +1263,17 @@
     <div style="margin-bottom:16px">
       <h3 style="font-size:1rem;color:var(--accent);margin-bottom:4px" data-i18n="signals_title">ウィークシグナル</h3>
       <p style="font-size:0.8rem;color:var(--text-muted)" data-i18n="signals_desc">ニュースと学術論文から抽出された、将来大きな変化をもたらす可能性のある兆し</p>
+      <p style="font-size:0.72rem;color:var(--text-muted);margin-top:4px;line-height:1.5">理論的基盤: Ansoff (1975) のウィークシグナル理論に基づき、「既存のトレンドから逸脱する微弱な情報」「複数分野に横断的に出現する兆候」「主流メディアではまだ注目されていないが、将来のインパクトが大きい事象」を抽出基準としています。</p>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+      <span style="font-size:0.82rem;color:var(--text-muted);font-weight:600">期間:</span>
+      <select id="signalsYearFilter" onchange="renderSignals()" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card);font-size:0.85rem">
+        <option value="latest">最新（2026年）</option>
+      </select>
+      <select id="signalsMonthFilter" onchange="renderSignals()" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card);font-size:0.85rem;display:none">
+        <option value="all">全月</option>
+      </select>
+      <span id="signalsTotalCount" style="font-size:0.78rem;color:var(--text-muted)"></span>
     </div>
     <div class="signals-grid" id="signalsGrid"></div>
   </div>
@@ -1624,7 +1637,7 @@ function localizedSubfield(sf) { if (!sf) return ''; if (LANG === 'ja' && SUBFIE
 function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
 function formatPubDate(s) { if (!s) return ''; if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s; const d = new Date(s); if (isNaN(d.getTime())) return s; return d.toISOString().slice(0, 10); }
 
-const VALID_TABS = ['overview','pestle','papers','cla','scenarios','signals','search','bookmarks','insight'];
+const VALID_TABS = ['overview','pestle','papers','cla','scenarios','signals','bookmarks','insight','search'];
 function switchTab(name, pushState) {
   if (!VALID_TABS.includes(name)) name = 'overview';
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
@@ -1695,6 +1708,7 @@ async function showPaper(idx) {
       <span class="paper-field-badge" style="background:${color}">${esc(full.field)}</span>
       ${full.subfield ? `<span class="paper-subfield-tag">${esc(localizedSubfield(full.subfield))}</span>` : ''}
       <span class="paper-lang-badge${lang === 'ja' ? ' ja' : ''}">${lang.toUpperCase()}</span>
+      <span style="font-size:0.62rem;padding:1px 6px;border-radius:3px;background:#e8f0ff;color:#2c68a0">DB: ${esc(full.source_db || full.source_type || 'Semantic Scholar')}</span>
       ${full.published_date ? `<span style="font-size:0.72rem;color:var(--text-muted);padding:2px 0;margin-left:auto">${esc(full.published_date)}</span>` : ''}
     </div>
     <div class="modal-field"><div class="modal-label">${t('authors')}</div><div class="modal-value" style="line-height:1.6">${esc(full.authors || t('unknown'))}</div></div>
@@ -1752,12 +1766,23 @@ function renderOverview() {
   if (PESTLE_HISTORY?._index) { for (const cats of Object.values(PESTLE_HISTORY._index)) { if (typeof cats === 'object') historyTotal += Object.values(cats).reduce((s, n) => s + (typeof n === 'number' ? n : 0), 0); } }
   const newsTotal = historyTotal || totalNews;
   const papersTotal = PAPERS_STATS?.total || PAPERS_DATA.length;
+  // Calculate date range for PESTLE data
+  const pestleDateRange = (() => {
+    if (PESTLE_HISTORY?._index) {
+      const qs = Object.keys(PESTLE_HISTORY._index).filter(k => /^\d{4}/.test(k)).sort();
+      if (qs.length > 0) {
+        const first = qs[0].substring(0, 4);
+        return `${first}年〜${NEWS_DATA.date}`;
+      }
+    }
+    return NEWS_DATA.date;
+  })();
   document.getElementById('overviewStats').innerHTML = `
-    <div class="stat-card"><div class="stat-label">${t('stat_news')}</div><div class="stat-value">${newsTotal.toLocaleString()}</div><div class="stat-sub">${historyQuarters > 0 ? '1990年〜 ' + historyQuarters + '四半期' : t('stat_sub_news')}</div></div>
+    <div class="stat-card"><div class="stat-label">${t('stat_news')}</div><div class="stat-value">${newsTotal.toLocaleString()}</div><div class="stat-sub">全${NEWS_DATA.total_fetched ? NEWS_DATA.total_fetched.toLocaleString() + '件収集 / ' : ''}当日${totalNews}件選定</div></div>
     <div class="stat-card"><div class="stat-label">${t('stat_papers')}</div><div class="stat-value">${papersTotal.toLocaleString()}</div><div class="stat-sub">${Object.keys(PAPERS_STATS?.by_field || fields).length} ${t('field')}</div></div>
     <div class="stat-card"><div class="stat-label">${t('stat_sources')}</div><div class="stat-value">${sources.size}</div><div class="stat-sub">${t('stat_sub_sources')}</div></div>
-    <div class="stat-card"><div class="stat-label">${t('stat_date')}</div><div class="stat-value" style="font-size:1rem">${NEWS_DATA.date}</div><div class="stat-sub">${NEWS_DATA.total_fetched}件から${totalNews}件選定</div></div>
-    <div class="stat-card"><div class="stat-label">${t('stat_fields')}</div><div class="stat-value">${Object.keys(fields).length}</div><div class="stat-sub">${Object.entries(fields).map(([f,n]) => f + ':' + n).join(', ')}</div></div>`;
+    <div class="stat-card"><div class="stat-label">${t('stat_fields')}</div><div class="stat-value">${Object.keys(fields).length}</div><div class="stat-sub">${Object.entries(fields).map(([f,n]) => f + ':' + n).join(', ')}</div></div>
+    <div class="stat-card"><div class="stat-label">${t('stat_date')}</div><div class="stat-value" style="font-size:1rem">${pestleDateRange}</div><div class="stat-sub">最終更新: ${NEWS_DATA.date}</div></div>`;
   let pestleHtml = '';
   for (const [cat, meta] of Object.entries(PESTLE_META)) {
     const info = NEWS_DATA.pestle[cat]; if (!info) continue;
@@ -1770,7 +1795,7 @@ function renderOverview() {
   const byField = {};
   PAPERS_DATA.forEach((p, i) => { if (!byField[p.field]) byField[p.field] = []; byField[p.field].push({...p, _idx: i}); });
   for (const [field, papers] of Object.entries(byField)) {
-    papersHtml += `<div class="paper-section"><div class="paper-header"><span class="paper-field-badge" style="background:${FIELD_COLORS[field] || 'var(--accent)'}">${esc(field)}</span><span class="pestle-count">${papers.length}件</span></div>${papers.slice(0, 2).map(p => `<div class="paper-item" style="cursor:pointer" onclick="showPaper(${p._idx})"><div class="paper-title">${esc(localizedPaperTitle(p, p._idx))}</div><div class="paper-authors">${esc((p.authors || '').substring(0, 80))}${(p.authors || '').length > 80 ? '...' : ''} ${p.published_date ? `<span style="color:var(--text-muted);font-size:0.7rem">(${esc(p.published_date)})</span>` : ''}</div></div>`).join('')}</div>`;
+    papersHtml += `<div class="paper-section"><div class="paper-header"><span class="paper-field-badge" style="background:${FIELD_COLORS[field] || 'var(--accent)'}">${esc(field)}</span><span class="pestle-count">${papers.length}件</span></div>${papers.slice(0, 2).map(p => `<div class="paper-item" style="cursor:pointer" onclick="showPaper(${p._idx})"><div class="paper-title">${esc(localizedPaperTitle(p, p._idx))}</div><div class="paper-authors">${esc((p.authors || '').substring(0, 80))}${(p.authors || '').length > 80 ? '...' : ''} ${p.published_date ? `<span style="color:var(--text-muted);font-size:0.7rem">(${esc(p.published_date)})</span>` : ''}</div><div style="font-size:0.65rem;color:var(--text-muted);margin-top:2px">DB: ${esc(p.source_db || p.source_type || 'Semantic Scholar')}</div></div>`).join('')}</div>`;
   }
   document.getElementById('overviewPapers').innerHTML = papersHtml;
 }
@@ -1789,7 +1814,31 @@ async function renderPestle() {
   const idx = PESTLE_HISTORY?._index;
   if (sel && sel.options.length <= 2 && idx) { const years = new Set(); Object.keys(idx).forEach(qk => { if (qk.length >= 4) years.add(qk.substring(0, 4)); }); [...years].sort().reverse().forEach(y => { const opt = document.createElement('option'); opt.value = y; opt.textContent = y + '年'; sel.appendChild(opt); }); }
   let pestleData = {};
-  if (PESTLE_HISTORY && _pestleHistoryLoaded) { const validQs = Object.keys(PESTLE_HISTORY).filter(k => /^\d{4}Q\d$/.test(k)).sort(); for (const qk of validQs) { if (yearFilter !== 'all' && yearFilter !== 'latest' && !qk.startsWith(yearFilter)) continue; if (yearFilter === 'latest' && qk !== validQs[validQs.length - 1]) continue; const cats = PESTLE_HISTORY[qk]; for (const [cat, info] of Object.entries(cats)) { if (!pestleData[cat]) pestleData[cat] = []; pestleData[cat].push(...(info.articles || [])); } } }
+  if (PESTLE_HISTORY && _pestleHistoryLoaded) {
+    const validQs = Object.keys(PESTLE_HISTORY).filter(k => /^\d{4}Q\d$/.test(k)).sort();
+    // Calculate date cutoffs for 1week/1month filters
+    const now = new Date();
+    const oneWeekAgo = new Date(now); oneWeekAgo.setDate(now.getDate() - 7);
+    const oneMonthAgo = new Date(now); oneMonthAgo.setMonth(now.getMonth() - 1);
+    for (const qk of validQs) {
+      if (yearFilter === 'latest' && qk !== validQs[validQs.length - 1]) continue;
+      if (yearFilter !== 'all' && yearFilter !== 'latest' && yearFilter !== '1week' && yearFilter !== '1month' && !qk.startsWith(yearFilter)) continue;
+      const cats = PESTLE_HISTORY[qk];
+      for (const [cat, info] of Object.entries(cats)) {
+        if (!pestleData[cat]) pestleData[cat] = [];
+        let articles = (info.articles || []);
+        // Filter by date for 1week/1month
+        if (yearFilter === '1week' || yearFilter === '1month') {
+          const cutoff = yearFilter === '1week' ? oneWeekAgo : oneMonthAgo;
+          articles = articles.filter(a => {
+            const d = new Date(a.published_date || a.published || '');
+            return !isNaN(d.getTime()) && d >= cutoff;
+          });
+        }
+        pestleData[cat].push(...articles);
+      }
+    }
+  }
   if ((yearFilter === 'latest' || Object.keys(pestleData).length === 0) && NEWS_DATA) { pestleData = {}; for (const [cat, info] of Object.entries(NEWS_DATA.pestle)) { pestleData[cat] = (info.articles || []); } }
   renderPestleDimFilters();
   let totalCount = 0; let html = '';
@@ -1799,7 +1848,7 @@ async function renderPestle() {
     if (q) articles = articles.filter(a => ((a.title||'') + (a.summary||'') + (a.source||'')).toLowerCase().includes(q));
     totalCount += articles.length;
     articles.sort((a, b) => ((b.published_date||'').localeCompare(a.published_date||'')));
-    html += `<div class="pestle-section"><div class="pestle-header" style="background:linear-gradient(135deg, ${meta.color} 0%, ${meta.color}cc 100%)"><div class="pestle-badge"></div>${meta.icon} <strong>${meta.ja}</strong><span class="pestle-count">${articles.length.toLocaleString()}件</span></div><div class="article-list">${articles.slice(0, 50).map((a, i) => { const title = (yearFilter === 'latest') ? localizedTitle(a, cat, i) : a.title; const summary = (yearFilter === 'latest') ? localizedSummary(a, cat, i) : (a.summary || ''); const snippet = (summary || '').substring(0, 120); const relScore = a.relevance_score || 0; const relPct = Math.min(relScore / 10 * 100, 100); return `<div class="article-item" ${yearFilter === 'latest' ? `onclick="showArticle('${cat}', ${i})"` : (a.url ? `onclick="window.open('${esc(a.url)}','_blank')" style="cursor:pointer"` : '')}><div class="article-title">${esc(title)}</div>${snippet ? `<div class="article-snippet">${esc(snippet)}${summary.length > 120 ? '...' : ''}</div>` : ''}<div class="article-meta"><span class="article-source">${esc(a.source)}</span>${(a.published_date || a.published) ? `<span>${esc(formatPubDate(a.published_date || a.published))}</span>` : ''}${relScore ? `<span class="article-relevance"><span class="article-relevance-bar"><span class="article-relevance-fill" style="width:${relPct}%;background:${meta.color}"></span></span>${relScore}</span>` : ''}</div><div style="display:flex;gap:6px;margin-top:4px"><button class="bookmark-btn-inline ${isBookmarked('news',cat,i) ? 'active' : ''}" onclick="event.stopPropagation();toggleBookmark('news','${cat}',${i},'${esc(title).replace(/'/g,"\\'")}','${esc(a.url||'').replace(/'/g,"\\'")}',this)">${isBookmarked('news',cat,i) ? '保存済' : '保存'}</button><button class="share-btn-inline" onclick="event.stopPropagation();shareItem('${esc(title).replace(/'/g,"\\'")}','${esc(a.url||'').replace(/'/g,"\\'")}')">シェア</button></div></div>`; }).join('')}${articles.length > 50 ? `<div style="padding:10px;text-align:center;color:var(--text-muted);font-size:0.8rem">他 ${(articles.length - 50).toLocaleString()}件</div>` : ''}</div></div>`;
+    html += `<div class="pestle-section"><div class="pestle-header" style="background:linear-gradient(135deg, ${meta.color} 0%, ${meta.color}cc 100%)"><div class="pestle-badge"></div>${meta.icon} <strong>${meta.ja}</strong><span class="pestle-count">${articles.length.toLocaleString()}件</span></div><div class="article-list">${articles.slice(0, 50).map((a, i) => { const title = (yearFilter === 'latest') ? localizedTitle(a, cat, i) : (a.title_ja || a.title_translated || a.title); const summary = (yearFilter === 'latest') ? localizedSummary(a, cat, i) : (a.summary_ja || a.summary_translated || a.summary || ''); const snippet = (summary || '').substring(0, 120); const relScore = a.relevance_score || 0; const relPct = Math.min(relScore / 10 * 100, 100); return `<div class="article-item" ${yearFilter === 'latest' ? `onclick="showArticle('${cat}', ${i})"` : (a.url ? `onclick="window.open('${esc(a.url)}','_blank')" style="cursor:pointer"` : '')}><div class="article-title">${esc(title)}</div>${snippet ? `<div class="article-snippet">${esc(snippet)}${summary.length > 120 ? '...' : ''}</div>` : ''}<div class="article-meta"><span class="article-source">${esc(a.source)}</span>${(a.published_date || a.published) ? `<span>${esc(formatPubDate(a.published_date || a.published))}</span>` : ''}${relScore ? `<span class="article-relevance"><span class="article-relevance-bar"><span class="article-relevance-fill" style="width:${relPct}%;background:${meta.color}"></span></span>${relScore}</span>` : ''}</div><div style="display:flex;gap:6px;margin-top:4px"><button class="bookmark-btn-inline ${isBookmarked('news',cat,i) ? 'active' : ''}" onclick="event.stopPropagation();toggleBookmark('news','${cat}',${i},'${esc(title).replace(/'/g,"\\'")}','${esc(a.url||'').replace(/'/g,"\\'")}',this)">${isBookmarked('news',cat,i) ? '保存済' : '保存'}</button><button class="share-btn-inline" onclick="event.stopPropagation();shareItem('${esc(title).replace(/'/g,"\\'")}','${esc(a.url||'').replace(/'/g,"\\'")}')">シェア</button></div></div>`; }).join('')}${articles.length > 50 ? `<div style="padding:10px;text-align:center;color:var(--text-muted);font-size:0.8rem">他 ${(articles.length - 50).toLocaleString()}件</div>` : ''}</div></div>`;
   }
   const countEl = document.getElementById('pestleTotalCount');
   if (countEl) countEl.textContent = `計 ${totalCount.toLocaleString()}件`;
@@ -1821,7 +1870,7 @@ function renderPapersTopbar() {
   if (!el) return;
   const total = PAPERS_STATS?.total || PAPERS_DATA.length;
   const dailyCount = DAILY_PAPERS?.summary?.total_papers || 0;
-  el.innerHTML = `<span class="papers-topbar-total">${total.toLocaleString()}</span><span class="papers-topbar-label">${LANG === 'ja' ? '論文' : 'papers'}</span>${dailyCount ? `<span style="font-size:0.72rem;color:var(--accent-warm);margin-left:8px;font-weight:600">${LANG === 'ja' ? '本日+' + dailyCount : 'Today +' + dailyCount}</span>` : ''}`;
+  el.innerHTML = `<span class="papers-topbar-total">${total.toLocaleString()}</span><span class="papers-topbar-label">${LANG === 'ja' ? '論文' : 'papers'}</span>${dailyCount ? `<span style="font-size:0.72rem;color:var(--accent-warm);margin-left:8px;font-weight:600">${LANG === 'ja' ? '本日+' + dailyCount : 'Today +' + dailyCount}</span>` : ''}<span style="font-size:0.68rem;color:var(--text-muted);margin-left:12px;padding:2px 8px;background:#e8f0ff;border-radius:4px">Source: Semantic Scholar API</span>`;
   // Update archive title
   const archiveTitle = document.getElementById('papersArchiveTitle');
   if (archiveTitle) archiveTitle.textContent = LANG === 'ja' ? '論文アーカイブ' : 'Paper Archive';
@@ -1867,7 +1916,7 @@ function renderPapers() {
   for (const [field, papers] of sortedFields) {
     if (_papersSort === 'date') papers.sort((a, b) => (b.published_date || '').localeCompare(a.published_date || '')); else papers.sort((a, b) => localizedPaperTitle(a, a._idx).localeCompare(localizedPaperTitle(b, b._idx)));
     const limit = _papersShowCount[field] || 30; const shown = papers.slice(0, limit); const hasMore = papers.length > limit; const color = FIELD_COLORS[field] || 'var(--accent)';
-    html += `<div class="paper-section"><div class="paper-header"><span class="paper-field-badge" style="background:${color}">${esc(field)}</span><span class="pestle-count" style="margin-left:auto;font-size:0.78rem;color:var(--text-muted)">${papers.length.toLocaleString()}件</span></div><div class="article-list">${shown.map(p => { const title = localizedPaperTitle(p, p._idx); const lang = p.language || 'en'; const summary = localizedPaperSummary(p, p._idx); const summaryShort = summary ? summary.substring(0, 120) : ''; return `<div class="paper-item" onclick="showPaper(${p._idx})"><div class="paper-item-top"><div class="paper-title">${esc(title)}</div><span class="paper-lang-badge${lang === 'ja' ? ' ja' : ''}">${lang.toUpperCase()}</span></div>${summaryShort ? `<div class="paper-summary-preview">${esc(summaryShort)}${summary.length > 120 ? '...' : ''}</div>` : ''}<div class="paper-meta"><span class="paper-authors">${esc((p.authors || '').substring(0, 80))}${(p.authors || '').length > 80 ? '...' : ''}</span>${p.published_date ? `<span class="paper-date">${esc(p.published_date)}</span>` : ''}${p.subfield ? `<span class="paper-subfield-tag">${esc(localizedSubfield(p.subfield))}</span>` : ''}</div></div>`; }).join('')}${hasMore ? `<div class="paper-load-more" onclick="loadMorePapers('${esc(field)}')">${t('papers_load_more')} (${(papers.length - limit).toLocaleString()}件)</div>` : ''}</div></div>`;
+    html += `<div class="paper-section"><div class="paper-header"><span class="paper-field-badge" style="background:${color}">${esc(field)}</span><span class="pestle-count" style="margin-left:auto;font-size:0.78rem;color:var(--text-muted)">${papers.length.toLocaleString()}件</span></div><div class="article-list">${shown.map(p => { const title = localizedPaperTitle(p, p._idx); const lang = p.language || 'en'; const summary = localizedPaperSummary(p, p._idx); const summaryShort = summary ? summary.substring(0, 120) : ''; return `<div class="paper-item" onclick="showPaper(${p._idx})"><div class="paper-item-top"><div class="paper-title">${esc(title)}</div><span class="paper-lang-badge${lang === 'ja' ? ' ja' : ''}">${lang.toUpperCase()}</span></div>${summaryShort ? `<div class="paper-summary-preview">${esc(summaryShort)}${summary.length > 120 ? '...' : ''}</div>` : ''}<div class="paper-meta"><span class="paper-authors">${esc((p.authors || '').substring(0, 80))}${(p.authors || '').length > 80 ? '...' : ''}</span>${p.published_date ? `<span class="paper-date">${esc(p.published_date)}</span>` : ''}${p.subfield ? `<span class="paper-subfield-tag">${esc(localizedSubfield(p.subfield))}</span>` : ''}<span style="font-size:0.62rem;padding:1px 5px;border-radius:3px;background:#e8f0ff;color:#2c68a0">${esc(p.source_db || p.source_type || 'Semantic Scholar')}</span></div></div>`; }).join('')}${hasMore ? `<div class="paper-load-more" onclick="loadMorePapers('${esc(field)}')">${t('papers_load_more')} (${(papers.length - limit).toLocaleString()}件)</div>` : ''}</div></div>`;
   }
   if (!html) html = `<div class="papers-empty"><div class="papers-empty-icon">&#128269;</div><div class="papers-empty-text">${t('papers_no_results')}</div><div class="papers-empty-sub">${t('papers_no_results_sub')}</div></div>`;
   document.getElementById('papersGrid').innerHTML = html;
@@ -1922,6 +1971,58 @@ function renderGlobalSearch() {
 }
 
 let claCatFilter = 'Overall'; let claViewMode = 'timeline';
+
+function renderMythTransition(qcla, quarters) {
+  // Build myth/metaphor transition analysis from 1990 to present across all categories
+  const catOptions = [{ key: 'Overall', label: '全体', color: 'var(--accent)' }, ...Object.entries(PESTLE_META).map(([k, m]) => ({ key: k, label: m.ja, color: m.color }))];
+  let html = `<div style="background:linear-gradient(135deg, #2c3e50 0%, #34495e 100%);border-radius:12px;padding:24px;margin-bottom:24px;color:#fff">`;
+  html += `<h3 style="font-size:1.05rem;font-weight:700;margin-bottom:4px;color:#f0e9e1">神話/メタファーの変遷（1990年〜現在）</h3>`;
+  html += `<p style="font-size:0.78rem;color:#bdc3c7;margin-bottom:16px">CLA Layer 4（最深層）の通時的分析 — 社会の根底にある物語がどのように変化してきたか</p>`;
+
+  // Collect myth data per category across all quarters
+  for (const opt of catOptions) {
+    const myths = [];
+    for (const q of quarters) {
+      const data = qcla[q];
+      if (data && data[opt.key] && data[opt.key].myth_metaphor) {
+        myths.push({ period: q, text: data[opt.key].myth_metaphor });
+      }
+    }
+    if (myths.length === 0) continue;
+
+    html += `<div style="margin-bottom:14px">`;
+    html += `<div style="font-size:0.82rem;font-weight:600;color:${opt.color === 'var(--accent)' ? '#e8c5b0' : opt.color};margin-bottom:6px;display:flex;align-items:center;gap:6px">`;
+    html += `<span style="width:10px;height:10px;border-radius:50%;background:${opt.color};display:inline-block;flex-shrink:0"></span>${opt.label}</div>`;
+    html += `<div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:6px">`;
+    for (const m of myths) {
+      const label = m.period.includes('-') ? m.period.replace('-0', '年').replace('-1', '年1').replace('-', '年') + '月' : m.period;
+      const isCurrent = m.period === quarters[quarters.length - 1];
+      html += `<div style="min-width:200px;max-width:280px;flex-shrink:0;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,${isCurrent ? '0.4' : '0.12'});border-radius:8px;padding:10px 12px;${isCurrent ? 'box-shadow:0 0 0 1px rgba(255,255,255,0.3)' : ''}">`;
+      html += `<div style="font-size:0.68rem;color:${isCurrent ? '#f0e9e1' : '#95a5a6'};font-weight:600;margin-bottom:4px">${label}${isCurrent ? '（現在）' : ''}</div>`;
+      html += `<div style="font-size:0.76rem;line-height:1.5;color:#ecf0f1">${esc(m.text)}</div>`;
+      html += `</div>`;
+    }
+    html += `</div></div>`;
+  }
+
+  // Add transition arrows / summary
+  const overallMyths = quarters.map(q => qcla[q]?.Overall?.myth_metaphor).filter(Boolean);
+  if (overallMyths.length >= 2) {
+    html += `<div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.15)">`;
+    html += `<div style="font-size:0.78rem;font-weight:600;color:#f0e9e1;margin-bottom:6px">変遷の流れ</div>`;
+    html += `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">`;
+    overallMyths.forEach((myth, i) => {
+      const short = myth.length > 60 ? myth.substring(0, 60) + '...' : myth;
+      html += `<span style="font-size:0.72rem;padding:4px 10px;border-radius:6px;background:rgba(255,255,255,0.1);color:#ecf0f1">${esc(short)}</span>`;
+      if (i < overallMyths.length - 1) html += `<span style="color:#7f8c8d;font-size:0.9rem">&#8594;</span>`;
+    });
+    html += `</div></div>`;
+  }
+
+  html += `</div>`;
+  return html;
+}
+
 function renderCLA() {
   if (!AI_DATA || !AI_DATA.cla) { document.getElementById('claGrid').innerHTML = `<div style="color:var(--text-muted);padding:20px;">${t('no_ai')}</div>`; return; }
   const qcla = AI_DATA.quarterly_cla || {};
@@ -1929,6 +2030,10 @@ function renderCLA() {
   if (quarters.length === 0) quarters.push(AI_DATA.date?.slice(0,7) || '2026-03');
   const catOptions = [{ key: 'Overall', label: '全体', icon: '\ud83c\udf10', color: 'var(--accent)' }, ...Object.entries(PESTLE_META).map(([k, m]) => ({ key: k, label: m.ja, icon: m.icon, color: m.color }))];
   let html = '';
+  // Myth transition overview at the top
+  if (quarters.length >= 1) {
+    html += renderMythTransition(qcla, quarters);
+  }
   html += `<div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;align-items:center"><span style="font-size:0.82rem;color:var(--text-muted);font-weight:600">分野:</span>`;
   catOptions.forEach(opt => { const isActive = claCatFilter === opt.key; html += `<button onclick="claCatFilter='${opt.key}';renderCLA()" style="padding:5px 12px;border:1px solid ${isActive ? opt.color : 'var(--border)'};border-radius:6px;background:${isActive ? opt.color : 'var(--card)'};color:${isActive ? '#fff' : 'var(--text)'};cursor:pointer;font-size:0.8rem">${opt.icon} ${opt.label}</button>`; });
   html += `</div>`;
@@ -1949,11 +2054,99 @@ function renderCLA() {
 }
 
 let signalsShowAll = false;
+let _signalsYearOptionsBuilt = false;
+
+function buildSignalsYearOptions() {
+  if (_signalsYearOptionsBuilt || !AI_DATA || !AI_DATA.weak_signals) return;
+  const sel = document.getElementById('signalsYearFilter');
+  if (!sel) return;
+  // Collect unique years from signals
+  const years = new Set();
+  AI_DATA.weak_signals.forEach(s => {
+    const d = s.detected_date || s.source_date || '';
+    const yr = d.substring(0, 4);
+    if (/^\d{4}$/.test(yr)) years.add(yr);
+  });
+  const sorted = [...years].sort().reverse();
+  sel.innerHTML = '';
+  if (sorted.length > 0) {
+    sel.innerHTML += `<option value="latest">${sorted[0]}年（最新）</option>`;
+    sorted.forEach(y => {
+      if (y !== sorted[0]) sel.innerHTML += `<option value="${y}">${y}年</option>`;
+    });
+    sel.innerHTML += `<option value="all">全期間</option>`;
+  } else {
+    sel.innerHTML = `<option value="all">全期間</option>`;
+  }
+  _signalsYearOptionsBuilt = true;
+}
+
 function renderSignals() {
   if (!AI_DATA || !AI_DATA.weak_signals || AI_DATA.weak_signals.length === 0) { document.getElementById('signalsGrid').innerHTML = `<div style="color:var(--text-muted);padding:20px;">${t('no_signals')}</div>`; return; }
-  const allSignals = AI_DATA.weak_signals; const displaySignals = signalsShowAll ? allSignals : allSignals.slice(0, 100);
-  let html = displaySignals.map((s, si) => `<div class="signal-card"><div class="signal-header"><div class="signal-name">${esc(s.signal)}</div><span class="signal-impact ${(s.potential_impact || '').toLowerCase()}">${esc(s.potential_impact || '?')}</span></div><div class="signal-desc">${esc(s.description)}</div><div class="signal-meta">${s.detected_date ? `<span style="font-size:0.7rem;color:var(--text-muted)">${esc(s.detected_date)}</span>` : ''}${s.source_date ? `<span style="font-size:0.7rem;color:var(--text-muted)">${esc(s.source_date)}</span>` : ''}<span class="signal-horizon">${esc(s.time_horizon || '?')}</span>${(s.pestle_categories || []).map(c => { const m = PESTLE_META[c]; return m ? `<span style="font-size:0.65rem;padding:2px 6px;border-radius:3px;background:${m.color};color:white">${m.ja}</span>` : `<span class="lang-badge">${esc(c)}</span>`; }).join('')}</div>${s.counter_trend ? `<div class="signal-counter">${esc(s.counter_trend)}</div>` : ''}${s.related_headlines && s.related_headlines.length > 0 ? `<details style="margin-top:8px;font-size:0.75rem;color:var(--text-muted)"><summary style="cursor:pointer">関連記事 (${s.related_headlines.length})</summary><ul style="margin-top:4px;padding-left:16px">${s.related_headlines.map(h => `<li>${esc(h)}</li>`).join('')}</ul></details>` : ''}<div style="display:flex;gap:6px;margin-top:8px"><button class="bookmark-btn-inline ${isBookmarked('signal','signal',si) ? 'active' : ''}" onclick="event.stopPropagation();toggleBookmark('signal','signal',${si},'${esc(s.signal).replace(/'/g,"\\'")}','',this)">${isBookmarked('signal','signal',si) ? '保存済' : '保存'}</button><button class="share-btn-inline" onclick="event.stopPropagation();shareItem('${esc(s.signal).replace(/'/g,"\\'")}','')">シェア</button></div></div>`).join('');
-  if (!signalsShowAll && allSignals.length > 100) html += `<div style="text-align:center;padding:20px"><button onclick="signalsShowAll=true;renderSignals()" style="padding:10px 24px;border:1px solid var(--border);border-radius:8px;background:var(--card);cursor:pointer;font-size:0.88rem;color:var(--accent)">さらに表示（残り${allSignals.length - 100}件）</button></div>`;
+  buildSignalsYearOptions();
+
+  const yearFilter = document.getElementById('signalsYearFilter')?.value || 'latest';
+  const monthFilter = document.getElementById('signalsMonthFilter')?.value || 'all';
+  const monthSel = document.getElementById('signalsMonthFilter');
+
+  // Determine target year
+  const allSignals = AI_DATA.weak_signals;
+  const years = new Set();
+  allSignals.forEach(s => { const yr = (s.detected_date || s.source_date || '').substring(0, 4); if (/^\d{4}$/.test(yr)) years.add(yr); });
+  const sortedYears = [...years].sort().reverse();
+  const latestYear = sortedYears[0] || '2026';
+  const targetYear = yearFilter === 'latest' ? latestYear : yearFilter === 'all' ? null : yearFilter;
+
+  // Show month filter only for 2026
+  if (monthSel) {
+    if (targetYear === '2026') {
+      monthSel.style.display = '';
+      // Build month options
+      const months = new Set();
+      allSignals.forEach(s => {
+        const d = s.detected_date || s.source_date || '';
+        if (d.startsWith('2026')) { const m = d.substring(5, 7); if (/^\d{2}$/.test(m)) months.add(m); }
+      });
+      const sortedMonths = [...months].sort();
+      monthSel.innerHTML = '<option value="all">全月</option>';
+      sortedMonths.forEach(m => { monthSel.innerHTML += `<option value="${m}" ${monthFilter === m ? 'selected' : ''}>${parseInt(m)}月</option>`; });
+    } else {
+      monthSel.style.display = 'none';
+    }
+  }
+
+  // Filter signals
+  let filtered = allSignals.filter(s => {
+    const d = s.detected_date || s.source_date || '';
+    if (targetYear && !d.startsWith(targetYear)) return false;
+    if (targetYear === '2026' && monthFilter !== 'all') {
+      const m = d.substring(5, 7);
+      if (m !== monthFilter) return false;
+    }
+    return true;
+  });
+
+  // If no date-filtered results, show all for that year
+  if (filtered.length === 0 && targetYear) {
+    filtered = allSignals;
+  }
+
+  const countEl = document.getElementById('signalsTotalCount');
+  if (countEl) countEl.textContent = `${filtered.length}件 / 全${allSignals.length}件`;
+
+  const displaySignals = signalsShowAll ? filtered : filtered.slice(0, 100);
+
+  // Theory-based categorization header
+  let html = `<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:16px">`;
+  html += `<div style="font-size:0.82rem;font-weight:600;color:var(--accent);margin-bottom:6px">抽出基準（Ansoff's Weak Signal Theory）</div>`;
+  html += `<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:0.75rem;color:var(--text-muted)">`;
+  html += `<span style="padding:3px 10px;border-radius:6px;background:#fde8e8;color:#b92a38;font-weight:500">高インパクト: 社会構造への影響大</span>`;
+  html += `<span style="padding:3px 10px;border-radius:6px;background:#fff3e0;color:#cd8a32;font-weight:500">中インパクト: 特定分野に影響</span>`;
+  html += `<span style="padding:3px 10px;border-radius:6px;background:#f0f0f0;color:#888;font-weight:500">萌芽段階: 注視推奨</span>`;
+  html += `</div></div>`;
+
+  html += displaySignals.map((s, si) => `<div class="signal-card"><div class="signal-header"><div class="signal-name">${esc(s.signal)}</div><span class="signal-impact ${(s.potential_impact || '').toLowerCase()}">${esc(s.potential_impact || '?')}</span></div><div class="signal-desc">${esc(s.description)}</div><div class="signal-meta">${s.detected_date ? `<span style="font-size:0.7rem;color:var(--text-muted)">${esc(s.detected_date)}</span>` : ''}${s.source_date ? `<span style="font-size:0.7rem;color:var(--text-muted)">${esc(s.source_date)}</span>` : ''}<span class="signal-horizon">${esc(s.time_horizon || '?')}</span>${(s.pestle_categories || []).map(c => { const m = PESTLE_META[c]; return m ? `<span style="font-size:0.65rem;padding:2px 6px;border-radius:3px;background:${m.color};color:white">${m.ja}</span>` : `<span class="lang-badge">${esc(c)}</span>`; }).join('')}</div>${s.counter_trend ? `<div class="signal-counter">${esc(s.counter_trend)}</div>` : ''}${s.related_headlines && s.related_headlines.length > 0 ? `<details style="margin-top:8px;font-size:0.75rem;color:var(--text-muted)"><summary style="cursor:pointer">関連記事 (${s.related_headlines.length})</summary><ul style="margin-top:4px;padding-left:16px">${s.related_headlines.map(h => `<li>${esc(h)}</li>`).join('')}</ul></details>` : ''}<div style="display:flex;gap:6px;margin-top:8px"><button class="bookmark-btn-inline ${isBookmarked('signal','signal',si) ? 'active' : ''}" onclick="event.stopPropagation();toggleBookmark('signal','signal',${si},'${esc(s.signal).replace(/'/g,"\\'")}','',this)">${isBookmarked('signal','signal',si) ? '保存済' : '保存'}</button><button class="share-btn-inline" onclick="event.stopPropagation();shareItem('${esc(s.signal).replace(/'/g,"\\'")}','')">シェア</button></div></div>`).join('');
+  if (!signalsShowAll && filtered.length > 100) html += `<div style="text-align:center;padding:20px"><button onclick="signalsShowAll=true;renderSignals()" style="padding:10px 24px;border:1px solid var(--border);border-radius:8px;background:var(--card);cursor:pointer;font-size:0.88rem;color:var(--accent)">さらに表示（残り${filtered.length - 100}件）</button></div>`;
   document.getElementById('signalsGrid').innerHTML = html;
 }
 
@@ -2685,7 +2878,7 @@ async function loadHeavyData(v) {
 }
 
 // initApp is called by the auth guard after successful authentication
-function initApp() { loadData(); loadBookmarks(); loadSavedPapers(); loadSharedApiKey(); loadResearchContexts(); loadNotionToken(); }
+function initApp() { loadData(); loadBookmarks(); loadSavedPapers(); loadSharedApiKey(); loadResearchContexts(); loadNotionToken(); loadInsightHistory(); }
 
 // === BOOKMARKS ===
 let userBookmarks = [];
@@ -2792,6 +2985,33 @@ function showToast(msg) {
 
 // === INSIGHT GENERATION ===
 let insightHistory = [];
+let _insightHistoryLoaded = false;
+
+async function loadInsightHistory() {
+  if (!currentUser || _insightHistoryLoaded) return;
+  try {
+    const snap = await db.collection('users').doc(currentUser.uid).collection('insights')
+      .orderBy('createdAt', 'desc').limit(100).get();
+    const dbHistory = snap.docs.map(d => {
+      const data = d.data();
+      return {
+        id: d.id,
+        question: data.question || '',
+        answer: data.answer || '',
+        date: data.createdAt?.toDate?.()?.toISOString() || data.date || new Date().toISOString()
+      };
+    });
+    // Merge with any in-memory history (avoid duplicates)
+    const existingIds = new Set(insightHistory.map(h => h.id).filter(Boolean));
+    for (const h of dbHistory) {
+      if (!existingIds.has(h.id)) insightHistory.push(h);
+    }
+    // Sort by date descending
+    insightHistory.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    _insightHistoryLoaded = true;
+    renderInsightHistory();
+  } catch (e) { console.warn('Failed to load insight history:', e); }
+}
 
 function promptInsightApiKey() {
   const current = localStorage.getItem('ANTHROPIC_API_KEY') || '';
@@ -3125,16 +3345,22 @@ async function generateInsight() {
     </div>`;
     document.getElementById('insightResult').innerHTML = resultHtml;
 
-    // Save to history
-    insightHistory.unshift({ question, answer, date: new Date().toISOString() });
-    renderInsightHistory();
-
-    // Save to Firestore
+    // Save to Firestore and history
+    const insightDate = new Date().toISOString();
     if (currentUser) {
-      db.collection('users').doc(currentUser.uid).collection('insights').add({
-        question, answer, createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      }).catch(e => console.warn('Failed to save insight:', e));
+      try {
+        const docRef = await db.collection('users').doc(currentUser.uid).collection('insights').add({
+          question, answer, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        insightHistory.unshift({ id: docRef.id, question, answer, date: insightDate });
+      } catch (e) {
+        console.warn('Failed to save insight:', e);
+        insightHistory.unshift({ question, answer, date: insightDate });
+      }
+    } else {
+      insightHistory.unshift({ question, answer, date: insightDate });
     }
+    renderInsightHistory();
 
     status.textContent = '';
   } catch (e) {
@@ -3264,19 +3490,51 @@ function downloadInsightPDF() {
 
 function renderInsightHistory() {
   const el = document.getElementById('insightHistory');
-  if (!el || insightHistory.length <= 1) { if (el) el.innerHTML = ''; return; }
-  let html = '<h4 style="font-size:0.9rem;color:var(--text-muted);margin:24px 0 12px">過去の分析</h4>';
-  insightHistory.slice(1).forEach((item, i) => {
-    const date = new Date(item.date).toLocaleDateString('ja-JP');
-    html += `<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:10px;cursor:pointer" onclick="this.querySelector('.insight-hist-body').style.display=this.querySelector('.insight-hist-body').style.display==='none'?'block':'none'">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div style="font-size:0.85rem;font-weight:500">${esc(item.question.substring(0, 80))}${item.question.length > 80 ? '...' : ''}</div>
-        <span style="font-size:0.72rem;color:var(--text-muted)">${date}</span>
+  if (!el) return;
+  // Show all history except the first item (which is currently displayed in insightResult)
+  const historyToShow = insightHistory.length > 1 ? insightHistory.slice(1) : (_insightHistoryLoaded ? insightHistory : []);
+  if (historyToShow.length === 0) {
+    el.innerHTML = _insightHistoryLoaded ? '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:0.85rem">過去の分析履歴はありません。</div>' : '';
+    return;
+  }
+  let html = `<div style="display:flex;justify-content:space-between;align-items:center;margin:24px 0 12px">
+    <h4 style="font-size:0.9rem;color:var(--text-muted)">過去の分析（${historyToShow.length}件）</h4>
+  </div>`;
+  historyToShow.forEach((item, i) => {
+    const date = new Date(item.date).toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    html += `<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+        <div style="font-size:0.85rem;font-weight:500;flex:1">${esc(item.question.substring(0, 100))}${item.question.length > 100 ? '...' : ''}</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0">
+          <span style="font-size:0.72rem;color:var(--text-muted)">${date}</span>
+          <span style="font-size:0.7rem;color:var(--accent);cursor:pointer">&#9660;</span>
+        </div>
       </div>
-      <div class="insight-hist-body" style="display:none;margin-top:12px;font-size:0.85rem;line-height:1.8;white-space:pre-wrap;color:var(--text-muted)">${formatInsightAnswer(item.answer)}</div>
+      <div style="display:none;margin-top:12px;border-top:1px solid var(--border);padding-top:12px">
+        <div class="insight-question-box" style="margin-bottom:12px">
+          <div class="label">問題意識</div>
+          <div class="text" style="font-size:0.82rem">${esc(item.question)}</div>
+        </div>
+        <div class="insight-answer" style="font-size:0.85rem;line-height:1.8">${formatInsightAnswer(item.answer)}</div>
+        <div style="display:flex;gap:8px;margin-top:12px;padding-top:8px;border-top:1px solid var(--border)">
+          <button class="share-btn-inline" onclick="event.stopPropagation();navigator.clipboard.writeText('問題意識: '+${JSON.stringify(item.question)}+'\\n\\n'+${JSON.stringify(item.answer)}).then(()=>showToast('コピーしました'))">コピー</button>
+          ${item.id ? `<button class="share-btn-inline" onclick="event.stopPropagation();deleteInsightHistory('${item.id}')" style="color:#b92a38">削除</button>` : ''}
+        </div>
+      </div>
     </div>`;
   });
   el.innerHTML = html;
+}
+
+async function deleteInsightHistory(docId) {
+  if (!currentUser || !docId) return;
+  if (!confirm('この分析履歴を削除しますか？')) return;
+  try {
+    await db.collection('users').doc(currentUser.uid).collection('insights').doc(docId).delete();
+    insightHistory = insightHistory.filter(h => h.id !== docId);
+    renderInsightHistory();
+    showToast('履歴を削除しました');
+  } catch (e) { showToast('削除に失敗しました'); }
 }
 </script>
 <div class="toast-notification" id="toast"></div>
