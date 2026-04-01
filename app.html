@@ -1155,7 +1155,7 @@
     <button class="tab-btn" onclick="switchTab('scenarios')" data-i18n="tab_scenarios">シナリオ</button>
     <button class="tab-btn" onclick="switchTab('signals')" data-i18n="tab_signals">ウィークシグナル</button>
     <button class="tab-btn" onclick="switchTab('insight')" style="color:var(--accent);font-weight:700;border-bottom-width:3px">未来洞察アドバイス</button>
-    <button class="tab-btn" onclick="switchTab('foresight')" style="color:var(--T);font-weight:600">未来洞察構築</button>
+    <button class="tab-btn" onclick="switchTab('foresight')" style="color:var(--accent);font-weight:600">未来洞察構築</button>
     <button class="tab-btn" onclick="switchTab('bookmarks')" style="margin-left:auto">ブックマーク</button>
     <button class="tab-btn" onclick="switchTab('search')" data-i18n="tab_search">検索</button>
   </div>
@@ -1398,14 +1398,14 @@
   <!-- ===== FORESIGHT BUILDER ===== -->
   <div class="tab-panel" id="tab-foresight">
     <div style="margin-bottom:20px">
-      <h3 style="font-size:1.1rem;color:var(--T);margin-bottom:6px;font-weight:700">未来洞察構築</h3>
+      <h3 style="font-size:1.1rem;color:var(--accent);margin-bottom:6px;font-weight:700">未来洞察構築</h3>
       <p style="font-size:0.82rem;color:var(--text-muted);line-height:1.6">ブックマークに保存したニュースや学術論文を元に、新たなウィークシグナル・シナリオ・CLA分析を構築します。あなた自身の視点で未来洞察を組み立てるための機能です。</p>
     </div>
 
     <!-- Bookmarked items as source -->
     <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <label style="font-size:0.9rem;font-weight:700;color:var(--T)">ソースデータ（ブックマーク）</label>
+        <label style="font-size:0.9rem;font-weight:700;color:var(--accent)">ソースデータ（ブックマーク）</label>
         <span id="foresightSourceCount" style="font-size:0.75rem;color:var(--text-muted)"></span>
       </div>
       <div id="foresightSourceList" style="max-height:300px;overflow-y:auto;margin-bottom:10px"></div>
@@ -1414,16 +1414,16 @@
 
     <!-- Build options -->
     <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px">
-      <label style="font-size:0.9rem;font-weight:700;color:var(--T);display:block;margin-bottom:12px">構築する分析を選択</label>
+      <label style="font-size:0.9rem;font-weight:700;color:var(--accent);display:block;margin-bottom:12px">構築する分析を選択</label>
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">
         <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;cursor:pointer;padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:var(--bg)">
-          <input type="checkbox" id="fsBuildSignals" checked style="accent-color:var(--T)"> ウィークシグナル抽出
+          <input type="checkbox" id="fsBuildSignals" checked style="accent-color:var(--accent)"> ウィークシグナル抽出
         </label>
         <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;cursor:pointer;padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:var(--bg)">
-          <input type="checkbox" id="fsBuildCLA" checked style="accent-color:var(--T)"> CLA分析
+          <input type="checkbox" id="fsBuildCLA" checked style="accent-color:var(--accent)"> CLA分析
         </label>
         <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;cursor:pointer;padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:var(--bg)">
-          <input type="checkbox" id="fsBuildScenario" checked style="accent-color:var(--T)"> シナリオ構築
+          <input type="checkbox" id="fsBuildScenario" checked style="accent-color:var(--accent)"> シナリオ構築
         </label>
       </div>
       <div style="margin-bottom:12px">
@@ -1431,7 +1431,7 @@
         <input type="text" id="fsFocusTopic" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;background:var(--bg);color:var(--text)" placeholder="例: AIガバナンスの未来、気候変動と経済の関係 etc.">
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <button onclick="buildForesight()" class="btn btn-accent" id="fsBuildBtn" style="font-size:0.9rem;padding:10px 24px;background:var(--T);border-color:var(--T)">未来洞察を構築</button>
+        <button onclick="buildForesight()" class="btn btn-accent" id="fsBuildBtn" style="font-size:0.9rem;padding:10px 24px;background:var(--accent);border-color:var(--accent)">未来洞察を構築</button>
         <span id="fsBuildStatus" style="font-size:0.8rem;color:var(--text-muted)"></span>
       </div>
     </div>
@@ -4279,9 +4279,9 @@ ${sections.join('\n\n')}
     const dateStr = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
 
     let html = `<div class="insight-result-card" style="max-width:820px">`;
-    html += `<div class="insight-result-header"><h4 style="color:var(--T)">未来洞察構築 — 分析結果</h4></div>`;
+    html += `<div class="insight-result-header"><h4>未来洞察構築 — 分析結果</h4></div>`;
     if (focusTopic) {
-      html += `<div class="insight-question-box" style="border-left-color:var(--T)"><div class="label">フォーカステーマ</div><div class="text">${esc(focusTopic)}</div></div>`;
+      html += `<div class="insight-question-box" ><div class="label">フォーカステーマ</div><div class="text">${esc(focusTopic)}</div></div>`;
     }
     html += `<div class="insight-answer" id="foresightAnswerText">${formatInsightAnswer(result)}</div>`;
     html += `<div class="insight-meta"><span>生成日時: ${dateStr}</span><span>ソース: ブックマーク ${userBookmarks.length}件</span></div>`;
@@ -4320,7 +4320,7 @@ function shareForesight() {
 function downloadForesightPDF() {
   const answer = document.getElementById('foresightAnswerText')?.innerHTML || '';
   const topic = document.getElementById('fsFocusTopic')?.value || '';
-  const printHTML = `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><title>未来洞察構築</title><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet"><style>@page{size:A4;margin:24mm 20mm}body{font-family:"Noto Sans JP",sans-serif;color:#292929;line-height:1.9;font-size:10.5pt}.header{text-align:center;margin-bottom:32px;padding-bottom:20px;border-bottom:3px solid #2c8acc}h1{font-size:16pt;color:#2c8acc}h3{font-size:12pt;color:#2c8acc;margin:24px 0 10px;border-bottom:1px solid #e0d5cc;padding-bottom:4px}h4{font-size:11pt;color:#4a90b0;margin:18px 0 8px}strong{color:#2c8acc}ul,ol{padding-left:20px}blockquote{border-left:3px solid #7fb3d0;padding:6px 14px;background:#f0f6fa;font-style:italic;color:#666}</style></head><body><div class="header"><h1>未来洞察構築</h1>${topic ? '<p style="color:#666">' + topic + '</p>' : ''}</div><div>${answer}</div><div style="margin-top:32px;padding-top:16px;border-top:1px solid #ddd;font-size:8pt;color:#999;display:flex;justify-content:space-between"><span>${new Date().toLocaleString('ja-JP')}</span><span>Future Insight Workspace</span></div></body></html>`;
+  const printHTML = `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><title>未来洞察構築</title><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet"><style>@page{size:A4;margin:24mm 20mm}body{font-family:"Noto Sans JP",sans-serif;color:#292929;line-height:1.9;font-size:10.5pt}.header{text-align:center;margin-bottom:32px;padding-bottom:20px;border-bottom:3px solid #783c28}h1{font-size:16pt;color:#783c28}h3{font-size:12pt;color:#783c28;margin:24px 0 10px;border-bottom:1px solid #e0d5cc;padding-bottom:4px}h4{font-size:11pt;color:#a0503c;margin:18px 0 8px}strong{color:#783c28}ul,ol{padding-left:20px}blockquote{border-left:3px solid #c87864;padding:6px 14px;background:#faf5f0;font-style:italic;color:#666}</style></head><body><div class="header"><h1>未来洞察構築</h1>${topic ? '<p style="color:#666">' + topic + '</p>' : ''}</div><div>${answer}</div><div style="margin-top:32px;padding-top:16px;border-top:1px solid #ddd;font-size:8pt;color:#999;display:flex;justify-content:space-between"><span>${new Date().toLocaleString('ja-JP')}</span><span>Future Insight Workspace</span></div></body></html>`;
   const w = window.open('', '_blank');
   w.document.write(printHTML); w.document.close();
   setTimeout(() => w.print(), 500);
