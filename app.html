@@ -1139,7 +1139,7 @@
   </div>
   <div class="header-actions">
     <span id="lastUpdated" style="font-size:0.75rem;color:#ffe8d7;opacity:0.85"></span>
-    <span style="font-size:0.75rem;color:#ffe8d7;cursor:pointer;opacity:0.85;text-decoration:underline" onclick="toggleLang()" id="langToggleBtn">EN</span>
+    <span style="font-size:0.75rem;color:#ffe8d7;cursor:pointer;opacity:0.85" onclick="toggleLang()" id="langToggleBtn">日本語 / <span style="text-decoration:underline">EN</span></span>
     <a id="adminLink" href="admin.html" style="display:none;background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);color:white;font-size:0.75rem" class="btn">管理画面</a>
     <button onclick="auth.signOut().then(()=>location.href='index.html')" class="btn" style="background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);color:white;font-size:0.75rem">ログアウト</button>
   </div>
@@ -1154,9 +1154,9 @@
     <button class="tab-btn" onclick="switchTab('cla')" data-i18n="tab_cla">CLA分析</button>
     <button class="tab-btn" onclick="switchTab('scenarios')" data-i18n="tab_scenarios">シナリオ</button>
     <button class="tab-btn" onclick="switchTab('signals')" data-i18n="tab_signals">ウィークシグナル</button>
-    <button class="tab-btn" onclick="switchTab('insight')" style="color:var(--accent);font-weight:700;border-bottom-width:3px">未来洞察アドバイス</button>
-    <button class="tab-btn" onclick="switchTab('foresight')" style="color:var(--accent);font-weight:600">未来洞察構築</button>
-    <button class="tab-btn" onclick="switchTab('bookmarks')" style="margin-left:auto">ブックマーク</button>
+    <button class="tab-btn" onclick="switchTab('insight')" data-i18n="tab_insight" style="color:var(--accent);font-weight:700;border-bottom-width:3px">未来洞察アドバイス</button>
+    <button class="tab-btn" onclick="switchTab('foresight')" data-i18n="tab_foresight" style="color:var(--accent);font-weight:600">未来洞察構築</button>
+    <button class="tab-btn" onclick="switchTab('bookmarks')" data-i18n="tab_bookmarks" style="margin-left:auto">ブックマーク</button>
     <button class="tab-btn" onclick="switchTab('search')" data-i18n="tab_search">検索</button>
   </div>
 
@@ -1498,7 +1498,8 @@ const I18N = {
     app_title: 'Future Insight Workspace',
     app_sub: '未来学を基盤に未来洞察をサポートする総合サイト — Powered by MIRATUKU',
     tab_overview: '概要', tab_pestle: 'PESTLEニュース', tab_papers: '学術論文',
-    tab_cla: 'CLA分析', tab_scenarios: 'シナリオ', tab_signals: 'ウィークシグナル', tab_search: '検索',
+    tab_cla: 'CLA分析', tab_scenarios: 'シナリオ', tab_signals: 'ウィークシグナル',
+    tab_insight: '未来洞察アドバイス', tab_foresight: '未来洞察構築', tab_bookmarks: 'ブックマーク', tab_search: '検索',
     pestle_summary: 'PESTLEサマリー', featured_papers: '注目の学術論文',
     search_news: 'ニュースを検索...', search_papers: '論文を検索...',
     search_all: 'ニュース・論文を横断検索...',
@@ -1565,7 +1566,8 @@ const I18N = {
     app_title: 'Future Insight Workspace',
     app_sub: 'Futures Studies-based Foresight Support Platform — Powered by MIRATUKU',
     tab_overview: 'Overview', tab_pestle: 'PESTLE News', tab_papers: 'Academic Papers',
-    tab_cla: 'CLA Analysis', tab_scenarios: 'Scenarios', tab_signals: 'Weak Signals', tab_search: 'Search',
+    tab_cla: 'CLA Analysis', tab_scenarios: 'Scenarios', tab_signals: 'Weak Signals',
+    tab_insight: 'Foresight Advice', tab_foresight: 'Foresight Builder', tab_bookmarks: 'Bookmarks', tab_search: 'Search',
     pestle_summary: 'PESTLE Summary', featured_papers: 'Featured Papers',
     search_news: 'Search news...', search_papers: 'Search papers...',
     search_all: 'Search across news & papers...',
@@ -1636,7 +1638,7 @@ function t(key) { return I18N[LANG][key] || I18N['ja'][key] || key; }
 
 function toggleLang() {
   LANG = LANG === 'ja' ? 'en' : 'ja';
-  document.getElementById('langToggleBtn').textContent = LANG === 'ja' ? 'EN' : 'JA';
+  document.getElementById('langToggleBtn').innerHTML = LANG === 'ja' ? '日本語 / <span style="text-decoration:underline">EN</span>' : '<span style="text-decoration:underline">JA</span> / English';
   applyI18n(); renderOverview(); renderAlerts(); renderPestle(); renderPapers(); renderCLA(); renderSignals(); renderDailyPapers(); renderPaperAlerts(); renderPapersTopbar();
 }
 
