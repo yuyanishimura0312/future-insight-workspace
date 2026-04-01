@@ -1242,6 +1242,7 @@
           <option value="ja" data-i18n="papers_lang_ja">日本語</option>
         </select>
         <button class="papers-sort-btn" id="papersTransFilter" onclick="toggleTransFilter()" data-i18n="papers_ja_only">日本語訳のみ</button>
+        <button class="papers-sort-btn" id="papersSortRelevance" onclick="setPapersSort('relevance')">関連度順</button>
         <button class="papers-sort-btn active" id="papersSortDate" onclick="setPapersSort('date')" data-i18n="papers_sort_date">新しい順</button>
         <button class="papers-sort-btn" id="papersSortTitle" onclick="setPapersSort('title')" data-i18n="papers_sort_title">タイトル順</button>
         <!-- Saved Papers Export -->
@@ -1880,26 +1881,71 @@ function renderOverview() {
   renderAlerts();
 }
 
-// === Research Pickup: papers cross-referenced with CLA/Scenarios/Signals ===
+// === Global context keywords (shared by Research Pickup & Papers page) ===
+let _contextKeywordsCache = null;
+
+function getContextKeywords() {
+  if (_contextKeywordsCache) return _contextKeywordsCache;
+  const kws = [];
+  if (AI_DATA?.cla) {
+    for (const data of Object.values(AI_DATA.cla)) {
+      if (data.key_tension) kws.push(...data.key_tension.split(/[、,。\s]+/).filter(w => w.length > 2));
+      if (data.emerging_narrative) kws.push(...data.emerging_narrative.split(/[、,。\s]+/).filter(w => w.length > 2));
+    }
+  }
+  if (SCENARIOS_DATA?.driving_forces) {
+    for (const df of SCENARIOS_DATA.driving_forces) {
+      if (df.name) kws.push(df.name);
+      if (df.description) kws.push(...df.description.split(/[、,。\s]+/).filter(w => w.length > 3));
+    }
+  }
+  if (AI_DATA?.weak_signals) {
+    for (const sig of AI_DATA.weak_signals.slice(0, 20)) {
+      if (sig.signal) kws.push(sig.signal);
+    }
+  }
+  _contextKeywordsCache = [...new Set(kws)].filter(k => k.length > 1).map(k => k.toLowerCase());
+  return _contextKeywordsCache;
+}
+
+function scoreByContextKeywords(title, summary, novelty) {
+  const kws = getContextKeywords();
+  if (kws.length === 0) return { score: novelty || 0, matched: [] };
+  const text = ((title || '') + ' ' + (summary || '')).toLowerCase();
+  let kwScore = 0;
+  const matched = [];
+  for (const kw of kws) {
+    if (text.includes(kw)) {
+      kwScore++;
+      if (matched.length < 3) matched.push(kw);
+    }
+  }
+  return { score: kwScore * 2 + (novelty || 0), matched };
+}
+
+// === Research Pickup ===
 let _pickupShowCount = 6;
 let _pickupCandidatesCache = null;
+let _pickupDataVersion = 0; // track data changes
 
 function renderResearchPickup() {
   const el = document.getElementById('researchPickup');
   if (!el) return;
 
-  // Use cache if available (for "load more")
-  if (_pickupCandidatesCache && _pickupShowCount > 6) {
+  // Compute data version to detect changes
+  const currentVersion = (DAILY_PAPERS ? 1 : 0) + PAPERS_DATA.length + (AI_DATA ? 1 : 0);
+
+  // Use cache if data hasn't changed
+  if (_pickupCandidatesCache && _pickupDataVersion === currentVersion) {
     const picks = _pickupCandidatesCache.slice(0, _pickupShowCount);
     const totalAvailable = Math.min(_pickupCandidatesCache.length, 100);
     renderPickupCards(el, picks, totalAvailable);
     return;
   }
 
-  // Use daily papers if available, otherwise fall back to PAPERS_DATA
   const candidates = [];
 
-  // Source 1: Daily curated papers (most relevant)
+  // Source 1: Daily curated papers
   if (DAILY_PAPERS?.fields) {
     const fieldOrder = ['人文学', '社会科学', '自然科学', '工学', '芸術'];
     for (const field of fieldOrder) {
@@ -1909,13 +1955,10 @@ function renderResearchPickup() {
         const p = info.papers[i];
         candidates.push({
           title: LANG === 'ja' ? (p.title_ja || p.title) : p.title,
-          field: field,
-          authors: p.authors || '',
-          date: p.published_date || '',
+          field: field, authors: p.authors || '', date: p.published_date || '',
           novelty: p.novelty_score || 0,
           summary: LANG === 'ja' ? (p.summary_ja || p.summary || '') : (p.summary || ''),
-          onclick: `showDailyPaper('${esc(field)}', ${i})`,
-          source: 'daily'
+          onclick: `showDailyPaper('${esc(field)}', ${i})`, source: 'daily'
         });
       }
     }
@@ -1924,66 +1967,29 @@ function renderResearchPickup() {
   // Source 2: Archive papers (fallback)
   if (candidates.length === 0 && PAPERS_DATA.length > 0) {
     const sorted = [...PAPERS_DATA].map((p, i) => ({ ...p, _idx: i }))
-      .sort((a, b) => (b.published_date || '').localeCompare(a.published_date || ''))
-      .slice(0, 30);
+      .sort((a, b) => (b.published_date || '').localeCompare(a.published_date || '')).slice(0, 50);
     for (const p of sorted) {
       candidates.push({
-        title: localizedPaperTitle(p, p._idx),
-        field: p.field,
-        authors: p.authors || '',
-        date: p.published_date || '',
-        novelty: 0,
+        title: localizedPaperTitle(p, p._idx), field: p.field, authors: p.authors || '',
+        date: p.published_date || '', novelty: 0,
         summary: localizedPaperSummary(p, p._idx) || '',
-        onclick: `showPaper(${p._idx})`,
-        source: 'archive'
+        onclick: `showPaper(${p._idx})`, source: 'archive'
       });
     }
   }
 
   if (candidates.length === 0) { el.innerHTML = ''; return; }
 
-  // Cross-reference scoring with CLA, Scenarios, Weak Signals keywords
-  const contextKeywords = [];
-  // From CLA
-  if (AI_DATA?.cla) {
-    for (const data of Object.values(AI_DATA.cla)) {
-      if (data.key_tension) contextKeywords.push(...data.key_tension.split(/[、,。\s]+/).filter(w => w.length > 2));
-      if (data.emerging_narrative) contextKeywords.push(...data.emerging_narrative.split(/[、,。\s]+/).filter(w => w.length > 2));
-    }
-  }
-  // From Scenarios
-  if (SCENARIOS_DATA?.driving_forces) {
-    for (const df of SCENARIOS_DATA.driving_forces) {
-      if (df.name) contextKeywords.push(df.name);
-      if (df.description) contextKeywords.push(...df.description.split(/[、,。\s]+/).filter(w => w.length > 3));
-    }
-  }
-  // From Weak Signals
-  if (AI_DATA?.weak_signals) {
-    for (const sig of AI_DATA.weak_signals.slice(0, 20)) {
-      if (sig.signal) contextKeywords.push(sig.signal);
-    }
-  }
-
-  // Score each candidate by keyword overlap + novelty
-  const uniqueKw = [...new Set(contextKeywords)].filter(k => k.length > 1);
+  // Score all candidates
   for (const c of candidates) {
-    const text = (c.title + ' ' + c.summary).toLowerCase();
-    let kwScore = 0;
-    const matchedContexts = [];
-    for (const kw of uniqueKw) {
-      if (text.includes(kw.toLowerCase())) {
-        kwScore++;
-        if (matchedContexts.length < 3) matchedContexts.push(kw);
-      }
-    }
-    c.relevanceScore = kwScore * 2 + (c.novelty || 0);
-    c.matchedContexts = matchedContexts;
+    const result = scoreByContextKeywords(c.title, c.summary, c.novelty);
+    c.relevanceScore = result.score;
+    c.matchedContexts = result.matched;
   }
 
-  // Sort by relevance and cache
   candidates.sort((a, b) => b.relevanceScore - a.relevanceScore);
   _pickupCandidatesCache = candidates.slice(0, 100);
+  _pickupDataVersion = currentVersion;
   const picks = _pickupCandidatesCache.slice(0, _pickupShowCount);
   const totalAvailable = Math.min(_pickupCandidatesCache.length, 100);
   renderPickupCards(el, picks, totalAvailable);
@@ -2081,7 +2087,7 @@ async function renderPestle() {
 let _papersSort = 'date'; let _papersShowCount = {};
 function onPapersSearchInput() { const q = document.getElementById('papersSearch').value; const clearBtn = document.getElementById('papersSearchClear'); if (clearBtn) clearBtn.classList.toggle('show', q.length > 0); renderPapers(); }
 function clearPapersSearch() { document.getElementById('papersSearch').value = ''; document.getElementById('papersSearchClear').classList.remove('show'); renderPapers(); }
-function setPapersSort(mode) { _papersSort = mode; document.getElementById('papersSortDate').classList.toggle('active', mode === 'date'); document.getElementById('papersSortTitle').classList.toggle('active', mode === 'title'); renderPapers(); }
+function setPapersSort(mode) { _papersSort = mode; document.getElementById('papersSortDate').classList.toggle('active', mode === 'date'); document.getElementById('papersSortTitle').classList.toggle('active', mode === 'title'); document.getElementById('papersSortRelevance').classList.toggle('active', mode === 'relevance'); renderPapers(); }
 function loadMorePapers(field) { _papersShowCount[field] = (_papersShowCount[field] || 100) + 50; renderPapers(); }
 function filterByField(field) { document.getElementById('papersField').value = field; renderPapers(); }
 let _papersJaOnly = false;
@@ -2137,9 +2143,17 @@ function renderPapers() {
   const fieldOrder = ['人文学', '社会科学', '自然科学', '工学', '芸術'];
   const sortedFields = Object.entries(byField).sort((a, b) => fieldOrder.indexOf(a[0]) - fieldOrder.indexOf(b[0]));
   for (const [field, papers] of sortedFields) {
-    if (_papersSort === 'date') papers.sort((a, b) => (b.published_date || '').localeCompare(a.published_date || '')); else papers.sort((a, b) => localizedPaperTitle(a, a._idx).localeCompare(localizedPaperTitle(b, b._idx)));
+    if (_papersSort === 'relevance') {
+      papers.forEach(p => {
+        if (p._relScore == null) {
+          const r = scoreByContextKeywords(localizedPaperTitle(p, p._idx), localizedPaperSummary(p, p._idx), 0);
+          p._relScore = r.score; p._relMatched = r.matched;
+        }
+      });
+      papers.sort((a, b) => (b._relScore || 0) - (a._relScore || 0));
+    } else if (_papersSort === 'date') papers.sort((a, b) => (b.published_date || '').localeCompare(a.published_date || '')); else papers.sort((a, b) => localizedPaperTitle(a, a._idx).localeCompare(localizedPaperTitle(b, b._idx)));
     const limit = _papersShowCount[field] || 100; const shown = papers.slice(0, limit); const hasMore = papers.length > limit; const color = FIELD_COLORS[field] || 'var(--accent)';
-    html += `<div class="paper-section"><div class="paper-header"><span class="paper-field-badge" style="background:${color}">${esc(field)}</span><span class="pestle-count" style="margin-left:auto;font-size:0.78rem;color:var(--text-muted)">${papers.length.toLocaleString()}件</span></div><div class="article-list">${shown.map(p => { const title = localizedPaperTitle(p, p._idx); const lang = p.language || 'en'; const summary = localizedPaperSummary(p, p._idx); const summaryShort = summary ? summary.substring(0, 120) : ''; return `<div class="paper-item" onclick="showPaper(${p._idx})"><div class="paper-item-top"><div class="paper-title">${esc(title)}</div><span class="paper-lang-badge${lang === 'ja' ? ' ja' : ''}">${lang.toUpperCase()}</span></div>${summaryShort ? `<div class="paper-summary-preview">${esc(summaryShort)}${summary.length > 120 ? '...' : ''}</div>` : ''}<div class="paper-meta"><span class="paper-authors">${esc((p.authors || '').substring(0, 80))}${(p.authors || '').length > 80 ? '...' : ''}</span>${p.published_date ? `<span class="paper-date">${esc(p.published_date)}</span>` : ''}${p.subfield ? `<span class="paper-subfield-tag">${esc(localizedSubfield(p.subfield))}</span>` : ''}<span style="font-size:0.62rem;padding:1px 5px;border-radius:3px;background:#e8f0ff;color:#2c68a0">${esc(p.source_db || p.source_type || 'Semantic Scholar')}</span></div></div>`; }).join('')}${hasMore ? `<div class="paper-load-more" onclick="loadMorePapers('${esc(field)}')">${t('papers_load_more')} (${(papers.length - limit).toLocaleString()}件)</div>` : ''}</div></div>`;
+    html += `<div class="paper-section"><div class="paper-header"><span class="paper-field-badge" style="background:${color}">${esc(field)}</span><span class="pestle-count" style="margin-left:auto;font-size:0.78rem;color:var(--text-muted)">${papers.length.toLocaleString()}件</span></div><div class="article-list">${shown.map(p => { const title = localizedPaperTitle(p, p._idx); const lang = p.language || 'en'; const summary = localizedPaperSummary(p, p._idx); const summaryShort = summary ? summary.substring(0, 120) : ''; return `<div class="paper-item" onclick="showPaper(${p._idx})"><div class="paper-item-top"><div class="paper-title">${esc(title)}</div><span class="paper-lang-badge${lang === 'ja' ? ' ja' : ''}">${lang.toUpperCase()}</span></div>${summaryShort ? `<div class="paper-summary-preview">${esc(summaryShort)}${summary.length > 120 ? '...' : ''}</div>` : ''}<div class="paper-meta"><span class="paper-authors">${esc((p.authors || '').substring(0, 80))}${(p.authors || '').length > 80 ? '...' : ''}</span>${p.published_date ? `<span class="paper-date">${esc(p.published_date)}</span>` : ''}${p.subfield ? `<span class="paper-subfield-tag">${esc(localizedSubfield(p.subfield))}</span>` : ''}<span style="font-size:0.62rem;padding:1px 5px;border-radius:3px;background:#e8f0ff;color:#2c68a0">${esc(p.source_db || p.source_type || 'Semantic Scholar')}</span>${_papersSort === 'relevance' && p._relScore > 0 ? `<span style="font-size:0.6rem;padding:1px 6px;border-radius:3px;background:var(--accent);color:white;margin-left:auto">Score ${p._relScore}</span>` : ''}${_papersSort === 'relevance' && p._relMatched?.length ? p._relMatched.map(m => `<span style="font-size:0.58rem;padding:1px 4px;border-radius:3px;border:1px solid var(--border);color:var(--text-muted)">${esc(m)}</span>`).join('') : ''}</div></div>`; }).join('')}${hasMore ? `<div class="paper-load-more" onclick="loadMorePapers('${esc(field)}')">${t('papers_load_more')} (${(papers.length - limit).toLocaleString()}件)</div>` : ''}</div></div>`;
   }
   if (!html) html = `<div class="papers-empty"><div class="papers-empty-icon">&#128269;</div><div class="papers-empty-text">${t('papers_no_results')}</div><div class="papers-empty-sub">${t('papers_no_results_sub')}</div></div>`;
   document.getElementById('papersGrid').innerHTML = html;
@@ -3213,7 +3227,7 @@ async function loadData() {
     fetch(DATA_BASE_URL + 'data/scenarios.json?v=' + v),
   ]);
   if (newsResp.status === 'fulfilled') { NEWS_DATA = await newsResp.value.json(); document.getElementById('lastUpdated').textContent = `${t('last_updated')}: ${NEWS_DATA.date}`; }
-  if (aiResp.status === 'fulfilled') AI_DATA = await aiResp.value.json();
+  if (aiResp.status === 'fulfilled') { AI_DATA = await aiResp.value.json(); _contextKeywordsCache = null; }
   if (statsResp.status === 'fulfilled') PAPERS_STATS = await statsResp.value.json();
   if (alertsResp.status === 'fulfilled') try { ALERTS_DATA = await alertsResp.value.json(); } catch(e) {}
   if (scResp.status === 'fulfilled') try { SCENARIOS_DATA = await scResp.value.json(); } catch(e) {}
