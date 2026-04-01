@@ -1166,11 +1166,9 @@
     <div id="researchPickup" style="margin-bottom:24px"></div>
 
     <!-- Main content (left) + Alerts (right) -->
+    <h3 style="font-size:0.9rem;color:var(--text-muted);margin-bottom:14px" data-i18n="pestle_summary">PESTLEサマリー</h3>
     <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start">
-      <div>
-        <h3 style="font-size:0.9rem;color:var(--text-muted);margin-bottom:14px" data-i18n="pestle_summary">PESTLEサマリー</h3>
-        <div class="pestle-grid" id="overviewPestle"></div>
-      </div>
+      <div class="pestle-grid" id="overviewPestle"></div>
       <div id="alertsPanel" style="position:sticky;top:20px"></div>
     </div>
   </div>
@@ -1340,29 +1338,32 @@
       <div id="refineStatus" style="font-size:0.78rem;color:var(--text-muted);margin-top:4px"></div>
     </div>
 
-    <!-- Step 2: Reference URL / Notion -->
+    <!-- Step 2: Reference materials (URL or text, multiple) -->
     <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px">
-      <label style="font-size:0.9rem;font-weight:700;color:var(--accent);display:block;margin-bottom:10px">2. 参考情報を追加（任意）</label>
-      <div style="display:flex;gap:8px;margin-bottom:10px">
-        <input type="text" id="refUrlInput" style="flex:1;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;background:var(--bg);color:var(--text)" placeholder="NotionページURLまたは任意のWebページURL">
-        <button onclick="fetchRefUrl()" class="btn btn-accent" style="font-size:0.82rem;padding:8px 16px;white-space:nowrap" id="fetchUrlBtn">読み込み</button>
+      <label style="font-size:0.9rem;font-weight:700;color:var(--accent);display:block;margin-bottom:10px">2. 参考情報（任意・複数可）</label>
+      <div id="refItemsList" style="margin-bottom:10px"></div>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <input type="text" id="refUrlInput" style="flex:1;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;background:var(--bg);color:var(--text)" placeholder="URLを入力（Notion / Webページ）" onkeydown="if(event.key==='Enter'){addRefItem('url')}">
+        <button onclick="addRefItem('url')" class="btn btn-accent" style="font-size:0.82rem;padding:8px 16px;white-space:nowrap" id="fetchUrlBtn">追加</button>
       </div>
-      <div id="fetchUrlStatus" style="font-size:0.78rem;color:var(--text-muted);margin-bottom:8px"></div>
-      <textarea id="refTextInput" style="width:100%;min-height:80px;padding:12px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;line-height:1.6;resize:vertical;background:var(--bg);color:var(--text);font-family:inherit" placeholder="または、参考情報をここに直接貼り付け（Notionからコピーしたテキスト等）"></textarea>
+      <textarea id="refTextInput" style="width:100%;min-height:60px;padding:12px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;line-height:1.6;resize:vertical;background:var(--bg);color:var(--text);font-family:inherit" placeholder="テキストを直接貼り付け（コピーした文章やメモ）"></textarea>
       <div style="display:flex;gap:8px;margin-top:8px">
-        <button onclick="addRefToContext()" class="btn" style="font-size:0.78rem;padding:5px 14px">文脈に追加</button>
-        <span style="font-size:0.75rem;color:var(--text-muted);line-height:2">追加した情報は回答生成時の文脈として使用されます</span>
+        <button onclick="addRefItem('text')" class="btn" style="font-size:0.78rem;padding:5px 14px">テキストを追加</button>
+        <span id="fetchUrlStatus" style="font-size:0.75rem;color:var(--text-muted);line-height:2"></span>
       </div>
     </div>
 
-    <!-- Step 3: Research context -->
+    <!-- Step 3: Context analysis (auto-generated from refs) -->
     <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <label style="font-size:0.9rem;font-weight:700;color:var(--accent)">3. リサーチ文脈</label>
-        <span style="font-size:0.75rem;color:var(--text-muted)" id="contextCount">0件の文脈情報</span>
+        <label style="font-size:0.9rem;font-weight:700;color:var(--accent)">3. 文脈の解析</label>
+        <button onclick="analyzeContext()" class="btn" style="font-size:0.75rem;padding:4px 12px" id="analyzeCtxBtn">解析を実行</button>
+      </div>
+      <div id="contextAnalysis" style="margin-bottom:8px">
+        <div style="font-size:0.82rem;color:var(--text-muted);padding:8px 0">参考情報を追加すると、AIが文脈を解析し「何について問おうとしているのか」を整理します。</div>
       </div>
       <div id="contextList" style="margin-bottom:8px"></div>
-      <p style="font-size:0.75rem;color:var(--text-muted)">参考情報を追加するか、ブックマークした記事の内容が自動的に文脈に含まれます。文脈はFirestoreに保存され、次回以降も利用できます。</p>
+      <span style="font-size:0.75rem;color:var(--text-muted)" id="contextCount"></span>
     </div>
 
     <!-- Step 4: Generate -->
@@ -1776,7 +1777,8 @@ function renderAlerts() {
     else if (a.type === 'CROSSOVER') detail = `<span style="color:#2c68a0;font-weight:600;font-size:0.68rem">${a.n_categories} categories</span>`;
     const catTags = (a.categories || []).map(c => { const label = LANG === 'ja' ? (catJa[c] || c) : c; const color = catColors[c] || 'var(--accent)'; return `<span style="font-size:0.58rem;padding:1px 4px;border-radius:2px;border-left:2px solid ${color};color:var(--text-muted);background:var(--bg)">${label}</span>`; }).join(' ');
     const title = LANG === 'ja' ? (a.alert_title || a.topic) : (a.alert_title_en || a.topic);
-    html += `<div style="padding:10px 16px;border-bottom:1px solid var(--border)">`;
+    const alertIdx = alerts.indexOf(a);
+    html += `<div style="padding:10px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background 0.1s" onclick="showAlertDetail(${alertIdx})" onmouseover="this.style.background='var(--card-hover)'" onmouseout="this.style.background=''">`;
     html += `<div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin-bottom:3px"><span class="alert-type-badge ${typeCls}" style="font-size:0.58rem;padding:1px 6px;border-radius:3px">${typeLabel}</span>${detail}</div>`;
     html += `<div style="font-size:0.78rem;font-weight:600;line-height:1.4;margin-bottom:3px">${esc(title)}</div>`;
     html += `<div style="font-size:0.7rem;color:var(--text-muted);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(desc)}</div>`;
@@ -1792,6 +1794,27 @@ function renderAlerts() {
   }
   html += `</div>`;
   panel.innerHTML = html;
+}
+
+function showAlertDetail(idx) {
+  if (!ALERTS_DATA || !ALERTS_DATA.alerts[idx]) return;
+  const a = ALERTS_DATA.alerts[idx];
+  const catJa = { Political: '政治', Economic: '経済', Social: '社会', Technological: '技術', Legal: '法律', Environmental: '環境' };
+  const typeJa = { EMERGENCE: '初出', SURGE: '急増', CROSSOVER: '横断' };
+  const title = LANG === 'ja' ? (a.alert_title || a.topic) : (a.alert_title_en || a.topic);
+  const desc = LANG === 'ja' ? a.description : (a.description_en || a.description);
+  const cats = (a.categories || []).map(c => LANG === 'ja' ? (catJa[c] || c) : c).join(', ');
+  let body = `<div class="modal-field"><div class="modal-label">タイプ</div><div class="modal-value">${typeJa[a.type] || a.type}</div></div>`;
+  body += `<div class="modal-field"><div class="modal-label">カテゴリ</div><div class="modal-value">${esc(cats)}</div></div>`;
+  body += `<div class="modal-field"><div class="modal-label">説明</div><div class="modal-value" style="line-height:1.8">${esc(desc)}</div></div>`;
+  if (a.type === 'SURGE' && a.ratio) body += `<div class="modal-field"><div class="modal-label">急増率</div><div class="modal-value" style="color:var(--highlight);font-weight:600">${a.ratio}倍</div></div>`;
+  if (a.type === 'EMERGENCE' && a.mentions) body += `<div class="modal-field"><div class="modal-label">出現回数</div><div class="modal-value">${a.mentions}回</div></div>`;
+  if (a.related_articles && a.related_articles.length > 0) {
+    body += `<div class="modal-field"><div class="modal-label">関連記事</div><div class="modal-value"><ul style="padding-left:16px;margin:0">`;
+    a.related_articles.forEach(r => { body += `<li style="margin-bottom:4px;font-size:0.82rem">${esc(r)}</li>`; });
+    body += `</ul></div></div>`;
+  }
+  openModal(title, body);
 }
 
 function getAlertCountByCategory() {
@@ -1858,9 +1881,20 @@ function renderOverview() {
 }
 
 // === Research Pickup: papers cross-referenced with CLA/Scenarios/Signals ===
+let _pickupShowCount = 6;
+let _pickupCandidatesCache = null;
+
 function renderResearchPickup() {
   const el = document.getElementById('researchPickup');
   if (!el) return;
+
+  // Use cache if available (for "load more")
+  if (_pickupCandidatesCache && _pickupShowCount > 6) {
+    const picks = _pickupCandidatesCache.slice(0, _pickupShowCount);
+    const totalAvailable = Math.min(_pickupCandidatesCache.length, 100);
+    renderPickupCards(el, picks, totalAvailable);
+    return;
+  }
 
   // Use daily papers if available, otherwise fall back to PAPERS_DATA
   const candidates = [];
@@ -1947,13 +1981,18 @@ function renderResearchPickup() {
     c.matchedContexts = matchedContexts;
   }
 
-  // Sort by relevance and pick top items
+  // Sort by relevance and cache
   candidates.sort((a, b) => b.relevanceScore - a.relevanceScore);
-  const picks = candidates.slice(0, 6);
+  _pickupCandidatesCache = candidates.slice(0, 100);
+  const picks = _pickupCandidatesCache.slice(0, _pickupShowCount);
+  const totalAvailable = Math.min(_pickupCandidatesCache.length, 100);
+  renderPickupCards(el, picks, totalAvailable);
+}
 
+function renderPickupCards(el, picks, totalAvailable) {
   let html = `<div style="margin-bottom:4px;display:flex;justify-content:space-between;align-items:center">`;
   html += `<h3 style="font-size:0.95rem;color:var(--accent);font-weight:700">Research Pickup</h3>`;
-  html += `<span style="font-size:0.72rem;color:var(--text-muted)">CLA / シナリオ / ウィークシグナルとの関連度で選定</span>`;
+  html += `<span style="font-size:0.72rem;color:var(--text-muted)">${picks.length} / ${totalAvailable}件 — CLA / シナリオ / ウィークシグナルとの関連度で選定</span>`;
   html += `</div>`;
   html += `<div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(min(380px, 100%), 1fr));gap:10px;margin-bottom:0">`;
 
@@ -1978,6 +2017,9 @@ function renderResearchPickup() {
   }
 
   html += `</div>`;
+  if (_pickupShowCount < totalAvailable) {
+    html += `<div style="text-align:center;padding:12px"><button onclick="_pickupShowCount=Math.min(_pickupShowCount+12,100);renderResearchPickup()" style="padding:8px 24px;border:1px solid var(--border);border-radius:8px;background:var(--card);cursor:pointer;font-size:0.82rem;color:var(--accent);font-weight:500">もっと見る（残り${totalAvailable - _pickupShowCount}件）</button></div>`;
+  }
   el.innerHTML = html;
 }
 
@@ -2040,7 +2082,7 @@ let _papersSort = 'date'; let _papersShowCount = {};
 function onPapersSearchInput() { const q = document.getElementById('papersSearch').value; const clearBtn = document.getElementById('papersSearchClear'); if (clearBtn) clearBtn.classList.toggle('show', q.length > 0); renderPapers(); }
 function clearPapersSearch() { document.getElementById('papersSearch').value = ''; document.getElementById('papersSearchClear').classList.remove('show'); renderPapers(); }
 function setPapersSort(mode) { _papersSort = mode; document.getElementById('papersSortDate').classList.toggle('active', mode === 'date'); document.getElementById('papersSortTitle').classList.toggle('active', mode === 'title'); renderPapers(); }
-function loadMorePapers(field) { _papersShowCount[field] = (_papersShowCount[field] || 30) + 30; renderPapers(); }
+function loadMorePapers(field) { _papersShowCount[field] = (_papersShowCount[field] || 100) + 50; renderPapers(); }
 function filterByField(field) { document.getElementById('papersField').value = field; renderPapers(); }
 let _papersJaOnly = false;
 function toggleTransFilter() { _papersJaOnly = !_papersJaOnly; document.getElementById('papersTransFilter').classList.toggle('active', _papersJaOnly); renderPapers(); }
@@ -2096,7 +2138,7 @@ function renderPapers() {
   const sortedFields = Object.entries(byField).sort((a, b) => fieldOrder.indexOf(a[0]) - fieldOrder.indexOf(b[0]));
   for (const [field, papers] of sortedFields) {
     if (_papersSort === 'date') papers.sort((a, b) => (b.published_date || '').localeCompare(a.published_date || '')); else papers.sort((a, b) => localizedPaperTitle(a, a._idx).localeCompare(localizedPaperTitle(b, b._idx)));
-    const limit = _papersShowCount[field] || 30; const shown = papers.slice(0, limit); const hasMore = papers.length > limit; const color = FIELD_COLORS[field] || 'var(--accent)';
+    const limit = _papersShowCount[field] || 100; const shown = papers.slice(0, limit); const hasMore = papers.length > limit; const color = FIELD_COLORS[field] || 'var(--accent)';
     html += `<div class="paper-section"><div class="paper-header"><span class="paper-field-badge" style="background:${color}">${esc(field)}</span><span class="pestle-count" style="margin-left:auto;font-size:0.78rem;color:var(--text-muted)">${papers.length.toLocaleString()}件</span></div><div class="article-list">${shown.map(p => { const title = localizedPaperTitle(p, p._idx); const lang = p.language || 'en'; const summary = localizedPaperSummary(p, p._idx); const summaryShort = summary ? summary.substring(0, 120) : ''; return `<div class="paper-item" onclick="showPaper(${p._idx})"><div class="paper-item-top"><div class="paper-title">${esc(title)}</div><span class="paper-lang-badge${lang === 'ja' ? ' ja' : ''}">${lang.toUpperCase()}</span></div>${summaryShort ? `<div class="paper-summary-preview">${esc(summaryShort)}${summary.length > 120 ? '...' : ''}</div>` : ''}<div class="paper-meta"><span class="paper-authors">${esc((p.authors || '').substring(0, 80))}${(p.authors || '').length > 80 ? '...' : ''}</span>${p.published_date ? `<span class="paper-date">${esc(p.published_date)}</span>` : ''}${p.subfield ? `<span class="paper-subfield-tag">${esc(localizedSubfield(p.subfield))}</span>` : ''}<span style="font-size:0.62rem;padding:1px 5px;border-radius:3px;background:#e8f0ff;color:#2c68a0">${esc(p.source_db || p.source_type || 'Semantic Scholar')}</span></div></div>`; }).join('')}${hasMore ? `<div class="paper-load-more" onclick="loadMorePapers('${esc(field)}')">${t('papers_load_more')} (${(papers.length - limit).toLocaleString()}件)</div>` : ''}</div></div>`;
   }
   if (!html) html = `<div class="papers-empty"><div class="papers-empty-icon">&#128269;</div><div class="papers-empty-text">${t('papers_no_results')}</div><div class="papers-empty-sub">${t('papers_no_results_sub')}</div></div>`;
@@ -3341,8 +3383,9 @@ function promptInsightApiKey() {
   if (key !== null) { localStorage.setItem('ANTHROPIC_API_KEY', key); showToast('APIキーを保存しました'); }
 }
 
-// === RESEARCH CONTEXT ===
+// === RESEARCH CONTEXT & REFERENCE ITEMS ===
 let researchContexts = [];
+let refItems = []; // { type: 'url'|'text', value: string, content: string (fetched), title: string }
 
 async function loadResearchContexts() {
   if (!currentUser) return;
@@ -3357,23 +3400,21 @@ function renderContextList() {
   const el = document.getElementById('contextList');
   const countEl = document.getElementById('contextCount');
   if (!el) return;
-  if (countEl) countEl.textContent = `${researchContexts.length}件の文脈情報`;
-  if (researchContexts.length === 0) {
-    el.innerHTML = '<div style="font-size:0.82rem;color:var(--text-muted);padding:8px 0">まだ文脈情報がありません。</div>';
-    return;
-  }
-  el.innerHTML = researchContexts.map(ctx => {
-    const preview = (ctx.text || '').substring(0, 100) + ((ctx.text || '').length > 100 ? '...' : '');
+  if (countEl) countEl.textContent = researchContexts.length > 0 ? `保存済み ${researchContexts.length}件` : '';
+  if (researchContexts.length === 0) { el.innerHTML = ''; return; }
+  el.innerHTML = `<details style="margin-top:8px"><summary style="font-size:0.78rem;color:var(--text-muted);cursor:pointer">保存済みの文脈情報（${researchContexts.length}件）</summary>` +
+    researchContexts.map(ctx => {
+    const preview = (ctx.text || '').substring(0, 80) + ((ctx.text || '').length > 80 ? '...' : '');
     const checked = ctx.enabled !== false ? 'checked' : '';
-    return `<div style="display:flex;gap:8px;align-items:start;padding:8px 0;border-bottom:1px solid var(--border)">
+    return `<div style="display:flex;gap:8px;align-items:start;padding:6px 0;border-bottom:1px solid var(--border)">
       <input type="checkbox" ${checked} onchange="toggleContext('${ctx.id}',this.checked)" style="margin-top:4px;accent-color:var(--accent)">
       <div style="flex:1;min-width:0">
-        <div style="font-size:0.82rem;font-weight:600">${esc(ctx.title || '無題')}</div>
-        <div style="font-size:0.75rem;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(preview)}</div>
+        <div style="font-size:0.78rem;font-weight:600">${esc(ctx.title || '無題')}</div>
+        <div style="font-size:0.7rem;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(preview)}</div>
       </div>
       <button onclick="removeContext('${ctx.id}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:0.9rem;padding:0 4px">&times;</button>
     </div>`;
-  }).join('');
+  }).join('') + '</details>';
 }
 
 async function toggleContext(id, enabled) {
@@ -3389,20 +3430,164 @@ async function removeContext(id) {
   showToast('文脈情報を削除しました');
 }
 
-async function addRefToContext() {
-  const text = document.getElementById('refTextInput').value.trim();
-  if (!text) { showToast('テキストを入力してください'); return; }
-  const title = text.substring(0, 40).replace(/\n/g, ' ') + (text.length > 40 ? '...' : '');
-  if (currentUser) {
-    const doc = await db.collection('users').doc(currentUser.uid).collection('researchContext').add({
-      title, text, enabled: true, createdAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    researchContexts.unshift({ id: doc.id, title, text, enabled: true });
-  }
-  document.getElementById('refTextInput').value = '';
-  renderContextList();
-  showToast('文脈に追加しました');
+// === Reference Items (multiple URL/text) ===
+function renderRefItems() {
+  const el = document.getElementById('refItemsList');
+  if (!el || refItems.length === 0) { if (el) el.innerHTML = ''; return; }
+  el.innerHTML = refItems.map((item, i) => {
+    const icon = item.type === 'url' ? '&#128279;' : '&#128196;';
+    const label = item.type === 'url' ? item.value : (item.title || item.value.substring(0, 50));
+    const statusText = item.content ? `(${item.content.length}文字取得済)` : item.loading ? '(読込中...)' : '';
+    return `<div style="display:flex;gap:8px;align-items:center;padding:6px 10px;margin-bottom:4px;background:var(--bg);border:1px solid var(--border);border-radius:6px">
+      <span style="font-size:0.8rem">${icon}</span>
+      <div style="flex:1;min-width:0;font-size:0.78rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(label)}</div>
+      <span style="font-size:0.68rem;color:var(--text-muted);flex-shrink:0">${statusText}</span>
+      <button onclick="refItems.splice(${i},1);renderRefItems()" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:0.85rem;padding:0 2px">&times;</button>
+    </div>`;
+  }).join('');
 }
+
+async function addRefItem(type) {
+  const statusEl = document.getElementById('fetchUrlStatus');
+  if (type === 'url') {
+    const url = document.getElementById('refUrlInput').value.trim();
+    if (!url) { showToast('URLを入力してください'); return; }
+    const item = { type: 'url', value: url, content: '', title: url, loading: true };
+    refItems.push(item);
+    renderRefItems();
+    document.getElementById('refUrlInput').value = '';
+    // Fetch content in background
+    try {
+      if (statusEl) statusEl.textContent = '読み込み中...';
+      const fetched = await fetchUrlContent(url);
+      item.content = fetched.text;
+      item.title = fetched.title || url;
+      item.loading = false;
+      if (statusEl) statusEl.textContent = `${item.title} — ${fetched.text.length}文字取得`;
+    } catch(e) {
+      item.loading = false;
+      item.content = '';
+      if (statusEl) statusEl.textContent = 'URL取得失敗: ' + e.message;
+    }
+    renderRefItems();
+  } else {
+    const text = document.getElementById('refTextInput').value.trim();
+    if (!text) { showToast('テキストを入力してください'); return; }
+    const title = text.substring(0, 40).replace(/\n/g, ' ') + (text.length > 40 ? '...' : '');
+    refItems.push({ type: 'text', value: text, content: text, title: title });
+    document.getElementById('refTextInput').value = '';
+    renderRefItems();
+    showToast('テキストを追加しました');
+  }
+  // Also save to Firestore for persistence
+  const lastItem = refItems[refItems.length - 1];
+  if (currentUser && lastItem.content) {
+    const doc = await db.collection('users').doc(currentUser.uid).collection('researchContext').add({
+      title: lastItem.title, text: lastItem.content, enabled: true,
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    researchContexts.unshift({ id: doc.id, title: lastItem.title, text: lastItem.content, enabled: true });
+    renderContextList();
+  }
+}
+
+async function fetchUrlContent(url) {
+  const isNotion = url.includes('notion.so') || url.includes('notion.site');
+  if (isNotion) {
+    const pageId = extractNotionPageId(url);
+    if (!pageId) throw new Error('NotionページIDを取得できません');
+    const resp = await fetch(`https://notion-proxy-ecru.vercel.app/api/notion?page_id=${pageId}`);
+    if (!resp.ok) throw new Error('Notion APIエラー');
+    const data = await resp.json();
+    let text = data.text || '';
+    if (text.length > 8000) text = text.substring(0, 8000) + '\n[...省略]';
+    return { text, title: data.title || '' };
+  } else {
+    const proxies = [
+      'https://corsproxy.io/?' + encodeURIComponent(url),
+      'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
+    ];
+    let html = '';
+    for (const proxyUrl of proxies) {
+      try {
+        const resp = await fetch(proxyUrl, { signal: AbortSignal.timeout(10000) });
+        if (resp.ok) { html = await resp.text(); break; }
+      } catch(e) { continue; }
+    }
+    if (!html) throw new Error('ページ取得失敗');
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    doc.querySelectorAll('script,style,nav,footer,header,.sidebar,#sidebar,iframe').forEach(el => el.remove());
+    const title = doc.querySelector('title')?.textContent || '';
+    let text = (doc.body?.innerText || '').trim().replace(/\n{3,}/g, '\n\n').replace(/[ \t]+/g, ' ').trim();
+    if (text.length > 8000) text = text.substring(0, 8000) + '\n[...省略]';
+    return { text, title };
+  }
+}
+
+// === Context Analysis (AI analyzes refs to understand what user wants) ===
+async function analyzeContext() {
+  const allText = [];
+  // From refItems
+  for (const item of refItems) {
+    if (item.content) allText.push(item.content.substring(0, 3000));
+  }
+  // From active research contexts
+  for (const ctx of researchContexts) {
+    if (ctx.enabled !== false) allText.push((ctx.text || '').substring(0, 2000));
+  }
+  // From question
+  const question = document.getElementById('insightQuestion').value.trim();
+
+  if (allText.length === 0 && !question) {
+    showToast('参考情報または質問を入力してください');
+    return;
+  }
+
+  const apiKey = getInsightApiKey();
+  if (!apiKey) { promptInsightApiKey(); return; }
+
+  const btn = document.getElementById('analyzeCtxBtn');
+  const analysisEl = document.getElementById('contextAnalysis');
+  btn.disabled = true;
+  analysisEl.innerHTML = '<div style="display:flex;align-items:center;gap:8px;color:var(--text-muted);font-size:0.82rem;padding:8px 0"><span style="display:inline-block;width:14px;height:14px;border:2px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite"></span>参考情報を解析中...</div>';
+
+  const contextSummary = allText.join('\n\n---\n\n');
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001', max_tokens: 1500,
+        messages: [{ role: 'user', content: `以下の参考情報${question ? 'と質問' : ''}から、ユーザーが何について調べようとしているのかを整理してください。
+
+${question ? `【質問】\n${question}\n\n` : ''}【参考情報】\n${contextSummary.substring(0, 6000)}
+
+以下の形式で簡潔にまとめてください：
+1. **探究テーマ**: 何について調べようとしているか（1-2文）
+2. **主要な論点**: 参考情報から読み取れる重要なポイント（3-5点）
+3. **問いの方向性**: どのような分析・回答が期待されるか（1-2文）
+
+日本語で出力してください。` }]
+      })
+    });
+    if (!resp.ok) throw new Error('API error');
+    const data = await resp.json();
+    const analysis = data.content?.[0]?.text || '';
+
+    let html = '<div style="padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">';
+    html += '<div style="font-size:0.72rem;color:var(--accent);font-weight:600;margin-bottom:6px">AI解析結果 — 回答生成前にご確認ください</div>';
+    html += `<div style="font-size:0.82rem;line-height:1.8;color:var(--text)">${formatInsightAnswer(analysis)}</div>`;
+    html += '</div>';
+    analysisEl.innerHTML = html;
+  } catch(e) {
+    analysisEl.innerHTML = `<div style="color:#b92a38;font-size:0.82rem">解析エラー: ${esc(e.message)}</div>`;
+  }
+  btn.disabled = false;
+}
+
+// Legacy compatibility
+async function addRefToContext() { await addRefItem('text'); }
 
 // === URL / Notion FETCH ===
 let _notionToken = '';
@@ -3417,69 +3602,7 @@ function extractNotionPageId(url) {
   return null;
 }
 
-async function fetchRefUrl() {
-  const url = document.getElementById('refUrlInput').value.trim();
-  if (!url) { showToast('URLを入力してください'); return; }
-  const statusEl = document.getElementById('fetchUrlStatus');
-  const btn = document.getElementById('fetchUrlBtn');
-  btn.disabled = true;
-  statusEl.textContent = '読み込み中...';
-
-  const isNotion = url.includes('notion.so') || url.includes('notion.site');
-
-  try {
-    let text = '';
-
-    if (isNotion) {
-      // Use Vercel-hosted Notion API proxy
-      const pageId = extractNotionPageId(url);
-      if (!pageId) throw new Error('NotionページIDを取得できませんでした');
-
-      const resp = await fetch(`https://notion-proxy-ecru.vercel.app/api/notion?page_id=${pageId}`);
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({}));
-        throw new Error(err.error || 'Notion APIエラー');
-      }
-      const data = await resp.json();
-      text = data.text || '';
-      if (data.title) statusEl.textContent = `「${data.title}」を取得中...`;
-
-    } else {
-      // General URL - try multiple CORS proxies
-      const proxies = [
-        'https://corsproxy.io/?' + encodeURIComponent(url),
-        'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
-      ];
-      let html = '';
-      for (const proxyUrl of proxies) {
-        try {
-          const resp = await fetch(proxyUrl, { signal: AbortSignal.timeout(10000) });
-          if (resp.ok) { html = await resp.text(); break; }
-        } catch(e) { continue; }
-      }
-      if (!html) throw new Error('ページを取得できませんでした');
-
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
-      doc.querySelectorAll('script,style,nav,footer,header,.sidebar,#sidebar,iframe').forEach(el => el.remove());
-      text = (doc.body?.innerText || '').trim();
-      text = text.replace(/\n{3,}/g, '\n\n').replace(/[ \t]+/g, ' ').trim();
-    }
-
-    if (text.length < 10) throw new Error('コンテンツを取得できませんでした。Notionの場合はページ内容をコピーして下のテキスト欄に貼り付けてください。');
-    if (text.length > 8000) text = text.substring(0, 8000) + '\n\n[...以下省略]';
-
-    document.getElementById('refTextInput').value = text;
-    statusEl.textContent = `${text.length}文字を取得しました。「文脈に追加」で保存できます。`;
-  } catch(e) {
-    if (isNotion) {
-      statusEl.innerHTML = 'Notionの読み込みに失敗しました。<br>Notionでページを開き、内容をコピー（Cmd+A → Cmd+C）して下のテキスト欄に貼り付けてください。';
-    } else {
-      statusEl.textContent = 'エラー: ' + e.message;
-    }
-  }
-  btn.disabled = false;
-}
+// fetchRefUrl removed - replaced by addRefItem('url') + fetchUrlContent()
 
 // === QUESTION REFINEMENT ===
 async function refineQuestion() {
@@ -3548,10 +3671,19 @@ async function generateInsight() {
   // Build context from research contexts, CLA, scenarios, signals
   let context = '';
 
-  // Include user's research contexts
+  // Include current session reference items
+  if (refItems.length > 0) {
+    context += '【参考情報（今回の入力）】\n';
+    refItems.forEach(item => {
+      if (item.content) context += `\n[${item.title || '参考'}]\n${item.content.substring(0, 3000)}\n`;
+    });
+    context += '\n';
+  }
+
+  // Include saved research contexts
   const activeContexts = researchContexts.filter(c => c.enabled !== false);
   if (activeContexts.length > 0) {
-    context += '【ユーザーの参考情報・リサーチ文脈】\n';
+    context += '【保存済みリサーチ文脈】\n';
     activeContexts.forEach(ctx => {
       context += `\n[${ctx.title || '参考情報'}]\n${(ctx.text || '').substring(0, 3000)}\n`;
     });
