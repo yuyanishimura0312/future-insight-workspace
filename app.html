@@ -1154,8 +1154,9 @@
     <button class="tab-btn" onclick="switchTab('cla')" data-i18n="tab_cla">CLA分析</button>
     <button class="tab-btn" onclick="switchTab('scenarios')" data-i18n="tab_scenarios">シナリオ</button>
     <button class="tab-btn" onclick="switchTab('signals')" data-i18n="tab_signals">ウィークシグナル</button>
-    <button class="tab-btn" onclick="switchTab('insight')" style="color:var(--P);font-weight:600">回答生成</button>
-    <button class="tab-btn" onclick="switchTab('bookmarks')" style="margin-left:auto;color:var(--S);font-weight:600">ブックマーク</button>
+    <button class="tab-btn" onclick="switchTab('insight')" style="color:var(--accent);font-weight:700;border-bottom-width:3px">未来洞察アドバイス</button>
+    <button class="tab-btn" onclick="switchTab('foresight')" style="color:var(--T);font-weight:600">未来洞察構築</button>
+    <button class="tab-btn" onclick="switchTab('bookmarks')" style="margin-left:auto">ブックマーク</button>
     <button class="tab-btn" onclick="switchTab('search')" data-i18n="tab_search">検索</button>
   </div>
 
@@ -1165,6 +1166,15 @@
 
     <!-- Research Pickup (top) -->
     <div id="researchPickup" style="margin-bottom:24px"></div>
+
+    <!-- Quick access to Foresight Advice -->
+    <div onclick="switchTab('insight')" style="background:linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);border-radius:10px;padding:16px 24px;margin-bottom:20px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:opacity 0.15s" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+      <div>
+        <div style="font-size:0.95rem;font-weight:700;color:white">未来洞察アドバイス</div>
+        <div style="font-size:0.78rem;color:#ffe8d7;margin-top:2px">問題意識を入力して、CLA・シナリオに基づいた未来洞察レポートを生成</div>
+      </div>
+      <span style="font-size:1.2rem;color:white">&#8594;</span>
+    </div>
 
     <!-- Main content (left) + Alerts (right) -->
     <h3 style="font-size:0.9rem;color:var(--text-muted);margin-bottom:14px" data-i18n="pestle_summary">PESTLEサマリー</h3>
@@ -1327,7 +1337,7 @@
   <!-- ===== INSIGHT ===== -->
   <div class="tab-panel" id="tab-insight">
     <div style="margin-bottom:20px">
-      <h3 style="font-size:1.1rem;color:var(--accent);margin-bottom:6px;font-weight:700">回答生成</h3>
+      <h3 style="font-size:1.1rem;color:var(--accent);margin-bottom:6px;font-weight:700">未来洞察アドバイス</h3>
       <p style="font-size:0.82rem;color:var(--text-muted);line-height:1.6">問題意識を入力し、CLA（因果階層分析）とシナリオプランニングのデータに基づいた未来洞察レポートを生成します。今後注目すべきシグナルやウォッチテーマを提示し、認知の拡張をサポートします。</p>
     </div>
 
@@ -1383,6 +1393,52 @@
 
     <div id="insightResult"></div>
     <div id="insightHistory"></div>
+  </div>
+
+  <!-- ===== FORESIGHT BUILDER ===== -->
+  <div class="tab-panel" id="tab-foresight">
+    <div style="margin-bottom:20px">
+      <h3 style="font-size:1.1rem;color:var(--T);margin-bottom:6px;font-weight:700">未来洞察構築</h3>
+      <p style="font-size:0.82rem;color:var(--text-muted);line-height:1.6">ブックマークに保存したニュースや学術論文を元に、新たなウィークシグナル・シナリオ・CLA分析を構築します。あなた自身の視点で未来洞察を組み立てるための機能です。</p>
+    </div>
+
+    <!-- Bookmarked items as source -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <label style="font-size:0.9rem;font-weight:700;color:var(--T)">ソースデータ（ブックマーク）</label>
+        <span id="foresightSourceCount" style="font-size:0.75rem;color:var(--text-muted)"></span>
+      </div>
+      <div id="foresightSourceList" style="max-height:300px;overflow-y:auto;margin-bottom:10px"></div>
+      <p style="font-size:0.75rem;color:var(--text-muted)">ブックマークタブで保存した記事が自動的にソースとして使用されます。</p>
+    </div>
+
+    <!-- Build options -->
+    <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px">
+      <label style="font-size:0.9rem;font-weight:700;color:var(--T);display:block;margin-bottom:12px">構築する分析を選択</label>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;cursor:pointer;padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:var(--bg)">
+          <input type="checkbox" id="fsBuildSignals" checked style="accent-color:var(--T)"> ウィークシグナル抽出
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;cursor:pointer;padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:var(--bg)">
+          <input type="checkbox" id="fsBuildCLA" checked style="accent-color:var(--T)"> CLA分析
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;cursor:pointer;padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:var(--bg)">
+          <input type="checkbox" id="fsBuildScenario" checked style="accent-color:var(--T)"> シナリオ構築
+        </label>
+      </div>
+      <div style="margin-bottom:12px">
+        <label style="font-size:0.82rem;color:var(--text-muted);display:block;margin-bottom:4px">フォーカステーマ（任意）</label>
+        <input type="text" id="fsFocusTopic" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;background:var(--bg);color:var(--text)" placeholder="例: AIガバナンスの未来、気候変動と経済の関係 etc.">
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button onclick="buildForesight()" class="btn btn-accent" id="fsBuildBtn" style="font-size:0.9rem;padding:10px 24px;background:var(--T);border-color:var(--T)">未来洞察を構築</button>
+        <span id="fsBuildStatus" style="font-size:0.8rem;color:var(--text-muted)"></span>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div id="foresightResult"></div>
+    <div id="foresightHistory"></div>
   </div>
 
 </div>
@@ -1664,7 +1720,7 @@ function localizedSubfield(sf) { if (!sf) return ''; if (LANG === 'ja' && SUBFIE
 function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
 function formatPubDate(s) { if (!s) return ''; if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s; const d = new Date(s); if (isNaN(d.getTime())) return s; return d.toISOString().slice(0, 10); }
 
-const VALID_TABS = ['overview','pestle','papers','cla','scenarios','signals','insight','bookmarks','search'];
+const VALID_TABS = ['overview','pestle','papers','cla','scenarios','signals','insight','foresight','bookmarks','search'];
 function switchTab(name, pushState) {
   if (!VALID_TABS.includes(name)) name = 'overview';
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
@@ -1674,6 +1730,7 @@ function switchTab(name, pushState) {
   const idx = VALID_TABS.indexOf(name);
   if (idx >= 0 && btns[idx]) btns[idx].classList.add('active');
   if (name === 'bookmarks') renderBookmarks();
+  if (name === 'foresight') renderForesightSources();
   if (pushState !== false) history.replaceState(null, '', '#' + name);
 }
 function restoreTabFromHash() { const hash = location.hash.replace('#', ''); if (VALID_TABS.includes(hash)) switchTab(hash, false); }
@@ -4104,6 +4161,169 @@ async function deleteInsightHistory(docId) {
     renderInsightHistory();
     showToast('履歴を削除しました');
   } catch (e) { showToast('削除に失敗しました'); }
+}
+
+// === FORESIGHT BUILDER ===
+function renderForesightSources() {
+  const el = document.getElementById('foresightSourceList');
+  const countEl = document.getElementById('foresightSourceCount');
+  if (!el) return;
+  if (countEl) countEl.textContent = `${userBookmarks.length}件のブックマーク`;
+  if (userBookmarks.length === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:0.85rem">ブックマークがありません。PESTLEニュースや学術論文タブで記事を保存してください。</div>';
+    return;
+  }
+  el.innerHTML = userBookmarks.map(bm => {
+    const catMeta = PESTLE_META[bm.category];
+    const color = catMeta ? catMeta.color : 'var(--accent)';
+    const label = catMeta ? catMeta.ja : (bm.type === 'signal' ? 'シグナル' : bm.category || '');
+    return `<div style="display:flex;gap:8px;align-items:center;padding:6px 10px;border-bottom:1px solid var(--border)">
+      <span style="font-size:0.6rem;padding:1px 6px;border-radius:3px;background:${color};color:white;font-weight:600;flex-shrink:0">${esc(label)}</span>
+      <span style="font-size:0.78rem;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(bm.title)}</span>
+    </div>`;
+  }).join('');
+}
+
+async function buildForesight() {
+  if (userBookmarks.length === 0) { showToast('ブックマークが必要です'); return; }
+  const apiKey = getInsightApiKey();
+  if (!apiKey) { promptInsightApiKey(); return; }
+
+  const buildSignals = document.getElementById('fsBuildSignals')?.checked;
+  const buildCLA = document.getElementById('fsBuildCLA')?.checked;
+  const buildScenario = document.getElementById('fsBuildScenario')?.checked;
+  const focusTopic = document.getElementById('fsFocusTopic')?.value?.trim() || '';
+
+  if (!buildSignals && !buildCLA && !buildScenario) { showToast('少なくとも1つの分析を選択してください'); return; }
+
+  const btn = document.getElementById('fsBuildBtn');
+  const status = document.getElementById('fsBuildStatus');
+  btn.disabled = true;
+  status.textContent = '構築中...（30-60秒ほどかかります）';
+
+  // Build source context from bookmarks
+  let sourceText = '【ブックマークされた記事・論文】\n';
+  userBookmarks.forEach((bm, i) => {
+    const catMeta = PESTLE_META[bm.category];
+    const catLabel = catMeta ? catMeta.ja : (bm.category || '');
+    sourceText += `${i + 1}. [${catLabel}] ${bm.title}`;
+    if (bm.url) sourceText += ` (${bm.url})`;
+    sourceText += '\n';
+  });
+
+  // Add saved papers if available
+  if (savedPapers.length > 0) {
+    sourceText += '\n【保存済み学術論文】\n';
+    savedPapers.slice(0, 20).forEach((sp, i) => {
+      sourceText += `${i + 1}. [${sp.field}] ${sp.title_ja || sp.title}`;
+      if (sp.authors) sourceText += ` — ${sp.authors.substring(0, 50)}`;
+      sourceText += '\n';
+    });
+  }
+
+  // Build sections list
+  const sections = [];
+  if (buildCLA) sections.push(`## CLA分析（因果階層分析）
+上記の記事群を総合的に分析し、4層のCLA分析を行ってください：
+- **リタニー（表層）**: これらの記事が示す表面的な出来事の共通パターン
+- **システム的原因**: これらの事象を生み出している構造的・制度的要因
+- **世界観**: これらの変化の背景にある価値観や認識の枠組み
+- **神話/メタファー**: 最深層にある物語・前提を特定する
+
+散文（地の文）で記述してください。`);
+
+  if (buildScenario) sections.push(`## シナリオ構築
+上記の記事群から読み取れるドライビングフォース（推進力）を2つ特定し、2x2マトリクスで4つのシナリオの概要を構築してください。各シナリオは名前と200字程度のナラティブで記述してください。`);
+
+  if (buildSignals) sections.push(`## ウィークシグナル抽出
+上記の記事群から、Ansoff (1975) のウィークシグナル理論に基づき、将来大きな変化をもたらす可能性のある兆しを5-8件抽出してください。各シグナルについて：
+- シグナル名
+- なぜこれが重要な兆しと考えられるか（背景の説明）
+- 影響の時間軸（短期/中期/長期）
+- 関連するPESTLE分野
+
+散文を中心に、各シグナルを段落形式で記述してください。`);
+
+  const prompt = `あなたは未来洞察（Foresight）の専門家です。
+
+以下はユーザーが注目してブックマークした記事・論文のリストです。これらを素材として、ユーザー独自の未来洞察を構築してください。
+
+${sourceText}
+${focusTopic ? `\n【フォーカステーマ】\n${focusTopic}\n` : ''}
+以下の分析を行ってください：
+
+${sections.join('\n\n')}
+
+## 執筆要件
+- 散文（地の文）を中心に記述する
+- ユーザーの認知外にある重要な視点を積極的に提示する
+- データに基づいた具体的な分析を心がける
+- 日本語で記述する`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 8000, messages: [{ role: 'user', content: prompt }] })
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      throw new Error(err.error?.message || `API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const result = data.content?.[0]?.text || '';
+
+    const now = new Date();
+    const dateStr = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+    let html = `<div class="insight-result-card" style="max-width:820px">`;
+    html += `<div class="insight-result-header"><h4 style="color:var(--T)">未来洞察構築 — 分析結果</h4></div>`;
+    if (focusTopic) {
+      html += `<div class="insight-question-box" style="border-left-color:var(--T)"><div class="label">フォーカステーマ</div><div class="text">${esc(focusTopic)}</div></div>`;
+    }
+    html += `<div class="insight-answer" id="foresightAnswerText">${formatInsightAnswer(result)}</div>`;
+    html += `<div class="insight-meta"><span>生成日時: ${dateStr}</span><span>ソース: ブックマーク ${userBookmarks.length}件</span></div>`;
+    html += `<div style="display:flex;gap:8px;flex-wrap:wrap;padding:16px 24px;border-top:1px solid var(--border);background:var(--bg);border-radius:0 0 12px 12px">`;
+    html += `<button class="btn" style="font-size:0.82rem" onclick="navigator.clipboard.writeText(document.getElementById('foresightAnswerText').innerText).then(()=>showToast('コピーしました'))">コピー</button>`;
+    html += `<button class="btn" style="font-size:0.82rem" onclick="shareForesight()">シェア</button>`;
+    html += `<button class="btn btn-accent" style="font-size:0.82rem" onclick="downloadForesightPDF()">PDF</button>`;
+    html += `</div></div>`;
+
+    document.getElementById('foresightResult').innerHTML = html;
+
+    // Save to Firestore
+    if (currentUser) {
+      db.collection('users').doc(currentUser.uid).collection('foresightBuilds').add({
+        focusTopic, result, bookmarkCount: userBookmarks.length,
+        buildSignals, buildCLA, buildScenario,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      }).catch(e => console.warn('Failed to save foresight:', e));
+    }
+
+    status.textContent = '';
+  } catch (e) {
+    status.textContent = 'エラー: ' + e.message;
+  }
+  btn.disabled = false;
+}
+
+function shareForesight() {
+  const text = document.getElementById('foresightAnswerText')?.innerText || '';
+  const topic = document.getElementById('fsFocusTopic')?.value || '';
+  const shareText = `【未来洞察構築】${topic ? '\nテーマ: ' + topic : ''}\n\n${text}`;
+  if (navigator.share) { navigator.share({ title: '未来洞察構築', text: shareText }).catch(() => {}); }
+  else { navigator.clipboard.writeText(shareText).then(() => showToast('コピーしました')); }
+}
+
+function downloadForesightPDF() {
+  const answer = document.getElementById('foresightAnswerText')?.innerHTML || '';
+  const topic = document.getElementById('fsFocusTopic')?.value || '';
+  const printHTML = `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><title>未来洞察構築</title><link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet"><style>@page{size:A4;margin:24mm 20mm}body{font-family:"Noto Sans JP",sans-serif;color:#292929;line-height:1.9;font-size:10.5pt}.header{text-align:center;margin-bottom:32px;padding-bottom:20px;border-bottom:3px solid #2c8acc}h1{font-size:16pt;color:#2c8acc}h3{font-size:12pt;color:#2c8acc;margin:24px 0 10px;border-bottom:1px solid #e0d5cc;padding-bottom:4px}h4{font-size:11pt;color:#4a90b0;margin:18px 0 8px}strong{color:#2c8acc}ul,ol{padding-left:20px}blockquote{border-left:3px solid #7fb3d0;padding:6px 14px;background:#f0f6fa;font-style:italic;color:#666}</style></head><body><div class="header"><h1>未来洞察構築</h1>${topic ? '<p style="color:#666">' + topic + '</p>' : ''}</div><div>${answer}</div><div style="margin-top:32px;padding-top:16px;border-top:1px solid #ddd;font-size:8pt;color:#999;display:flex;justify-content:space-between"><span>${new Date().toLocaleString('ja-JP')}</span><span>Future Insight Workspace</span></div></body></html>`;
+  const w = window.open('', '_blank');
+  w.document.write(printHTML); w.document.close();
+  setTimeout(() => w.print(), 500);
 }
 </script>
 <div class="toast-notification" id="toast"></div>
