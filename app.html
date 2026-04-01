@@ -1118,11 +1118,11 @@
 <header>
   <div>
     <h1><span>&#9670;</span> <span data-i18n="app_title">Future Insight Workspace</span></h1>
-    <div class="header-sub" data-i18n="app_sub">Future Insight Support — PESTLE × Academic Papers × CLA</div>
+    <div class="header-sub" data-i18n="app_sub">未来学を基盤に未来洞察をサポートする総合サイト — Powered by MIRATUKU</div>
   </div>
   <div class="header-actions">
     <span id="lastUpdated" style="font-size:0.75rem;color:#ffe8d7;opacity:0.85"></span>
-    <button class="btn" style="background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);color:white;font-size:0.75rem" onclick="toggleLang()" id="langToggleBtn">EN</button>
+    <span style="font-size:0.75rem;color:#ffe8d7;cursor:pointer;opacity:0.85;text-decoration:underline" onclick="toggleLang()" id="langToggleBtn">EN</span>
     <a id="adminLink" href="admin.html" style="display:none;background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);color:white;font-size:0.75rem" class="btn">管理画面</a>
     <button onclick="auth.signOut().then(()=>location.href='index.html')" class="btn" style="background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);color:white;font-size:0.75rem">ログアウト</button>
   </div>
@@ -1137,9 +1137,9 @@
     <button class="tab-btn" onclick="switchTab('cla')" data-i18n="tab_cla">CLA分析</button>
     <button class="tab-btn" onclick="switchTab('scenarios')" data-i18n="tab_scenarios">シナリオ</button>
     <button class="tab-btn" onclick="switchTab('signals')" data-i18n="tab_signals">ウィークシグナル</button>
-    <button class="tab-btn" onclick="switchTab('bookmarks')" style="color:var(--S);font-weight:600">ブックマーク</button>
     <button class="tab-btn" onclick="switchTab('insight')" style="color:var(--P);font-weight:600">回答生成</button>
-    <button class="tab-btn" onclick="switchTab('search')" data-i18n="tab_search" style="margin-left:auto">横断検索</button>
+    <button class="tab-btn" onclick="switchTab('bookmarks')" style="margin-left:auto;color:var(--S);font-weight:600">ブックマーク</button>
+    <button class="tab-btn" onclick="switchTab('search')" data-i18n="tab_search">検索</button>
   </div>
 
   <!-- ===== OVERVIEW ===== -->
@@ -1409,9 +1409,9 @@ let LANG = 'ja';
 const I18N = {
   ja: {
     app_title: 'Future Insight Workspace',
-    app_sub: 'Future Insight Support — PESTLE × Academic Papers × CLA',
+    app_sub: '未来学を基盤に未来洞察をサポートする総合サイト — Powered by MIRATUKU',
     tab_overview: '概要', tab_pestle: 'PESTLEニュース', tab_papers: '学術論文',
-    tab_cla: 'CLA分析', tab_scenarios: 'シナリオ', tab_signals: 'ウィークシグナル', tab_search: '横断検索',
+    tab_cla: 'CLA分析', tab_scenarios: 'シナリオ', tab_signals: 'ウィークシグナル', tab_search: '検索',
     pestle_summary: 'PESTLEサマリー', featured_papers: '注目の学術論文',
     search_news: 'ニュースを検索...', search_papers: '論文を検索...',
     search_all: 'ニュース・論文を横断検索...',
@@ -1476,9 +1476,9 @@ const I18N = {
   },
   en: {
     app_title: 'Future Insight Workspace',
-    app_sub: 'Future Insight Support — PESTLE × Academic Papers × CLA',
+    app_sub: 'Futures Studies-based Foresight Support Platform — Powered by MIRATUKU',
     tab_overview: 'Overview', tab_pestle: 'PESTLE News', tab_papers: 'Academic Papers',
-    tab_cla: 'CLA Analysis', tab_scenarios: 'Scenarios', tab_signals: 'Weak Signals', tab_search: 'Cross Search',
+    tab_cla: 'CLA Analysis', tab_scenarios: 'Scenarios', tab_signals: 'Weak Signals', tab_search: 'Search',
     pestle_summary: 'PESTLE Summary', featured_papers: 'Featured Papers',
     search_news: 'Search news...', search_papers: 'Search papers...',
     search_all: 'Search across news & papers...',
@@ -1637,7 +1637,7 @@ function localizedSubfield(sf) { if (!sf) return ''; if (LANG === 'ja' && SUBFIE
 function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
 function formatPubDate(s) { if (!s) return ''; if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s; const d = new Date(s); if (isNaN(d.getTime())) return s; return d.toISOString().slice(0, 10); }
 
-const VALID_TABS = ['overview','pestle','papers','cla','scenarios','signals','bookmarks','insight','search'];
+const VALID_TABS = ['overview','pestle','papers','cla','scenarios','signals','insight','bookmarks','search'];
 function switchTab(name, pushState) {
   if (!VALID_TABS.includes(name)) name = 'overview';
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
@@ -2285,15 +2285,7 @@ function renderSignals() {
 
   const displaySignals = signalsShowAll ? filtered : filtered.slice(0, 100);
 
-  // Theory-based categorization header
-  let html = `<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:16px">`;
-  html += `<div style="font-size:0.82rem;font-weight:600;color:var(--accent);margin-bottom:6px">抽出基準（Ansoff's Weak Signal Theory）</div>`;
-  html += `<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:0.75rem;color:var(--text-muted)">`;
-  html += `<span style="padding:3px 10px;border-radius:6px;background:#fde8e8;color:#b92a38;font-weight:500">高インパクト: 社会構造への影響大</span>`;
-  html += `<span style="padding:3px 10px;border-radius:6px;background:#fff3e0;color:#cd8a32;font-weight:500">中インパクト: 特定分野に影響</span>`;
-  html += `<span style="padding:3px 10px;border-radius:6px;background:#f0f0f0;color:#888;font-weight:500">萌芽段階: 注視推奨</span>`;
-  html += `</div></div>`;
-
+  let html = '';
   html += displaySignals.map((s, si) => `<div class="signal-card"><div class="signal-header"><div class="signal-name">${esc(s.signal)}</div><span class="signal-impact ${(s.potential_impact || '').toLowerCase()}">${esc(s.potential_impact || '?')}</span></div><div class="signal-desc">${esc(s.description)}</div><div class="signal-meta">${s.detected_date ? `<span style="font-size:0.7rem;color:var(--text-muted)">${esc(s.detected_date)}</span>` : ''}${s.source_date ? `<span style="font-size:0.7rem;color:var(--text-muted)">${esc(s.source_date)}</span>` : ''}<span class="signal-horizon">${esc(s.time_horizon || '?')}</span>${(s.pestle_categories || []).map(c => { const m = PESTLE_META[c]; return m ? `<span style="font-size:0.65rem;padding:2px 6px;border-radius:3px;background:${m.color};color:white">${m.ja}</span>` : `<span class="lang-badge">${esc(c)}</span>`; }).join('')}</div>${s.counter_trend ? `<div class="signal-counter">${esc(s.counter_trend)}</div>` : ''}${s.related_headlines && s.related_headlines.length > 0 ? `<details style="margin-top:8px;font-size:0.75rem;color:var(--text-muted)"><summary style="cursor:pointer">関連記事 (${s.related_headlines.length})</summary><ul style="margin-top:4px;padding-left:16px">${s.related_headlines.map(h => `<li>${esc(h)}</li>`).join('')}</ul></details>` : ''}<div style="display:flex;gap:6px;margin-top:8px"><button class="bookmark-btn-inline ${isBookmarked('signal','signal',si) ? 'active' : ''}" onclick="event.stopPropagation();toggleBookmark('signal','signal',${si},'${esc(s.signal).replace(/'/g,"\\'")}','',this)">${isBookmarked('signal','signal',si) ? '保存済' : '保存'}</button><button class="share-btn-inline" onclick="event.stopPropagation();shareItem('${esc(s.signal).replace(/'/g,"\\'")}','')">シェア</button></div></div>`).join('');
   if (!signalsShowAll && filtered.length > 100) html += `<div style="text-align:center;padding:20px"><button onclick="signalsShowAll=true;renderSignals()" style="padding:10px 24px;border:1px solid var(--border);border-radius:8px;background:var(--card);cursor:pointer;font-size:0.88rem;color:var(--accent)">さらに表示（残り${filtered.length - 100}件）</button></div>`;
   document.getElementById('signalsGrid').innerHTML = html;
