@@ -1057,6 +1057,7 @@
     background: var(--card); border: 1px solid var(--border); border-radius: 12px;
     padding: 32px; margin-bottom: 20px; line-height: 1.9;
     box-shadow: 0 2px 12px rgba(120,60,40,0.06);
+    max-width: 820px;
   }
   .insight-result-header {
     display: flex; justify-content: space-between; align-items: center;
@@ -3658,7 +3659,7 @@ ${question ? `【質問】\n${question}\n\n` : ''}【参考情報】\n${contextS
 
     let html = '<div style="padding:12px;background:var(--bg);border-radius:8px;border:1px solid var(--border)">';
     html += '<div style="font-size:0.72rem;color:var(--accent);font-weight:600;margin-bottom:6px">AI解析結果 — 回答生成前にご確認ください</div>';
-    html += `<div style="font-size:0.82rem;line-height:1.8;color:var(--text)">${formatInsightAnswer(analysis)}</div>`;
+    html += `<div style="font-size:0.82rem;line-height:1.8;color:var(--text)">${formatContextAnalysis(analysis)}</div>`;
     html += '</div>';
     analysisEl.innerHTML = html;
   } catch(e) {
@@ -3923,6 +3924,19 @@ CLAの4層で問題を分析する。表層の出来事（リタニー）から�
     console.error('Insight generation failed:', e);
   }
   btn.disabled = false;
+}
+
+function formatContextAnalysis(text) {
+  let html = esc(text);
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/^(\d+)\. (.+)$/gm, '<div style="font-weight:600;margin:10px 0 4px;color:var(--accent)">$1. $2</div>');
+  html = html.replace(/(^- .+$(\n|$))+/gm, (match) => {
+    const items = match.trim().split('\n').map(l => `<li>${l.replace(/^- /, '')}</li>`).join('');
+    return `<ul style="padding-left:18px;margin:4px 0">${items}</ul>`;
+  });
+  html = html.replace(/\n\n/g, '<br><br>');
+  html = html.replace(/\n/g, '<br>');
+  return html;
 }
 
 function formatInsightAnswer(text) {
