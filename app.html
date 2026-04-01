@@ -1107,6 +1107,22 @@
     opacity: 0; transition: opacity 0.3s; pointer-events: none;
   }
   .toast-notification.show { opacity: 1; }
+
+  /* Overview 2-column responsive */
+  @media (max-width: 900px) {
+    #tab-overview > div[style*="grid-template-columns"] {
+      grid-template-columns: 1fr !important;
+    }
+  }
+
+  /* Research Pickup */
+  .pickup-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 18px; cursor: pointer; transition: all 0.15s;
+    border-left: 4px solid var(--accent);
+  }
+  .pickup-card:hover { box-shadow: 0 4px 16px rgba(120,60,40,0.08); transform: translateY(-1px); }
+  .pickup-tag { font-size: 0.6rem; padding: 1px 6px; border-radius: 3px; font-weight: 600; color: white; }
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
@@ -1145,11 +1161,18 @@
   <!-- ===== OVERVIEW ===== -->
   <div class="tab-panel active" id="tab-overview">
     <div class="stats-row" id="overviewStats"></div>
-    <div id="alertsPanel"></div>
-    <h3 style="font-size:0.9rem;color:var(--text-muted);margin-bottom:14px" data-i18n="pestle_summary">PESTLEサマリー</h3>
-    <div class="pestle-grid" id="overviewPestle"></div>
-    <h3 style="font-size:0.9rem;color:var(--text-muted);margin:24px 0 14px" data-i18n="featured_papers">注目の学術論文</h3>
-    <div class="papers-grid" id="overviewPapers"></div>
+
+    <!-- Research Pickup (top) -->
+    <div id="researchPickup" style="margin-bottom:24px"></div>
+
+    <!-- Main content (left) + Alerts (right) -->
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start">
+      <div>
+        <h3 style="font-size:0.9rem;color:var(--text-muted);margin-bottom:14px" data-i18n="pestle_summary">PESTLEサマリー</h3>
+        <div class="pestle-grid" id="overviewPestle"></div>
+      </div>
+      <div id="alertsPanel" style="position:sticky;top:20px"></div>
+    </div>
   </div>
 
   <!-- ===== PESTLE ===== -->
@@ -1723,6 +1746,8 @@ async function showPaper(idx) {
   `);
 }
 
+let _alertsShowAll = false;
+
 function renderAlerts() {
   const panel = document.getElementById('alertsPanel');
   if (!ALERTS_DATA || !ALERTS_DATA.alerts || ALERTS_DATA.alerts.length === 0) { panel.innerHTML = ''; return; }
@@ -1731,19 +1756,41 @@ function renderAlerts() {
   const typeLabels = { EMERGENCE: t('alert_emergence'), SURGE: t('alert_surge'), CROSSOVER: t('alert_crossover') };
   const catColors = { Political: 'var(--P)', Economic: 'var(--E)', Social: 'var(--S)', Technological: 'var(--T)', Legal: 'var(--L)', Environmental: 'var(--En)' };
   const catJa = { Political: '\u653f\u6cbb', Economic: '\u7d4c\u6e08', Social: '\u793e\u4f1a', Technological: '\u6280\u8853', Legal: '\u6cd5\u5f8b', Environmental: '\u74b0\u5883' };
-  let html = `<div class="alerts-panel"><div class="alerts-panel-header">\u26a0\ufe0f ${t('alerts_title')}<span style="font-size:0.75rem;font-weight:400;color:var(--text-muted);margin-left:8px">${t('alerts_desc')}</span><span class="alert-total-badge">${alerts.length}</span></div><div class="alert-list">`;
-  for (const a of alerts) {
-    const typeCls = a.type.toLowerCase(); const icon = icons[a.type] || '\u26a0\ufe0f'; const typeLabel = typeLabels[a.type] || a.type;
+
+  const PREVIEW_COUNT = 8;
+  const displayAlerts = _alertsShowAll ? alerts : alerts.slice(0, PREVIEW_COUNT);
+
+  let html = `<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden">`;
+  html += `<div style="padding:14px 16px;border-bottom:1px solid var(--border);background:linear-gradient(135deg, #fff5f5 0%, #fff9f0 100%)">`;
+  html += `<div style="font-size:0.88rem;font-weight:700;color:#b92a38;display:flex;align-items:center;gap:6px">\u26a0\ufe0f ${t('alerts_title')}<span style="margin-left:auto;font-size:0.65rem;padding:2px 8px;border-radius:10px;background:#b92a38;color:white;font-weight:600">${alerts.length}</span></div>`;
+  html += `<div style="font-size:0.68rem;color:var(--text-muted);margin-top:2px">${t('alerts_desc')}</div>`;
+  html += `</div>`;
+  html += `<div style="max-height:${_alertsShowAll ? 'none' : '600px'};overflow-y:auto">`;
+
+  for (const a of displayAlerts) {
+    const typeCls = a.type.toLowerCase(); const typeLabel = typeLabels[a.type] || a.type;
     const desc = LANG === 'ja' ? a.description : (a.description_en || a.description);
     let detail = '';
-    if (a.type === 'SURGE' && a.ratio) detail = `<span style="color:var(--highlight);font-weight:600">${a.ratio}${t('alert_ratio')}</span>`;
-    else if (a.type === 'EMERGENCE') detail = `<span style="color:#b92a38;font-weight:600">${a.mentions}${t('alert_mentions')}</span>`;
-    else if (a.type === 'CROSSOVER') detail = `<span style="color:#2c68a0;font-weight:600">${a.n_categories} categories</span>`;
-    const catTags = (a.categories || []).map(c => { const label = LANG === 'ja' ? (catJa[c] || c) : c; const color = catColors[c] || 'var(--accent)'; return `<span class="alert-cat-tag" style="border-left:2px solid ${color}">${label}</span>`; }).join('');
+    if (a.type === 'SURGE' && a.ratio) detail = `<span style="color:var(--highlight);font-weight:600;font-size:0.68rem">${a.ratio}${t('alert_ratio')}</span>`;
+    else if (a.type === 'EMERGENCE') detail = `<span style="color:#b92a38;font-weight:600;font-size:0.68rem">${a.mentions}${t('alert_mentions')}</span>`;
+    else if (a.type === 'CROSSOVER') detail = `<span style="color:#2c68a0;font-weight:600;font-size:0.68rem">${a.n_categories} categories</span>`;
+    const catTags = (a.categories || []).map(c => { const label = LANG === 'ja' ? (catJa[c] || c) : c; const color = catColors[c] || 'var(--accent)'; return `<span style="font-size:0.58rem;padding:1px 4px;border-radius:2px;border-left:2px solid ${color};color:var(--text-muted);background:var(--bg)">${label}</span>`; }).join(' ');
     const title = LANG === 'ja' ? (a.alert_title || a.topic) : (a.alert_title_en || a.topic);
-    html += `<div class="alert-item"><div class="alert-icon ${typeCls}">${icon}</div><div class="alert-body"><div class="alert-topic">${esc(title)}<span class="alert-type-badge ${typeCls}">${typeLabel}</span>${detail}</div><div class="alert-desc">${esc(desc)}</div><div class="alert-cats">${catTags}</div></div></div>`;
+    html += `<div style="padding:10px 16px;border-bottom:1px solid var(--border)">`;
+    html += `<div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin-bottom:3px"><span class="alert-type-badge ${typeCls}" style="font-size:0.58rem;padding:1px 6px;border-radius:3px">${typeLabel}</span>${detail}</div>`;
+    html += `<div style="font-size:0.78rem;font-weight:600;line-height:1.4;margin-bottom:3px">${esc(title)}</div>`;
+    html += `<div style="font-size:0.7rem;color:var(--text-muted);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(desc)}</div>`;
+    html += `<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">${catTags}</div>`;
+    html += `</div>`;
   }
-  html += '</div></div>';
+
+  html += `</div>`;
+  if (!_alertsShowAll && alerts.length > PREVIEW_COUNT) {
+    html += `<div style="padding:10px;text-align:center;font-size:0.78rem;color:var(--accent);cursor:pointer;border-top:1px solid var(--border);font-weight:500" onclick="_alertsShowAll=true;renderAlerts()">他 ${alerts.length - PREVIEW_COUNT}件を表示</div>`;
+  } else if (_alertsShowAll && alerts.length > PREVIEW_COUNT) {
+    html += `<div style="padding:10px;text-align:center;font-size:0.78rem;color:var(--accent);cursor:pointer;border-top:1px solid var(--border);font-weight:500" onclick="_alertsShowAll=false;renderAlerts()">折りたたむ</div>`;
+  }
+  html += `</div>`;
   panel.innerHTML = html;
 }
 
@@ -1753,6 +1800,8 @@ function getAlertCountByCategory() {
   for (const a of ALERTS_DATA.alerts) { for (const cat of (a.categories || [])) { counts[cat] = (counts[cat] || 0) + 1; } }
   return counts;
 }
+
+let _overviewPestleExpanded = {};
 
 function renderOverview() {
   if (!NEWS_DATA) return;
@@ -1766,14 +1815,10 @@ function renderOverview() {
   if (PESTLE_HISTORY?._index) { for (const cats of Object.values(PESTLE_HISTORY._index)) { if (typeof cats === 'object') historyTotal += Object.values(cats).reduce((s, n) => s + (typeof n === 'number' ? n : 0), 0); } }
   const newsTotal = historyTotal || NEWS_DATA.total_fetched || totalNews;
   const papersTotal = PAPERS_STATS?.total_papers || PAPERS_STATS?.total || PAPERS_DATA.length;
-  // Calculate date range for PESTLE data
   const pestleDateRange = (() => {
     if (PESTLE_HISTORY?._index) {
       const qs = Object.keys(PESTLE_HISTORY._index).filter(k => /^\d{4}/.test(k)).sort();
-      if (qs.length > 0) {
-        const first = qs[0].substring(0, 4);
-        return `${first}年〜${NEWS_DATA.date}`;
-      }
+      if (qs.length > 0) return `${qs[0].substring(0, 4)}年〜${NEWS_DATA.date}`;
     }
     return NEWS_DATA.date;
   })();
@@ -1783,21 +1828,157 @@ function renderOverview() {
     <div class="stat-card"><div class="stat-label">${t('stat_sources')}</div><div class="stat-value">${sources.size}</div><div class="stat-sub">${t('stat_sub_sources')}</div></div>
     <div class="stat-card"><div class="stat-label">${t('stat_fields')}</div><div class="stat-value">${Object.keys(PAPERS_STATS?.by_field || fields).length}</div><div class="stat-sub">${Object.entries(PAPERS_STATS?.by_field || fields).map(([f,n]) => f + ':' + n.toLocaleString()).join(', ')}</div></div>
     <div class="stat-card"><div class="stat-label">${t('stat_date')}</div><div class="stat-value" style="font-size:1rem">${pestleDateRange}</div><div class="stat-sub">最終更新: ${NEWS_DATA.date}</div></div>`;
+
+  // === Research Pickup (top section) ===
+  renderResearchPickup();
+
+  // === PESTLE Summary with expand/collapse ===
+  const PREVIEW = 3;
   let pestleHtml = '';
+  const alertCounts = getAlertCountByCategory();
   for (const [cat, meta] of Object.entries(PESTLE_META)) {
     const info = NEWS_DATA.pestle[cat]; if (!info) continue;
-    const alertCounts = getAlertCountByCategory();
     const alertBadge = alertCounts[cat] ? `<span class="pestle-alert-badge">\u26a0 ${alertCounts[cat]}</span>` : '';
-    pestleHtml += `<div class="pestle-section"><div class="pestle-header" style="background:linear-gradient(135deg, ${meta.color} 0%, ${meta.color}cc 100%)"><div class="pestle-badge"></div>${meta.icon} ${meta.ja} ${alertBadge}<span class="pestle-count">${info.count}件</span></div><div class="article-list">${info.articles.slice(0, 3).map((a, i) => `<div class="article-item" onclick="showArticle('${cat}', ${i})"><div class="article-title">${esc(localizedTitle(a, cat, i))}</div><div class="article-meta"><span class="article-source">${esc(a.source)}</span>${a.published_date ? `<span style="font-size:0.7rem;color:var(--text-muted)">${esc(a.published_date)}</span>` : ''}</div></div>`).join('')}</div></div>`;
+    const isExpanded = _overviewPestleExpanded[cat];
+    const articles = info.articles;
+    const showCount = isExpanded ? articles.length : Math.min(PREVIEW, articles.length);
+    const hasMore = articles.length > PREVIEW;
+    pestleHtml += `<div class="pestle-section"><div class="pestle-header" style="background:linear-gradient(135deg, ${meta.color} 0%, ${meta.color}cc 100%);cursor:pointer" onclick="switchTab('pestle')"><div class="pestle-badge"></div>${meta.icon} ${meta.ja} ${alertBadge}<span class="pestle-count">${info.count}件</span></div><div class="article-list">`;
+    pestleHtml += articles.slice(0, showCount).map((a, i) => `<div class="article-item" onclick="showArticle('${cat}', ${i})"><div class="article-title">${esc(localizedTitle(a, cat, i))}</div><div class="article-meta"><span class="article-source">${esc(a.source)}</span>${a.published_date ? `<span style="font-size:0.7rem;color:var(--text-muted)">${esc(a.published_date)}</span>` : ''}</div></div>`).join('');
+    if (hasMore) {
+      const remaining = articles.length - PREVIEW;
+      pestleHtml += `<div style="padding:8px 18px;text-align:center;font-size:0.78rem;color:var(--accent);cursor:pointer;border-top:1px solid var(--border);font-weight:500" onclick="event.stopPropagation();_overviewPestleExpanded['${cat}']=!_overviewPestleExpanded['${cat}'];renderOverview()">${isExpanded ? '折りたたむ' : `他 ${remaining}件を表示`}</div>`;
+    }
+    pestleHtml += `</div></div>`;
   }
   document.getElementById('overviewPestle').innerHTML = pestleHtml;
-  let papersHtml = '';
-  const byField = {};
-  PAPERS_DATA.forEach((p, i) => { if (!byField[p.field]) byField[p.field] = []; byField[p.field].push({...p, _idx: i}); });
-  for (const [field, papers] of Object.entries(byField)) {
-    papersHtml += `<div class="paper-section"><div class="paper-header"><span class="paper-field-badge" style="background:${FIELD_COLORS[field] || 'var(--accent)'}">${esc(field)}</span><span class="pestle-count">${papers.length}件</span></div>${papers.slice(0, 2).map(p => `<div class="paper-item" style="cursor:pointer" onclick="showPaper(${p._idx})"><div class="paper-title">${esc(localizedPaperTitle(p, p._idx))}</div><div class="paper-authors">${esc((p.authors || '').substring(0, 80))}${(p.authors || '').length > 80 ? '...' : ''} ${p.published_date ? `<span style="color:var(--text-muted);font-size:0.7rem">(${esc(p.published_date)})</span>` : ''}</div><div style="font-size:0.65rem;color:var(--text-muted);margin-top:2px">DB: ${esc(p.source_db || p.source_type || 'Semantic Scholar')}</div></div>`).join('')}</div>`;
+
+  // === Alerts panel (right column) ===
+  renderAlerts();
+}
+
+// === Research Pickup: papers cross-referenced with CLA/Scenarios/Signals ===
+function renderResearchPickup() {
+  const el = document.getElementById('researchPickup');
+  if (!el) return;
+
+  // Use daily papers if available, otherwise fall back to PAPERS_DATA
+  const candidates = [];
+
+  // Source 1: Daily curated papers (most relevant)
+  if (DAILY_PAPERS?.fields) {
+    const fieldOrder = ['人文学', '社会科学', '自然科学', '工学', '芸術'];
+    for (const field of fieldOrder) {
+      const info = DAILY_PAPERS.fields[field];
+      if (!info?.papers) continue;
+      for (let i = 0; i < info.papers.length; i++) {
+        const p = info.papers[i];
+        candidates.push({
+          title: LANG === 'ja' ? (p.title_ja || p.title) : p.title,
+          field: field,
+          authors: p.authors || '',
+          date: p.published_date || '',
+          novelty: p.novelty_score || 0,
+          summary: LANG === 'ja' ? (p.summary_ja || p.summary || '') : (p.summary || ''),
+          onclick: `showDailyPaper('${esc(field)}', ${i})`,
+          source: 'daily'
+        });
+      }
+    }
   }
-  document.getElementById('overviewPapers').innerHTML = papersHtml;
+
+  // Source 2: Archive papers (fallback)
+  if (candidates.length === 0 && PAPERS_DATA.length > 0) {
+    const sorted = [...PAPERS_DATA].map((p, i) => ({ ...p, _idx: i }))
+      .sort((a, b) => (b.published_date || '').localeCompare(a.published_date || ''))
+      .slice(0, 30);
+    for (const p of sorted) {
+      candidates.push({
+        title: localizedPaperTitle(p, p._idx),
+        field: p.field,
+        authors: p.authors || '',
+        date: p.published_date || '',
+        novelty: 0,
+        summary: localizedPaperSummary(p, p._idx) || '',
+        onclick: `showPaper(${p._idx})`,
+        source: 'archive'
+      });
+    }
+  }
+
+  if (candidates.length === 0) { el.innerHTML = ''; return; }
+
+  // Cross-reference scoring with CLA, Scenarios, Weak Signals keywords
+  const contextKeywords = [];
+  // From CLA
+  if (AI_DATA?.cla) {
+    for (const data of Object.values(AI_DATA.cla)) {
+      if (data.key_tension) contextKeywords.push(...data.key_tension.split(/[、,。\s]+/).filter(w => w.length > 2));
+      if (data.emerging_narrative) contextKeywords.push(...data.emerging_narrative.split(/[、,。\s]+/).filter(w => w.length > 2));
+    }
+  }
+  // From Scenarios
+  if (SCENARIOS_DATA?.driving_forces) {
+    for (const df of SCENARIOS_DATA.driving_forces) {
+      if (df.name) contextKeywords.push(df.name);
+      if (df.description) contextKeywords.push(...df.description.split(/[、,。\s]+/).filter(w => w.length > 3));
+    }
+  }
+  // From Weak Signals
+  if (AI_DATA?.weak_signals) {
+    for (const sig of AI_DATA.weak_signals.slice(0, 20)) {
+      if (sig.signal) contextKeywords.push(sig.signal);
+    }
+  }
+
+  // Score each candidate by keyword overlap + novelty
+  const uniqueKw = [...new Set(contextKeywords)].filter(k => k.length > 1);
+  for (const c of candidates) {
+    const text = (c.title + ' ' + c.summary).toLowerCase();
+    let kwScore = 0;
+    const matchedContexts = [];
+    for (const kw of uniqueKw) {
+      if (text.includes(kw.toLowerCase())) {
+        kwScore++;
+        if (matchedContexts.length < 3) matchedContexts.push(kw);
+      }
+    }
+    c.relevanceScore = kwScore * 2 + (c.novelty || 0);
+    c.matchedContexts = matchedContexts;
+  }
+
+  // Sort by relevance and pick top items
+  candidates.sort((a, b) => b.relevanceScore - a.relevanceScore);
+  const picks = candidates.slice(0, 6);
+
+  let html = `<div style="margin-bottom:4px;display:flex;justify-content:space-between;align-items:center">`;
+  html += `<h3 style="font-size:0.95rem;color:var(--accent);font-weight:700">Research Pickup</h3>`;
+  html += `<span style="font-size:0.72rem;color:var(--text-muted)">CLA / シナリオ / ウィークシグナルとの関連度で選定</span>`;
+  html += `</div>`;
+  html += `<div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(min(380px, 100%), 1fr));gap:10px;margin-bottom:0">`;
+
+  for (const p of picks) {
+    const color = FIELD_COLORS[p.field] || 'var(--accent)';
+    const summaryShort = p.summary.length > 100 ? p.summary.substring(0, 100) + '...' : p.summary;
+    html += `<div class="pickup-card" style="border-left-color:${color}" onclick="${p.onclick}">`;
+    html += `<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:6px">`;
+    html += `<span class="pickup-tag" style="background:${color}">${esc(p.field)}</span>`;
+    if (p.novelty >= 7) html += `<span class="pickup-tag" style="background:var(--highlight)">Novelty ${p.novelty}</span>`;
+    if (p.matchedContexts.length > 0) {
+      for (const ctx of p.matchedContexts) {
+        html += `<span style="font-size:0.6rem;padding:1px 5px;border-radius:3px;border:1px solid var(--border);color:var(--text-muted)">${esc(ctx)}</span>`;
+      }
+    }
+    html += `<span style="font-size:0.65rem;color:var(--text-muted);margin-left:auto">${esc(p.date)}</span>`;
+    html += `</div>`;
+    html += `<div style="font-size:0.84rem;font-weight:500;line-height:1.45;margin-bottom:4px">${esc(p.title)}</div>`;
+    if (summaryShort) html += `<div style="font-size:0.73rem;color:var(--text-muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(summaryShort)}</div>`;
+    html += `<div style="font-size:0.68rem;color:var(--text-muted);margin-top:4px">${esc(p.authors.substring(0, 60))}${p.authors.length > 60 ? '...' : ''}</div>`;
+    html += `</div>`;
+  }
+
+  html += `</div>`;
+  el.innerHTML = html;
 }
 
 async function ensurePestleHistoryLoaded() {
