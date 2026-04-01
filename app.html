@@ -1764,8 +1764,8 @@ function renderOverview() {
   const historyQuarters = PESTLE_HISTORY?._quarterCount || 0;
   let historyTotal = 0;
   if (PESTLE_HISTORY?._index) { for (const cats of Object.values(PESTLE_HISTORY._index)) { if (typeof cats === 'object') historyTotal += Object.values(cats).reduce((s, n) => s + (typeof n === 'number' ? n : 0), 0); } }
-  const newsTotal = historyTotal || totalNews;
-  const papersTotal = PAPERS_STATS?.total || PAPERS_DATA.length;
+  const newsTotal = historyTotal || NEWS_DATA.total_fetched || totalNews;
+  const papersTotal = PAPERS_STATS?.total_papers || PAPERS_STATS?.total || PAPERS_DATA.length;
   // Calculate date range for PESTLE data
   const pestleDateRange = (() => {
     if (PESTLE_HISTORY?._index) {
@@ -1778,10 +1778,10 @@ function renderOverview() {
     return NEWS_DATA.date;
   })();
   document.getElementById('overviewStats').innerHTML = `
-    <div class="stat-card"><div class="stat-label">${t('stat_news')}</div><div class="stat-value">${newsTotal.toLocaleString()}</div><div class="stat-sub">全${NEWS_DATA.total_fetched ? NEWS_DATA.total_fetched.toLocaleString() + '件収集 / ' : ''}当日${totalNews}件選定</div></div>
-    <div class="stat-card"><div class="stat-label">${t('stat_papers')}</div><div class="stat-value">${papersTotal.toLocaleString()}</div><div class="stat-sub">${Object.keys(PAPERS_STATS?.by_field || fields).length} ${t('field')}</div></div>
+    <div class="stat-card"><div class="stat-label">${t('stat_news')}</div><div class="stat-value">${totalNews.toLocaleString()}</div><div class="stat-sub">全${NEWS_DATA.total_fetched ? NEWS_DATA.total_fetched.toLocaleString() + '件から' : ''}${totalNews}件選定（6分野）</div></div>
+    <div class="stat-card"><div class="stat-label">${t('stat_papers')}</div><div class="stat-value">${papersTotal.toLocaleString()}</div><div class="stat-sub">${Object.keys(PAPERS_STATS?.by_field || fields).length} 分野</div></div>
     <div class="stat-card"><div class="stat-label">${t('stat_sources')}</div><div class="stat-value">${sources.size}</div><div class="stat-sub">${t('stat_sub_sources')}</div></div>
-    <div class="stat-card"><div class="stat-label">${t('stat_fields')}</div><div class="stat-value">${Object.keys(fields).length}</div><div class="stat-sub">${Object.entries(fields).map(([f,n]) => f + ':' + n).join(', ')}</div></div>
+    <div class="stat-card"><div class="stat-label">${t('stat_fields')}</div><div class="stat-value">${Object.keys(PAPERS_STATS?.by_field || fields).length}</div><div class="stat-sub">${Object.entries(PAPERS_STATS?.by_field || fields).map(([f,n]) => f + ':' + n.toLocaleString()).join(', ')}</div></div>
     <div class="stat-card"><div class="stat-label">${t('stat_date')}</div><div class="stat-value" style="font-size:1rem">${pestleDateRange}</div><div class="stat-sub">最終更新: ${NEWS_DATA.date}</div></div>`;
   let pestleHtml = '';
   for (const [cat, meta] of Object.entries(PESTLE_META)) {
@@ -1868,7 +1868,7 @@ function toggleTransFilter() { _papersJaOnly = !_papersJaOnly; document.getEleme
 function renderPapersTopbar() {
   const el = document.getElementById('papersTopbarStats');
   if (!el) return;
-  const total = PAPERS_STATS?.total || PAPERS_DATA.length;
+  const total = PAPERS_STATS?.total_papers || PAPERS_STATS?.total || PAPERS_DATA.length;
   const dailyCount = DAILY_PAPERS?.summary?.total_papers || 0;
   el.innerHTML = `<span class="papers-topbar-total">${total.toLocaleString()}</span><span class="papers-topbar-label">${LANG === 'ja' ? '論文' : 'papers'}</span>${dailyCount ? `<span style="font-size:0.72rem;color:var(--accent-warm);margin-left:8px;font-weight:600">${LANG === 'ja' ? '本日+' + dailyCount : 'Today +' + dailyCount}</span>` : ''}<span style="font-size:0.68rem;color:var(--text-muted);margin-left:12px;padding:2px 8px;background:#e8f0ff;border-radius:4px">Source: Semantic Scholar API</span>`;
   // Update archive title
@@ -2871,9 +2871,9 @@ async function loadHeavyData(v) {
       fetch(DATA_BASE_URL + 'data/papers_translations.json?v=' + v),
       fetch(DATA_BASE_URL + 'data/pestle_index.json?v=' + v),
     ]);
-    if (papersResp.status === 'fulfilled') { PAPERS_DATA = await papersResp.value.json(); renderPapers(); }
+    if (papersResp.status === 'fulfilled') { PAPERS_DATA = await papersResp.value.json(); renderPapers(); renderOverview(); }
     if (trResp.status === 'fulfilled') { const trArr = await trResp.value.json(); trArr.forEach(tr => { if (tr && tr.index != null) PAPERS_TRANS[tr.index] = tr; }); renderPapers(); renderOverview(); }
-    if (idxResp.status === 'fulfilled') { const idx = await idxResp.value.json(); if (!PESTLE_HISTORY) PESTLE_HISTORY = {}; PESTLE_HISTORY._index = idx; PESTLE_HISTORY._quarterCount = Object.keys(idx).length; }
+    if (idxResp.status === 'fulfilled') { const idx = await idxResp.value.json(); if (!PESTLE_HISTORY) PESTLE_HISTORY = {}; PESTLE_HISTORY._index = idx; PESTLE_HISTORY._quarterCount = Object.keys(idx).length; renderOverview(); }
   } catch (e) { console.warn('Heavy data load error:', e); }
 }
 
