@@ -1170,8 +1170,8 @@
     <!-- Quick access to Foresight Advice -->
     <div onclick="switchTab('insight')" style="background:linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);border-radius:10px;padding:16px 24px;margin-bottom:20px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:opacity 0.15s" onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
       <div>
-        <div style="font-size:0.95rem;font-weight:700;color:white">未来洞察アドバイス</div>
-        <div style="font-size:0.78rem;color:#ffe8d7;margin-top:2px">問題意識を入力して、CLA・シナリオに基づいた未来洞察レポートを生成</div>
+        <div style="font-size:0.95rem;font-weight:700;color:white" data-i18n="tab_insight">未来洞察アドバイス</div>
+        <div style="font-size:0.78rem;color:#ffe8d7;margin-top:2px" data-i18n="insight_cta">問題意識を入力して、CLA・シナリオに基づいた未来洞察レポートを生成</div>
       </div>
       <span style="font-size:1.2rem;color:white">&#8594;</span>
     </div>
@@ -1189,10 +1189,10 @@
     <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
       <input class="search-input" id="pestleSearch" data-i18n-placeholder="search_news" placeholder="ニュースを検索..." oninput="renderPestle()" style="flex:1;min-width:180px">
       <select id="pestleYearFilter" onchange="renderPestle()" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card);font-size:0.85rem">
-        <option value="latest">最新（当日）</option>
-        <option value="1week">1週間</option>
-        <option value="1month">1ヶ月</option>
-        <option value="all">全期間</option>
+        <option value="latest" data-i18n="pestle_today">最新（当日）</option>
+        <option value="1week" data-i18n="pestle_1week">1週間</option>
+        <option value="1month" data-i18n="pestle_1month">1ヶ月</option>
+        <option value="all" data-i18n="pestle_all">全期間</option>
       </select>
       <span id="pestleTotalCount" style="font-size:0.78rem;color:var(--text-muted)"></span>
     </div>
@@ -1315,7 +1315,7 @@
   <!-- ===== SEARCH ===== -->
   <div class="tab-panel" id="tab-search">
     <div class="search-bar" style="display:flex;gap:8px;align-items:center">
-      <input class="search-input" id="globalSearch" placeholder="自然文で検索してEnter（例：AIが社会に与える影響）" onkeydown="if(event.key==='Enter')runGlobalSemanticSearch()">
+      <input class="search-input" id="globalSearch" data-i18n-placeholder="search_placeholder" placeholder="自然文で検索してEnter（例：AIが社会に与える影響）" onkeydown="if(event.key==='Enter')runGlobalSemanticSearch()">
       <button onclick="runGlobalSemanticSearch()" style="padding:8px 16px;background:var(--accent);color:white;border:none;border-radius:6px;cursor:pointer;font-size:0.82rem;white-space:nowrap">検索</button>
     </div>
     <div id="searchStatus" style="font-size:0.75rem;color:var(--text-muted);padding:4px 0;min-height:1.4em"></div>
@@ -1337,61 +1337,57 @@
   <!-- ===== INSIGHT ===== -->
   <div class="tab-panel" id="tab-insight">
     <div style="margin-bottom:20px">
-      <h3 style="font-size:1.1rem;color:var(--accent);margin-bottom:6px;font-weight:700">未来洞察アドバイス</h3>
-      <p style="font-size:0.82rem;color:var(--text-muted);line-height:1.6">問題意識を入力し、CLA（因果階層分析）とシナリオプランニングのデータに基づいた未来洞察レポートを生成します。今後注目すべきシグナルやウォッチテーマを提示し、認知の拡張をサポートします。</p>
+      <h3 style="font-size:1.1rem;color:var(--accent);margin-bottom:6px;font-weight:700" data-i18n="insight_title">未来洞察アドバイス</h3>
+      <p style="font-size:0.82rem;color:var(--text-muted);line-height:1.6" data-i18n="insight_desc">問題意識を入力し、CLA（因果階層分析）とシナリオプランニングのデータに基づいた未来洞察レポートを生成します。今後注目すべきシグナルやウォッチテーマを提示し、認知の拡張をサポートします。</p>
     </div>
 
-    <!-- Step 1: Question input -->
     <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <label style="font-size:0.9rem;font-weight:700;color:var(--accent)">1. 問題意識・質問</label>
-        <button onclick="refineQuestion()" class="btn" style="font-size:0.78rem;padding:5px 14px" id="refineBtn">質問を整える</button>
+        <label style="font-size:0.9rem;font-weight:700;color:var(--accent)" data-i18n="insight_step1">1. 問題意識・質問</label>
+        <button onclick="refineQuestion()" class="btn" style="font-size:0.78rem;padding:5px 14px" id="refineBtn" data-i18n="insight_refine">質問を整える</button>
       </div>
-      <textarea id="insightQuestion" style="width:100%;min-height:100px;padding:12px;border:1px solid var(--border);border-radius:8px;font-size:0.9rem;line-height:1.7;resize:vertical;background:var(--bg);color:var(--text);font-family:inherit" placeholder="例: AIの急速な普及が雇用構造にどのような影響を与えるか？私たちの組織はどう備えるべきか？"></textarea>
+      <textarea id="insightQuestion" style="width:100%;min-height:100px;padding:12px;border:1px solid var(--border);border-radius:8px;font-size:0.9rem;line-height:1.7;resize:vertical;background:var(--bg);color:var(--text);font-family:inherit" data-i18n-placeholder="insight_placeholder" placeholder="例: AIの急速な普及が雇用構造にどのような影響を与えるか？"></textarea>
       <div id="refineStatus" style="font-size:0.78rem;color:var(--text-muted);margin-top:4px"></div>
       <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
-        <button onclick="generateInsight()" class="btn btn-accent" style="font-size:0.88rem;padding:10px 24px">分析・回答を生成</button>
-        <span style="font-size:0.75rem;color:var(--text-muted)">参考情報の追加は任意です。質問だけでも生成できます。</span>
+        <button onclick="generateInsight()" class="btn btn-accent" style="font-size:0.88rem;padding:10px 24px" data-i18n="insight_generate">分析・回答を生成</button>
+        <span style="font-size:0.75rem;color:var(--text-muted)" data-i18n="insight_generate_hint">参考情報の追加は任意です。質問だけでも生成できます。</span>
       </div>
     </div>
 
-    <!-- Step 2: Reference materials (URL or text, multiple) -->
     <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px">
-      <label style="font-size:0.9rem;font-weight:700;color:var(--accent);display:block;margin-bottom:10px">2. 参考情報（任意・複数可）</label>
+      <label style="font-size:0.9rem;font-weight:700;color:var(--accent);display:block;margin-bottom:10px" data-i18n="insight_step2">2. 参考情報（任意・複数可）</label>
       <div id="refItemsList" style="margin-bottom:10px"></div>
       <div style="display:flex;gap:8px;margin-bottom:8px">
-        <input type="text" id="refUrlInput" style="flex:1;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;background:var(--bg);color:var(--text)" placeholder="URLを入力（Notion / Webページ）" onkeydown="if(event.key==='Enter'){addRefItem('url')}">
-        <button onclick="addRefItem('url')" class="btn btn-accent" style="font-size:0.82rem;padding:8px 16px;white-space:nowrap" id="fetchUrlBtn">追加</button>
+        <input type="text" id="refUrlInput" style="flex:1;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;background:var(--bg);color:var(--text)" data-i18n-placeholder="insight_url_ph" placeholder="URLを入力（Notion / Webページ）" onkeydown="if(event.key==='Enter'){addRefItem('url')}">
+        <button onclick="addRefItem('url')" class="btn btn-accent" style="font-size:0.82rem;padding:8px 16px;white-space:nowrap" id="fetchUrlBtn" data-i18n="insight_add">追加</button>
       </div>
-      <textarea id="refTextInput" style="width:100%;min-height:60px;padding:12px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;line-height:1.6;resize:vertical;background:var(--bg);color:var(--text);font-family:inherit" placeholder="テキストを直接貼り付け（コピーした文章やメモ）"></textarea>
+      <textarea id="refTextInput" style="width:100%;min-height:60px;padding:12px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;line-height:1.6;resize:vertical;background:var(--bg);color:var(--text);font-family:inherit" data-i18n-placeholder="insight_text_ph" placeholder="テキストを直接貼り付け（コピーした文章やメモ）"></textarea>
       <div style="display:flex;gap:8px;margin-top:8px">
-        <button onclick="addRefItem('text')" class="btn" style="font-size:0.78rem;padding:5px 14px">テキストを追加</button>
+        <button onclick="addRefItem('text')" class="btn" style="font-size:0.78rem;padding:5px 14px" data-i18n="insight_add_text">テキストを追加</button>
         <span id="fetchUrlStatus" style="font-size:0.75rem;color:var(--text-muted);line-height:2"></span>
       </div>
     </div>
 
-    <!-- Step 3: Context analysis (auto-generated from refs) -->
     <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-        <label style="font-size:0.9rem;font-weight:700;color:var(--accent)">3. 文脈の解析</label>
-        <button onclick="analyzeContext()" class="btn" style="font-size:0.75rem;padding:4px 12px" id="analyzeCtxBtn">解析を実行</button>
+        <label style="font-size:0.9rem;font-weight:700;color:var(--accent)" data-i18n="insight_step3">3. 文脈の解析</label>
+        <button onclick="analyzeContext()" class="btn" style="font-size:0.75rem;padding:4px 12px" id="analyzeCtxBtn" data-i18n="insight_analyze">解析を実行</button>
       </div>
       <div id="contextAnalysis" style="margin-bottom:8px">
-        <div style="font-size:0.82rem;color:var(--text-muted);padding:8px 0">参考情報を追加すると、AIが文脈を解析し「何について問おうとしているのか」を整理します。</div>
+        <div style="font-size:0.82rem;color:var(--text-muted);padding:8px 0" data-i18n="insight_ctx_hint">参考情報を追加すると、AIが文脈を解析し「何について問おうとしているのか」を整理します。</div>
       </div>
       <div id="contextList" style="margin-bottom:8px"></div>
       <span style="font-size:0.75rem;color:var(--text-muted)" id="contextCount"></span>
     </div>
 
-    <!-- Step 4: Generate -->
     <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:20px">
-      <label style="font-size:0.9rem;font-weight:700;color:var(--accent);display:block;margin-bottom:10px">4. 回答を生成</label>
+      <label style="font-size:0.9rem;font-weight:700;color:var(--accent);display:block;margin-bottom:10px" data-i18n="insight_step4">4. 回答を生成</label>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <button onclick="generateInsight()" class="btn btn-accent" id="insightGenBtn" style="font-size:0.9rem;padding:10px 24px">分析・回答を生成</button>
+        <button onclick="generateInsight()" class="btn btn-accent" id="insightGenBtn" style="font-size:0.9rem;padding:10px 24px" data-i18n="insight_generate">分析・回答を生成</button>
         <span id="insightStatus" style="font-size:0.8rem;color:var(--text-muted)"></span>
       </div>
       <div style="margin-top:10px">
-        <p style="font-size:0.75rem;color:var(--text-muted)">初回利用時はAPIキーの設定が必要な場合があります。<a href="#" onclick="promptInsightApiKey();return false" style="color:var(--accent)">APIキーを設定</a></p>
+        <p style="font-size:0.75rem;color:var(--text-muted)"><span data-i18n="insight_apikey_hint">初回利用時はAPIキーの設定が必要な場合があります。</span><a href="#" onclick="promptInsightApiKey();return false" style="color:var(--accent)" data-i18n="insight_apikey_set">APIキーを設定</a></p>
       </div>
     </div>
 
@@ -1402,40 +1398,38 @@
   <!-- ===== FORESIGHT BUILDER ===== -->
   <div class="tab-panel" id="tab-foresight">
     <div style="margin-bottom:20px">
-      <h3 style="font-size:1.1rem;color:var(--accent);margin-bottom:6px;font-weight:700">未来洞察構築</h3>
-      <p style="font-size:0.82rem;color:var(--text-muted);line-height:1.6">ブックマークに保存したニュースや学術論文を元に、新たなウィークシグナル・シナリオ・CLA分析を構築します。あなた自身の視点で未来洞察を組み立てるための機能です。</p>
+      <h3 style="font-size:1.1rem;color:var(--accent);margin-bottom:6px;font-weight:700" data-i18n="fs_title">未来洞察構築</h3>
+      <p style="font-size:0.82rem;color:var(--text-muted);line-height:1.6" data-i18n="fs_desc">ブックマークに保存したニュースや学術論文を元に、新たなウィークシグナル・シナリオ・CLA分析を構築します。あなた自身の視点で未来洞察を組み立てるための機能です。</p>
     </div>
 
-    <!-- Bookmarked items as source -->
     <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-        <label style="font-size:0.9rem;font-weight:700;color:var(--accent)">ソースデータ（ブックマーク）</label>
+        <label style="font-size:0.9rem;font-weight:700;color:var(--accent)" data-i18n="fs_source">ソースデータ（ブックマーク）</label>
         <span id="foresightSourceCount" style="font-size:0.75rem;color:var(--text-muted)"></span>
       </div>
       <div id="foresightSourceList" style="max-height:300px;overflow-y:auto;margin-bottom:10px"></div>
-      <p style="font-size:0.75rem;color:var(--text-muted)">ブックマークタブで保存した記事が自動的にソースとして使用されます。</p>
+      <p style="font-size:0.75rem;color:var(--text-muted)" data-i18n="fs_source_hint">ブックマークタブで保存した記事が自動的にソースとして使用されます。</p>
     </div>
 
-    <!-- Build options -->
     <div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:16px">
-      <label style="font-size:0.9rem;font-weight:700;color:var(--accent);display:block;margin-bottom:12px">構築する分析を選択</label>
+      <label style="font-size:0.9rem;font-weight:700;color:var(--accent);display:block;margin-bottom:12px" data-i18n="fs_select">構築する分析を選択</label>
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">
         <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;cursor:pointer;padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:var(--bg)">
-          <input type="checkbox" id="fsBuildSignals" checked style="accent-color:var(--accent)"> ウィークシグナル抽出
+          <input type="checkbox" id="fsBuildSignals" checked style="accent-color:var(--accent)"> <span data-i18n="fs_signals">ウィークシグナル抽出</span>
         </label>
         <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;cursor:pointer;padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:var(--bg)">
-          <input type="checkbox" id="fsBuildCLA" checked style="accent-color:var(--accent)"> CLA分析
+          <input type="checkbox" id="fsBuildCLA" checked style="accent-color:var(--accent)"> <span data-i18n="fs_cla">CLA分析</span>
         </label>
         <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;cursor:pointer;padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:var(--bg)">
-          <input type="checkbox" id="fsBuildScenario" checked style="accent-color:var(--accent)"> シナリオ構築
+          <input type="checkbox" id="fsBuildScenario" checked style="accent-color:var(--accent)"> <span data-i18n="fs_scenario">シナリオ構築</span>
         </label>
       </div>
       <div style="margin-bottom:12px">
-        <label style="font-size:0.82rem;color:var(--text-muted);display:block;margin-bottom:4px">フォーカステーマ（任意）</label>
-        <input type="text" id="fsFocusTopic" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;background:var(--bg);color:var(--text)" placeholder="例: AIガバナンスの未来、気候変動と経済の関係 etc.">
+        <label style="font-size:0.82rem;color:var(--text-muted);display:block;margin-bottom:4px" data-i18n="fs_focus">フォーカステーマ（任意）</label>
+        <input type="text" id="fsFocusTopic" style="width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;font-size:0.85rem;background:var(--bg);color:var(--text)" data-i18n-placeholder="fs_focus_ph" placeholder="例: AIガバナンスの未来、気候変動と経済の関係">
       </div>
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-        <button onclick="buildForesight()" class="btn btn-accent" id="fsBuildBtn" style="font-size:0.9rem;padding:10px 24px;background:var(--accent);border-color:var(--accent)">未来洞察を構築</button>
+        <button onclick="buildForesight()" class="btn btn-accent" id="fsBuildBtn" style="font-size:0.9rem;padding:10px 24px;background:var(--accent);border-color:var(--accent)" data-i18n="fs_build">未来洞察を構築</button>
         <span id="fsBuildStatus" style="font-size:0.8rem;color:var(--text-muted)"></span>
       </div>
     </div>
@@ -1561,6 +1555,40 @@ const I18N = {
     novelty: '新規性', ai_search: 'AI検索', save_paper: '保存',
     paper_saved: '保存済', export_papers: 'エクスポート',
     paper_note_ph: 'メモを追加...', novelty_reason: '新規性の理由',
+    // Insight tab
+    insight_title: '未来洞察アドバイス',
+    insight_desc: '問題意識を入力し、CLA（因果階層分析）とシナリオプランニングのデータに基づいた未来洞察レポートを生成します。今後注目すべきシグナルやウォッチテーマを提示し、認知の拡張をサポートします。',
+    insight_step1: '1. 問題意識・質問', insight_refine: '質問を整える',
+    insight_placeholder: '例: AIの急速な普及が雇用構造にどのような影響を与えるか？',
+    insight_generate: '分析・回答を生成', insight_generate_hint: '参考情報の追加は任意です。質問だけでも生成できます。',
+    insight_step2: '2. 参考情報（任意・複数可）', insight_url_ph: 'URLを入力（Notion / Webページ）',
+    insight_add: '追加', insight_text_ph: 'テキストを直接貼り付け（コピーした文章やメモ）', insight_add_text: 'テキストを追加',
+    insight_step3: '3. 文脈の解析', insight_analyze: '解析を実行',
+    insight_ctx_hint: '参考情報を追加すると、AIが文脈を解析し「何について問おうとしているのか」を整理します。',
+    insight_step4: '4. 回答を生成',
+    insight_apikey_hint: '初回利用時はAPIキーの設定が必要な場合があります。',
+    insight_apikey_set: 'APIキーを設定',
+    insight_analyzing: '分析中...（30秒ほどかかります）',
+    insight_history_title: '過去の分析',
+    insight_cta: '問題意識を入力して、CLA・シナリオに基づいた未来洞察レポートを生成',
+    // Foresight builder
+    fs_title: '未来洞察構築',
+    fs_desc: 'ブックマークに保存したニュースや学術論文を元に、新たなウィークシグナル・シナリオ・CLA分析を構築します。あなた自身の視点で未来洞察を組み立てるための機能です。',
+    fs_source: 'ソースデータ（ブックマーク）', fs_source_hint: 'ブックマークタブで保存した記事が自動的にソースとして使用されます。',
+    fs_select: '構築する分析を選択', fs_signals: 'ウィークシグナル抽出', fs_cla: 'CLA分析', fs_scenario: 'シナリオ構築',
+    fs_focus: 'フォーカステーマ（任意）', fs_focus_ph: '例: AIガバナンスの未来、気候変動と経済の関係',
+    fs_build: '未来洞察を構築', fs_building: '構築中...（30-60秒ほどかかります）',
+    fs_no_bookmarks: 'ブックマークがありません。PESTLEニュースや学術論文タブで記事を保存してください。',
+    // Common
+    loading: '読み込み中...', error_prefix: 'エラー: ', copy_done: 'コピーしました',
+    ctx_saved: '保存済み', ctx_items: '件', ctx_check_hint: 'チェックを入れると回答生成に使用されます',
+    bm_empty: 'ブックマークはありません。PESTLEニュースやウィークシグナルタブで記事を保存してください。',
+    bm_removed: 'ブックマークを解除しました', bm_saved: 'ブックマークに保存しました',
+    analyzing_ctx: '参考情報を解析中...', question_refined: '質問を整理しました。内容を確認・編集してください。',
+    refining: '質問を整理中...',
+    pestle_today: '最新（当日）', pestle_1week: '1週間', pestle_1month: '1ヶ月', pestle_all: '全期間',
+    search_placeholder: '自然文で検索してEnter（例：AIが社会に与える影響）',
+    no_history: '過去の分析履歴はありません。',
   },
   en: {
     app_title: 'Future Insight Workspace',
@@ -1631,6 +1659,40 @@ const I18N = {
     novelty: 'Novelty', ai_search: 'AI Search', save_paper: 'Save',
     paper_saved: 'Saved', export_papers: 'Export',
     paper_note_ph: 'Add a note...', novelty_reason: 'Novelty Reason',
+    // Insight tab
+    insight_title: 'Foresight Advice',
+    insight_desc: 'Enter your question and generate a foresight report based on CLA and scenario planning data. We highlight signals and watch themes to expand your awareness.',
+    insight_step1: '1. Question', insight_refine: 'Refine question',
+    insight_placeholder: 'e.g. How will rapid AI adoption affect employment structures?',
+    insight_generate: 'Generate Analysis', insight_generate_hint: 'Reference materials are optional. You can generate with just a question.',
+    insight_step2: '2. Reference Materials (optional)', insight_url_ph: 'Enter URL (Notion / Web page)',
+    insight_add: 'Add', insight_text_ph: 'Paste text directly (copied text or notes)', insight_add_text: 'Add text',
+    insight_step3: '3. Context Analysis', insight_analyze: 'Run Analysis',
+    insight_ctx_hint: 'Add reference materials and AI will analyze the context to clarify what you are exploring.',
+    insight_step4: '4. Generate Report',
+    insight_apikey_hint: 'API key may be required for first use.',
+    insight_apikey_set: 'Set API key',
+    insight_analyzing: 'Analyzing... (about 30 seconds)',
+    insight_history_title: 'Past Analyses',
+    insight_cta: 'Enter your question to generate a foresight report based on CLA and scenarios',
+    // Foresight builder
+    fs_title: 'Foresight Builder',
+    fs_desc: 'Build new weak signals, scenarios, and CLA analyses from your bookmarked news and papers. Construct your own foresight perspective.',
+    fs_source: 'Source Data (Bookmarks)', fs_source_hint: 'Articles saved in the Bookmarks tab are automatically used as sources.',
+    fs_select: 'Select analyses to build', fs_signals: 'Weak Signal Extraction', fs_cla: 'CLA Analysis', fs_scenario: 'Scenario Building',
+    fs_focus: 'Focus Topic (optional)', fs_focus_ph: 'e.g. Future of AI governance, climate and economy',
+    fs_build: 'Build Foresight', fs_building: 'Building... (30-60 seconds)',
+    fs_no_bookmarks: 'No bookmarks yet. Save articles from PESTLE News or Papers tabs.',
+    // Common
+    loading: 'Loading...', error_prefix: 'Error: ', copy_done: 'Copied',
+    ctx_saved: 'Saved', ctx_items: ' items', ctx_check_hint: 'Check to include in analysis',
+    bm_empty: 'No bookmarks. Save articles from PESTLE News or Weak Signals tabs.',
+    bm_removed: 'Bookmark removed', bm_saved: 'Saved to bookmarks',
+    analyzing_ctx: 'Analyzing references...', question_refined: 'Question refined. Please review and edit.',
+    refining: 'Refining question...',
+    pestle_today: 'Today', pestle_1week: '1 Week', pestle_1month: '1 Month', pestle_all: 'All Time',
+    search_placeholder: 'Search with natural language (e.g. Impact of AI on society)',
+    no_history: 'No analysis history yet.',
   }
 };
 
@@ -3417,14 +3479,14 @@ async function toggleBookmark(type, category, index, title, url, btn) {
     userBookmarks.unshift({ id: doc.id, type, category, articleIndex: index, title: title || '', url: url || '' });
     if (btn) { btn.classList.add('active'); btn.textContent = '保存済'; }
   }
-  showToast(existing ? 'ブックマークを解除しました' : 'ブックマークに保存しました');
+  showToast(existing ? t('bm_removed') : t('bm_saved'));
 }
 
 function renderBookmarks() {
   const el = document.getElementById('bookmarksList');
   if (!el) return;
   if (userBookmarks.length === 0) {
-    el.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">ブックマークはありません。PESTLEニュースやウィークシグナルタブで記事を保存してください。</div>';
+    el.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-muted)">${t('bm_empty')}</div>`;
     return;
   }
   let html = '';
@@ -3760,7 +3822,7 @@ async function refineQuestion() {
   const btn = document.getElementById('refineBtn');
   const statusEl = document.getElementById('refineStatus');
   btn.disabled = true;
-  statusEl.textContent = '質問を整理中...';
+  statusEl.textContent = t('refining');
 
   try {
     const resp = await fetch('https://api.anthropic.com/v1/messages', {
@@ -3791,7 +3853,7 @@ ${raw}` }]
     const data = await resp.json();
     const refined = data.content?.[0]?.text || raw;
     textarea.value = refined;
-    statusEl.textContent = '質問を整理しました。内容を確認・編集してください。';
+    statusEl.textContent = t('question_refined');
   } catch(e) {
     statusEl.textContent = 'エラー: ' + e.message;
   }
@@ -3811,7 +3873,7 @@ async function generateInsight() {
   const btn = document.getElementById('insightGenBtn');
   const status = document.getElementById('insightStatus');
   btn.disabled = true;
-  status.textContent = '分析中...（30秒ほどかかります）';
+  status.textContent = t('insight_analyzing');
 
   // Build context from research contexts, CLA, scenarios, signals
   let context = '';
@@ -4126,7 +4188,7 @@ function renderInsightHistory() {
   // Show all history except the first item (which is currently displayed in insightResult)
   const historyToShow = insightHistory.length > 1 ? insightHistory.slice(1) : (_insightHistoryLoaded ? insightHistory : []);
   if (historyToShow.length === 0) {
-    el.innerHTML = _insightHistoryLoaded ? '<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:0.85rem">過去の分析履歴はありません。</div>' : '';
+    el.innerHTML = _insightHistoryLoaded ? `<div style="text-align:center;padding:24px;color:var(--text-muted);font-size:0.85rem">${t('no_history')}</div>` : '';
     return;
   }
   let html = `<div style="display:flex;justify-content:space-between;align-items:center;margin:24px 0 12px">
@@ -4176,7 +4238,7 @@ function renderForesightSources() {
   if (!el) return;
   if (countEl) countEl.textContent = `${userBookmarks.length}件のブックマーク`;
   if (userBookmarks.length === 0) {
-    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:0.85rem">ブックマークがありません。PESTLEニュースや学術論文タブで記事を保存してください。</div>';
+    el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:0.85rem">${t('fs_no_bookmarks')}</div>`;
     return;
   }
   el.innerHTML = userBookmarks.map(bm => {
@@ -4205,7 +4267,7 @@ async function buildForesight() {
   const btn = document.getElementById('fsBuildBtn');
   const status = document.getElementById('fsBuildStatus');
   btn.disabled = true;
-  status.textContent = '構築中...（30-60秒ほどかかります）';
+  status.textContent = t('fs_building');
 
   // Build source context from bookmarks
   let sourceText = '【ブックマークされた記事・論文】\n';
