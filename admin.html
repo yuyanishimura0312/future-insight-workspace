@@ -513,9 +513,9 @@
               <th>登録日</th>
               <th>最終ログイン</th>
               <th style="text-align:center;">ブックマーク</th>
-              <th style="text-align:center;">観察</th>
-              <th style="text-align:center;">駆動力</th>
-              <th style="text-align:center;">シナリオ</th>
+              <th style="text-align:center;">洞察</th>
+              <th style="text-align:center;">構築</th>
+              <th style="text-align:center;">保存論文</th>
               <th>操作</th>
             </tr>
           </thead>
@@ -536,6 +536,30 @@
           <div class="db-status-label">ステータス</div>
           <div class="db-status-value">読み込み中...</div>
         </div>
+      </div>
+    </div>
+
+    <!-- Foresight Insights (all users) -->
+    <div class="section-card">
+      <div class="section-title" style="margin-top:0;">未来洞察アドバイス履歴（全ユーザー）</div>
+      <div id="adminInsightsList" style="max-height:500px;overflow-y:auto">
+        <div class="empty-state">読み込み中...</div>
+      </div>
+    </div>
+
+    <!-- Foresight Builds (all users) -->
+    <div class="section-card">
+      <div class="section-title" style="margin-top:0;">未来洞察構築履歴（全ユーザー）</div>
+      <div id="adminForesightList" style="max-height:500px;overflow-y:auto">
+        <div class="empty-state">読み込み中...</div>
+      </div>
+    </div>
+
+    <!-- Bookmarks (all users) -->
+    <div class="section-card">
+      <div class="section-title" style="margin-top:0;">ブックマーク一覧（全ユーザー）</div>
+      <div id="adminBookmarksList" style="max-height:500px;overflow-y:auto">
+        <div class="empty-state">読み込み中...</div>
       </div>
     </div>
 
@@ -626,9 +650,8 @@
 
   // ---- Load activity counts for all users ----
   async function loadAllActivityCounts() {
-    const subcollections = ['bookmarks', 'observations', 'drivingForces', 'myScenarios'];
+    const subcollections = ['bookmarks', 'insights', 'foresightBuilds', 'savedPapers'];
 
-    // Process users in parallel, but limit concurrency
     const promises = allUsers.map(async (user) => {
       const counts = {};
       await Promise.all(subcollections.map(async (sub) => {
@@ -643,9 +666,12 @@
     });
 
     await Promise.all(promises);
-
-    // Re-render table with activity counts
     renderTable();
+
+    // Load detailed data for admin panels
+    loadAdminInsights();
+    loadAdminForesights();
+    loadAdminBookmarks();
   }
 
   // ---- Render dashboard stats ----
@@ -698,9 +724,9 @@
       // Activity counts
       const counts = userActivityCounts[user.uid];
       const bookmarks = counts ? counts.bookmarks : '-';
-      const observations = counts ? counts.observations : '-';
-      const drivingForces = counts ? counts.drivingForces : '-';
-      const scenarios = counts ? counts.myScenarios : '-';
+      const insights = counts ? counts.insights : '-';
+      const foresights = counts ? counts.foresightBuilds : '-';
+      const savedPapers = counts ? counts.savedPapers : '-';
 
       const countClass = (val) => val === 0 ? 'activity-count zero' : 'activity-count';
 
@@ -712,9 +738,9 @@
         <td>${createdAt}</td>
         <td>${lastLogin}</td>
         <td class="${typeof bookmarks === 'number' ? countClass(bookmarks) : 'activity-count'}">${bookmarks}</td>
-        <td class="${typeof observations === 'number' ? countClass(observations) : 'activity-count'}">${observations}</td>
-        <td class="${typeof drivingForces === 'number' ? countClass(drivingForces) : 'activity-count'}">${drivingForces}</td>
-        <td class="${typeof scenarios === 'number' ? countClass(scenarios) : 'activity-count'}">${scenarios}</td>
+        <td class="${typeof insights === 'number' ? countClass(insights) : 'activity-count'}">${insights}</td>
+        <td class="${typeof foresights === 'number' ? countClass(foresights) : 'activity-count'}">${foresights}</td>
+        <td class="${typeof savedPapers === 'number' ? countClass(savedPapers) : 'activity-count'}">${savedPapers}</td>
         <td class="actions">${actions}</td>
       </tr>`;
     }).join('');
@@ -813,10 +839,11 @@
   // ---- Database Status ----
   async function loadDatabaseStatus() {
     const dataFiles = [
-      { key: 'latest', url: SHARED_DATA_BASE + '/latest.json', label: '最新ニュースデータ' },
-      { key: 'weak_signals', url: SHARED_DATA_BASE + '/weak_signals.json', label: '弱い信号データ' },
+      { key: 'latest', url: SHARED_DATA_BASE + '/latest.json', label: 'PESTLEニュース' },
+      { key: 'ai_analysis', url: SHARED_DATA_BASE + '/ai_analysis.json', label: 'AI分析（CLA・シグナル）' },
       { key: 'scenarios', url: SHARED_DATA_BASE + '/scenarios.json', label: 'シナリオデータ' },
-      { key: 'articles', url: SHARED_DATA_BASE + '/articles.json', label: '記事データ' }
+      { key: 'daily_papers', url: SHARED_DATA_BASE + '/daily_papers.json', label: '本日の論文' },
+      { key: 'papers_stats', url: SHARED_DATA_BASE + '/papers_stats.json', label: '論文統計' },
     ];
 
     const results = await Promise.allSettled(
@@ -841,62 +868,26 @@
 
         // Extract meaningful info from each data file
         if (file.key === 'latest') {
-          // latest.json typically has articles with dates
-          if (Array.isArray(data)) {
-            const count = data.length;
-            // Try to find the most recent date
-            const dates = data
-              .map(item => item.date || item.published || item.created)
-              .filter(Boolean)
-              .sort()
-              .reverse();
-            const latestDate = dates[0] || null;
-            detail = `${count} 件の記事`;
-            if (latestDate) {
-              detail += ` / 最新: ${latestDate}`;
-              freshness = getFreshness(latestDate);
-            }
-          } else if (data && typeof data === 'object') {
-            // Might be an object with articles array or metadata
-            const articles = data.articles || data.data || data.items;
-            if (Array.isArray(articles)) {
-              detail = `${articles.length} 件の記事`;
-              const dates = articles.map(a => a.date || a.published).filter(Boolean).sort().reverse();
-              if (dates[0]) {
-                detail += ` / 最新: ${dates[0]}`;
-                freshness = getFreshness(dates[0]);
-              }
-            } else if (data.lastUpdated || data.updated || data.date) {
-              const d = data.lastUpdated || data.updated || data.date;
-              detail = `最終更新: ${d}`;
-              freshness = getFreshness(d);
-            } else {
-              detail = 'データ読み込み成功';
-            }
-          }
-        } else if (file.key === 'weak_signals') {
-          if (Array.isArray(data)) {
-            detail = `${data.length} 件の弱い信号`;
-          } else if (data && data.signals) {
-            detail = `${data.signals.length} 件の弱い信号`;
-          } else {
-            detail = 'データ読み込み成功';
-          }
+          if (data.date) { detail = `日付: ${data.date}`; freshness = getFreshness(data.date); }
+          const totalArticles = data.pestle ? Object.values(data.pestle).reduce((s, c) => s + (c.count || 0), 0) : 0;
+          if (totalArticles) detail += ` / ${totalArticles}件（${data.total_fetched || '?'}件から選定）`;
+        } else if (file.key === 'ai_analysis') {
+          const sigCount = data.weak_signals ? data.weak_signals.length : 0;
+          const claCount = data.cla ? Object.keys(data.cla).length : 0;
+          detail = `CLA ${claCount}分野 / シグナル ${sigCount}件`;
+          if (data.date) freshness = getFreshness(data.date);
         } else if (file.key === 'scenarios') {
-          if (Array.isArray(data)) {
-            detail = `${data.length} 件のシナリオ`;
-          } else if (data && data.version) {
-            detail = `バージョン: ${data.version}`;
-            if (data.scenarios) detail += ` / ${data.scenarios.length} 件`;
-          } else {
-            detail = 'データ読み込み成功';
-          }
-        } else if (file.key === 'articles') {
-          if (Array.isArray(data)) {
-            detail = `${data.length} 件の記事`;
-          } else {
-            detail = 'データ読み込み成功';
-          }
+          const scCount = data.scenarios ? data.scenarios.length : 0;
+          detail = `${scCount}シナリオ`;
+          if (data.generated_at) { detail += ` / 生成: ${data.generated_at.substring(0, 10)}`; freshness = getFreshness(data.generated_at); }
+        } else if (file.key === 'daily_papers') {
+          if (data.date) { detail = `日付: ${data.date}`; freshness = getFreshness(data.date); }
+          const total = data.summary?.total_papers || 0;
+          if (total) detail += ` / ${total}件`;
+        } else if (file.key === 'papers_stats') {
+          detail = `総論文数: ${(data.total_papers || 0).toLocaleString()}`;
+          const fields = data.by_field ? Object.keys(data.by_field).length : 0;
+          if (fields) detail += ` / ${fields}分野`;
         }
 
         html += `
@@ -1004,6 +995,111 @@
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
+  }
+
+  // ---- Admin: Load all insights from all users ----
+  async function loadAdminInsights() {
+    const el = document.getElementById('adminInsightsList');
+    const allInsights = [];
+    for (const user of allUsers) {
+      try {
+        const snap = await db.collection('users').doc(user.uid).collection('insights')
+          .orderBy('createdAt', 'desc').limit(20).get();
+        snap.docs.forEach(d => {
+          const data = d.data();
+          allInsights.push({
+            userName: user.displayName || user.email,
+            question: data.question || '',
+            answer: (data.answer || '').substring(0, 200),
+            date: data.createdAt?.toDate?.() || null,
+          });
+        });
+      } catch (e) { /* skip */ }
+    }
+    allInsights.sort((a, b) => (b.date || 0) - (a.date || 0));
+    if (allInsights.length === 0) { el.innerHTML = '<div class="empty-state">データなし</div>'; return; }
+    el.innerHTML = allInsights.map(item => `
+      <div style="padding:12px;border-bottom:1px solid var(--border)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <span style="font-size:0.78rem;font-weight:600;color:var(--accent)">${escapeHtml(item.userName)}</span>
+          <span style="font-size:0.7rem;color:var(--text-muted)">${item.date ? formatTimestamp({ toDate: () => item.date }) : '-'}</span>
+        </div>
+        <div style="font-size:0.85rem;font-weight:500;margin-bottom:4px">${escapeHtml(item.question.substring(0, 100))}${item.question.length > 100 ? '...' : ''}</div>
+        <div style="font-size:0.75rem;color:var(--text-muted);line-height:1.5">${escapeHtml(item.answer)}${item.answer.length >= 200 ? '...' : ''}</div>
+      </div>
+    `).join('');
+  }
+
+  // ---- Admin: Load all foresight builds from all users ----
+  async function loadAdminForesights() {
+    const el = document.getElementById('adminForesightList');
+    const allBuilds = [];
+    for (const user of allUsers) {
+      try {
+        const snap = await db.collection('users').doc(user.uid).collection('foresightBuilds')
+          .orderBy('createdAt', 'desc').limit(10).get();
+        snap.docs.forEach(d => {
+          const data = d.data();
+          allBuilds.push({
+            userName: user.displayName || user.email,
+            focusTopic: data.focusTopic || '',
+            result: (data.result || '').substring(0, 200),
+            bookmarkCount: data.bookmarkCount || 0,
+            date: data.createdAt?.toDate?.() || null,
+          });
+        });
+      } catch (e) { /* skip */ }
+    }
+    allBuilds.sort((a, b) => (b.date || 0) - (a.date || 0));
+    if (allBuilds.length === 0) { el.innerHTML = '<div class="empty-state">データなし</div>'; return; }
+    el.innerHTML = allBuilds.map(item => `
+      <div style="padding:12px;border-bottom:1px solid var(--border)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <span style="font-size:0.78rem;font-weight:600;color:var(--accent)">${escapeHtml(item.userName)}</span>
+          <span style="font-size:0.7rem;color:var(--text-muted)">${item.date ? formatTimestamp({ toDate: () => item.date }) : '-'} / ソース${item.bookmarkCount}件</span>
+        </div>
+        ${item.focusTopic ? `<div style="font-size:0.85rem;font-weight:500;margin-bottom:4px">${escapeHtml(item.focusTopic)}</div>` : ''}
+        <div style="font-size:0.75rem;color:var(--text-muted);line-height:1.5">${escapeHtml(item.result)}${item.result.length >= 200 ? '...' : ''}</div>
+      </div>
+    `).join('');
+  }
+
+  // ---- Admin: Load all bookmarks from all users ----
+  async function loadAdminBookmarks() {
+    const el = document.getElementById('adminBookmarksList');
+    const allBookmarks = [];
+    for (const user of allUsers) {
+      try {
+        const snap = await db.collection('users').doc(user.uid).collection('bookmarks')
+          .orderBy('createdAt', 'desc').limit(30).get();
+        snap.docs.forEach(d => {
+          const data = d.data();
+          allBookmarks.push({
+            userName: user.displayName || user.email,
+            title: data.title || '',
+            type: data.type || '',
+            category: data.category || '',
+            url: data.url || '',
+            date: data.createdAt?.toDate?.() || null,
+          });
+        });
+      } catch (e) { /* skip */ }
+    }
+    allBookmarks.sort((a, b) => (b.date || 0) - (a.date || 0));
+    if (allBookmarks.length === 0) { el.innerHTML = '<div class="empty-state">データなし</div>'; return; }
+    el.innerHTML = allBookmarks.map(item => `
+      <div style="padding:10px 12px;border-bottom:1px solid var(--border);display:flex;gap:10px;align-items:start">
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;gap:6px;align-items:center;margin-bottom:2px">
+            <span style="font-size:0.65rem;padding:1px 6px;border-radius:3px;background:var(--accent);color:white">${escapeHtml(item.category || item.type)}</span>
+            <span style="font-size:0.7rem;color:var(--accent);font-weight:600">${escapeHtml(item.userName)}</span>
+            <span style="font-size:0.65rem;color:var(--text-muted);margin-left:auto">${item.date ? formatTimestamp({ toDate: () => item.date }) : '-'}</span>
+          </div>
+          <div style="font-size:0.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(item.title)}</div>
+        </div>
+        ${item.url ? `<a href="${escapeHtml(item.url)}" target="_blank" style="font-size:0.7rem;color:var(--accent);flex-shrink:0">開く</a>` : ''}
+      </div>
+    `).join('');
   }
 </script>
 
