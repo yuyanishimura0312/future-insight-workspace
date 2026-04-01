@@ -3483,10 +3483,10 @@ function renderContextList() {
   if (!el) return;
   if (countEl) countEl.textContent = researchContexts.length > 0 ? `保存済み ${researchContexts.length}件` : '';
   if (researchContexts.length === 0) { el.innerHTML = ''; return; }
-  el.innerHTML = `<details style="margin-top:8px"><summary style="font-size:0.78rem;color:var(--text-muted);cursor:pointer">保存済みの文脈情報（${researchContexts.length}件）</summary>` +
+  el.innerHTML = `<div style="margin-top:8px"><div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:6px">保存済みの文脈情報（${researchContexts.length}件）— チェックを入れると回答生成に使用されます</div>` +
     researchContexts.map(ctx => {
     const preview = (ctx.text || '').substring(0, 80) + ((ctx.text || '').length > 80 ? '...' : '');
-    const checked = ctx.enabled !== false ? 'checked' : '';
+    const checked = ctx.enabled === true ? 'checked' : '';
     return `<div style="display:flex;gap:8px;align-items:start;padding:6px 0;border-bottom:1px solid var(--border)">
       <input type="checkbox" ${checked} onchange="toggleContext('${ctx.id}',this.checked)" style="margin-top:4px;accent-color:var(--accent)">
       <div style="flex:1;min-width:0">
@@ -3495,7 +3495,7 @@ function renderContextList() {
       </div>
       <button onclick="removeContext('${ctx.id}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:0.9rem;padding:0 4px">&times;</button>
     </div>`;
-  }).join('') + '</details>';
+  }).join('') + '</div>';
 }
 
 async function toggleContext(id, enabled) {
@@ -3615,7 +3615,7 @@ async function analyzeContext() {
   }
   // From active research contexts
   for (const ctx of researchContexts) {
-    if (ctx.enabled !== false) allText.push((ctx.text || '').substring(0, 2000));
+    if (ctx.enabled === true) allText.push((ctx.text || '').substring(0, 2000));
   }
   // From question
   const question = document.getElementById('insightQuestion').value.trim();
@@ -3762,7 +3762,7 @@ async function generateInsight() {
   }
 
   // Include saved research contexts
-  const activeContexts = researchContexts.filter(c => c.enabled !== false);
+  const activeContexts = researchContexts.filter(c => c.enabled === true);
   if (activeContexts.length > 0) {
     context += '【保存済みリサーチ文脈】\n';
     activeContexts.forEach(ctx => {
