@@ -511,6 +511,7 @@
               <th>ステータス</th>
               <th>ロール</th>
               <th>登録日</th>
+              <th>トライアル期限</th>
               <th>最終ログイン</th>
               <th style="text-align:center;">ブックマーク</th>
               <th style="text-align:center;">洞察</th>
@@ -521,7 +522,7 @@
           </thead>
           <tbody id="userTableBody">
             <tr>
-              <td colspan="11" class="empty-state">読み込み中...</td>
+              <td colspan="12" class="empty-state">読み込み中...</td>
             </tr>
           </tbody>
         </table>
@@ -718,6 +719,8 @@
       const statusBadge = getStatusBadge(user.status);
       const roleBadge = getRoleBadge(user.role);
       const createdAt = formatTimestamp(user.createdAt);
+      const trialExpires = user.role === 'admin' ? '-' : formatTimestamp(user.trialExpiresAt);
+      const isExpired = user.role !== 'admin' && user.trialExpiresAt && user.trialExpiresAt.toDate() < new Date();
       const lastLogin = formatTimestamp(user.lastLogin);
       const actions = buildActions(user);
 
@@ -736,6 +739,7 @@
         <td>${statusBadge}</td>
         <td>${roleBadge}</td>
         <td>${createdAt}</td>
+        <td style="${isExpired ? 'color:#c53030;font-weight:600' : ''}">${trialExpires}${isExpired ? ' (期限切れ)' : ''}</td>
         <td>${lastLogin}</td>
         <td class="${typeof bookmarks === 'number' ? countClass(bookmarks) : 'activity-count'}">${bookmarks}</td>
         <td class="${typeof insights === 'number' ? countClass(insights) : 'activity-count'}">${insights}</td>
@@ -810,6 +814,16 @@
       );
     }
 
+    // Trial extension button for non-admin users
+    if (user.role !== 'admin') {
+      buttons.push(
+        `<button class="btn btn-approve" onclick="extendTrial('${user.uid}', 30)">+30日延長</button>`
+      );
+      buttons.push(
+        `<button class="btn btn-promote" onclick="removeTrial('${user.uid}')">無期限</button>`
+      );
+    }
+
     return buttons.join('');
   }
 
@@ -832,6 +846,55 @@
     } catch (err) {
       console.error('Failed to update user:', err);
       alert('ユーザーの更新に失敗しました: ' + err.message);
+      document.querySelectorAll('.btn').forEach(b => b.disabled = false);
+    }
+  }
+
+  // ---- Trial management ----
+  async function extendTrial(uid, days) {
+    document.querySelectorAll('.btn').forEach(b => b.disabled = true);
+    try {
+      const user = allUsers.find(u => u.uid === uid);
+      // Extend from current expiry or from now if already expired
+      const base = (user && user.trialExpiresAt && user.trialExpiresAt.toDate() > new Date())
+        ? user.trialExpiresAt.toDate() : new Date();
+      const newExpiry = new Date(base);
+      newExpiry.setDate(newExpiry.getDate() + days);
+
+      await db.collection('users').doc(uid).update({
+        trialExpiresAt: firebase.firestore.Timestamp.fromDate(newExpiry),
+        status: 'active'
+      });
+      if (user) {
+        user.trialExpiresAt = firebase.firestore.Timestamp.fromDate(newExpiry);
+        user.status = 'active';
+      }
+      renderStats();
+      renderTable();
+    } catch (err) {
+      console.error('Failed to extend trial:', err);
+      alert('トライアル延長に失敗しました: ' + err.message);
+      document.querySelectorAll('.btn').forEach(b => b.disabled = false);
+    }
+  }
+
+  async function removeTrial(uid) {
+    document.querySelectorAll('.btn').forEach(b => b.disabled = true);
+    try {
+      await db.collection('users').doc(uid).update({
+        trialExpiresAt: firebase.firestore.FieldValue.delete(),
+        status: 'active'
+      });
+      const user = allUsers.find(u => u.uid === uid);
+      if (user) {
+        delete user.trialExpiresAt;
+        user.status = 'active';
+      }
+      renderStats();
+      renderTable();
+    } catch (err) {
+      console.error('Failed to remove trial:', err);
+      alert('無期限設定に失敗しました: ' + err.message);
       document.querySelectorAll('.btn').forEach(b => b.disabled = false);
     }
   }

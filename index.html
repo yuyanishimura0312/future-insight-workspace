@@ -346,6 +346,13 @@
             return messages[code] || 'エラーが発生しました。もう一度お試しください。';
         }
 
+        // Check if trial has expired (admin users have no trial limit)
+        function isTrialExpired(data) {
+            if (data.role === 'admin') return false;
+            if (!data.trialExpiresAt) return false;
+            return data.trialExpiresAt.toDate() < new Date();
+        }
+
         // --- Auth State Observer ---
         // If user is already logged in, redirect immediately
         auth.onAuthStateChanged(async (user) => {
@@ -353,23 +360,22 @@
                 try {
                     const doc = await db.collection('users').doc(user.uid).get();
                     if (doc.exists) {
-                        const status = doc.data().status;
-                        if (status === 'active') {
-                            window.location.href = 'app.html';
-                            return;
-                        }
-                        if (status === 'pending') {
-                            showInfo('管理者の承認をお待ちください。');
-                            await auth.signOut();
-                            return;
-                        }
-                        if (status === 'disabled') {
+                        const data = doc.data();
+                        if (data.status === 'disabled') {
                             showError('このアカウントは無効化されています。');
                             await auth.signOut();
                             return;
                         }
+                        if (data.status === 'active' && !isTrialExpired(data)) {
+                            window.location.href = 'app.html';
+                            return;
+                        }
+                        if (isTrialExpired(data)) {
+                            showError('トライアル期間（1週間）が終了しました。継続利用をご希望の場合は管理者にお問い合わせください。');
+                            await auth.signOut();
+                            return;
+                        }
                     }
-                    // If no user doc exists yet (e.g. during signup flow), do nothing
                 } catch (e) {
                     console.error('Error checking user status:', e);
                 }
@@ -393,20 +399,22 @@
                 // Update the Firebase Auth profile display name
                 await user.updateProfile({ displayName: displayName });
 
-                // Create Firestore user document
+                // Create Firestore user document with 1-week trial
+                const trialEnd = new Date();
+                trialEnd.setDate(trialEnd.getDate() + 7);
+
                 await db.collection('users').doc(user.uid).set({
                     email: email,
                     displayName: displayName,
-                    status: 'pending',
+                    status: 'active',
                     role: 'user',
+                    trialExpiresAt: firebase.firestore.Timestamp.fromDate(trialEnd),
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
-                // Sign out because new users must wait for admin approval
-                await auth.signOut();
-
                 setLoading(false);
-                showInfo('アカウントを作成しました。管理者の承認をお待ちください。');
+                // Redirect to app immediately
+                window.location.href = 'app.html';
             } catch (error) {
                 setLoading(false);
                 showError(getErrorMessage(error.code));
@@ -437,29 +445,27 @@
                     return;
                 }
 
-                const status = doc.data().status;
+                const data = doc.data();
 
-                if (status === 'pending') {
-                    setLoading(false);
-                    showInfo('管理者の承認をお待ちください。');
-                    await auth.signOut();
-                    return;
-                }
-
-                if (status === 'disabled') {
+                if (data.status === 'disabled') {
                     setLoading(false);
                     showError('このアカウントは無効化されています。');
                     await auth.signOut();
                     return;
                 }
 
-                if (status === 'active') {
-                    // Redirect to app
+                if (isTrialExpired(data)) {
+                    setLoading(false);
+                    showError('トライアル期間（1週間）が終了しました。継続利用をご希望の場合は管理者にお問い合わせください。');
+                    await auth.signOut();
+                    return;
+                }
+
+                if (data.status === 'active') {
                     window.location.href = 'app.html';
                     return;
                 }
 
-                // Unknown status
                 setLoading(false);
                 showError('不明なアカウント状態です。管理者にお問い合わせください。');
                 await auth.signOut();
