@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Future Insight Workspace</title>
+<!-- esse-sense inverted favicon (black bg, white e) -->
+<link rel="icon" href="https://esse-sense.com/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@300;400;500;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -1389,7 +1391,7 @@
         <span id="insightStatus" style="font-size:0.8rem;color:var(--text-muted)"></span>
       </div>
       <div style="margin-top:10px">
-        <p style="font-size:0.75rem;color:var(--text-muted)"><span data-i18n="insight_apikey_hint">初回利用時はAPIキーの設定が必要な場合があります。</span><a href="#" onclick="promptInsightApiKey();return false" style="color:var(--accent)" data-i18n="insight_apikey_set">APIキーを設定</a></p>
+        <p style="font-size:0.75rem;color:var(--text-muted)"><span data-i18n="insight_apikey_hint">AI分析はサーバープロキシ経由で実行されます。</span></p>
       </div>
     </div>
 
@@ -2361,7 +2363,7 @@ function renderPapers() {
 }
 
 let semanticEmbeddings = null; let semanticModel = null; let semanticSearchRunning = false;
-async function loadSemanticEmbeddings() { if (semanticEmbeddings) return semanticEmbeddings; try { const resp = await fetch(DATA_BASE_URL + 'data/embeddings.json'); semanticEmbeddings = await resp.json(); console.log(`Loaded ${semanticEmbeddings.count} embeddings`); return semanticEmbeddings; } catch (e) { console.error('Failed to load embeddings:', e); return null; } }
+async function loadSemanticEmbeddings() { if (semanticEmbeddings) return semanticEmbeddings; try { const resp = await fetch(DATA_BASE_URL + 'data/embeddings.json'); semanticEmbeddings = await resp.json(); return semanticEmbeddings; } catch (e) { return null; } }
 async function loadSemanticModel() { if (semanticModel) return semanticModel; const { pipeline } = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3'); semanticModel = await pipeline('feature-extraction', 'Xenova/multilingual-e5-small', { dtype: 'q8' }); return semanticModel; }
 
 async function runGlobalSemanticSearch() {
@@ -2480,11 +2482,7 @@ async function generateMythReport(forceRegen) {
   }
 
   const apiKey = getInsightApiKey();
-  if (!apiKey) {
-    const el = document.getElementById('mythReportContent');
-    if (el) el.innerHTML = `<div style="color:var(--text-muted);font-size:0.85rem;padding:16px 0">分析レポートの生成にはAPIキーが必要です。<a href="#" onclick="promptInsightApiKey();return false" style="color:var(--accent)">APIキーを設定</a></div>`;
-    return;
-  }
+  // API key is always available via Worker proxy
 
   _mythReportGenerating = true;
   const loadingEl = document.getElementById('mythReportLoading') || document.getElementById('mythReportContent');
@@ -3585,10 +3583,10 @@ async function loadInsightHistory() {
   } catch (e) { console.warn('Failed to load insight history:', e); }
 }
 
+// promptInsightApiKey() removed — API keys are handled server-side via Worker proxy.
+// Keeping function stub for backward compatibility with any remaining HTML references.
 function promptInsightApiKey() {
-  const current = localStorage.getItem('ANTHROPIC_API_KEY') || '';
-  const key = prompt('Anthropic APIキーを入力してください:', current);
-  if (key !== null) { localStorage.setItem('ANTHROPIC_API_KEY', key); showToast('APIキーを保存しました'); }
+  showToast('AI分析はサーバー側で処理されます。APIキーの設定は不要です。');
 }
 
 // === RESEARCH CONTEXT & REFERENCE ITEMS ===
