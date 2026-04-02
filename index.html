@@ -255,6 +255,9 @@
                     </div>
                     <button type="submit" class="submit-btn" id="loginBtn">ログイン</button>
                 </form>
+                <div style="text-align:center;margin-top:12px">
+                    <a href="#" onclick="handleResetPassword(event)" style="font-size:0.82rem;color:#4a90d9;text-decoration:none">パスワードをお忘れですか？</a>
+                </div>
             </div>
 
             <!-- Signup Form -->
@@ -463,6 +466,31 @@
             } catch (error) {
                 setLoading(false);
                 showError(getErrorMessage(error.code));
+            }
+        }
+
+        // --- Password Reset ---
+        async function handleResetPassword(e) {
+            e.preventDefault();
+            clearMessages();
+            const email = document.getElementById('loginEmail').value.trim();
+            if (!email) {
+                showError('メールアドレスを入力してから「パスワードをお忘れですか？」を押してください。');
+                return;
+            }
+            setLoading(true);
+            try {
+                await auth.sendPasswordResetEmail(email);
+                setLoading(false);
+                showInfo('パスワードリセットメールを送信しました。メールを確認してください。');
+            } catch (error) {
+                setLoading(false);
+                // Don't reveal whether email exists for security
+                if (error.code === 'auth/user-not-found') {
+                    showInfo('該当するアカウントが存在する場合、リセットメールを送信しました。');
+                } else {
+                    showError(getErrorMessage(error.code));
+                }
             }
         }
     </script>
