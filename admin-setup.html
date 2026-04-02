@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Setup - FIW</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif;
+    background: #2c1810; color: #fff; min-height: 100vh;
+    display: flex; align-items: center; justify-content: center; padding: 20px;
+  }
+  .card {
+    background: #fff; color: #333; border-radius: 12px; padding: 36px 32px;
+    max-width: 480px; width: 100%; box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+  }
+  h1 { font-size: 1.2rem; margin-bottom: 8px; color: #783c28; }
+  p { font-size: 0.85rem; color: #666; margin-bottom: 20px; }
+  .step { background: #f7fafc; border-radius: 8px; padding: 16px; margin-bottom: 16px; }
+  .step h3 { font-size: 0.9rem; margin-bottom: 8px; color: #4a5568; }
+  .form-group { margin-bottom: 12px; }
+  .form-group label { display: block; font-size: 0.82rem; font-weight: 600; color: #4a5568; margin-bottom: 4px; }
+  .form-group input {
+    width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 6px;
+    font-size: 0.9rem; background: #fff;
+  }
+  .form-group input:focus { outline: none; border-color: #783c28; }
+  .btn {
+    padding: 10px 20px; border: none; border-radius: 6px; font-size: 0.9rem;
+    font-weight: 600; cursor: pointer; width: 100%;
+  }
+  .btn-primary { background: #783c28; color: #fff; }
+  .btn-primary:hover { background: #a0503c; }
+  .btn-primary:disabled { background: #a0aec0; cursor: not-allowed; }
+  .msg { padding: 10px; border-radius: 6px; font-size: 0.82rem; margin-top: 12px; display: none; }
+  .msg-ok { background: #f0fff4; color: #276749; border: 1px solid #c6f6d5; }
+  .msg-err { background: #fff5f5; color: #c53030; border: 1px solid #fed7d7; }
+  .msg-info { background: #ebf8ff; color: #2b6cb0; border: 1px solid #bee3f8; }
+  #log { font-size: 0.8rem; color: #666; margin-top: 12px; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Admin Setup</h1>
+  <p>このページは初期管理者を設定するための一時的なページです。設定完了後に削除してください。</p>
+
+  <div class="step">
+    <h3>Step 1: ログイン</h3>
+    <div class="form-group">
+      <label>メールアドレス</label>
+      <input type="email" id="email" value="nishimura@emerging-future.org">
+    </div>
+    <div class="form-group">
+      <label>パスワード</label>
+      <input type="password" id="password" placeholder="パスワードを入力">
+    </div>
+    <button class="btn btn-primary" id="loginBtn" onclick="doLogin()">ログイン</button>
+    <div id="loginMsg" class="msg"></div>
+  </div>
+
+  <div class="step" id="step2" style="display:none">
+    <h3>Step 2: 管理者権限を付与</h3>
+    <p style="font-size:0.82rem;color:#666;margin-bottom:12px">
+      ログイン中: <strong id="currentUser"></strong>
+    </p>
+    <button class="btn btn-primary" id="promoteBtn" onclick="promoteToAdmin()">管理者に設定</button>
+    <div id="promoteMsg" class="msg"></div>
+  </div>
+
+  <div id="log"></div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="js/firebase-config.js?v=2"></script>
+<script>
+  let currentUid = null;
+
+  function showMsg(id, type, text) {
+    const el = document.getElementById(id);
+    el.className = 'msg msg-' + type;
+    el.textContent = text;
+    el.style.display = 'block';
+  }
+
+  function log(text) {
+    document.getElementById('log').textContent += text + '\n';
+  }
+
+  async function doLogin() {
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    if (!email || !password) { showMsg('loginMsg', 'err', 'メールアドレスとパスワードを入力してください'); return; }
+
+    document.getElementById('loginBtn').disabled = true;
+    try {
+      const cred = await auth.signInWithEmailAndPassword(email, password);
+      currentUid = cred.user.uid;
+      log('Login OK: uid=' + currentUid);
+
+      // Check if user doc exists
+      const doc = await db.collection('users').doc(currentUid).get();
+      if (doc.exists) {
+        const data = doc.data();
+        log('User doc found: role=' + data.role + ', status=' + data.status);
+      } else {
+        log('User doc not found - will create on promote');
+      }
+
+      showMsg('loginMsg', 'ok', 'ログイン成功');
+      document.getElementById('currentUser').textContent = email;
+      document.getElementById('step2').style.display = 'block';
+    } catch (e) {
+      log('Login error: ' + e.code);
+      showMsg('loginMsg', 'err', 'ログイン失敗: ' + e.message);
+      document.getElementById('loginBtn').disabled = false;
+    }
+  }
+
+  async function promoteToAdmin() {
+    if (!currentUid) return;
+    document.getElementById('promoteBtn').disabled = true;
+    try {
+      const ref = db.collection('users').doc(currentUid);
+      const doc = await ref.get();
+
+      if (doc.exists) {
+        await ref.update({ role: 'admin', status: 'active' });
+        log('Updated existing doc: role=admin, status=active');
+      } else {
+        await ref.set({
+          email: document.getElementById('email').value.trim(),
+          displayName: 'Admin',
+          role: 'admin',
+          status: 'active',
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        log('Created new doc: role=admin, status=active');
+      }
+
+      showMsg('promoteMsg', 'ok', '管理者権限を付与しました。admin-login.html からログインできます。');
+    } catch (e) {
+      log('Promote error: ' + e.message);
+      showMsg('promoteMsg', 'err', '設定失敗: ' + e.message);
+      document.getElementById('promoteBtn').disabled = false;
+    }
+  }
+</script>
+</body>
+</html>
