@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>使い方ガイド - Future Insight Workspace</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+1p:wght@300;400;500;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f0e9e1;
+    --card: #ffffff;
+    --card-hover: #faf5f0;
+    --accent: #783c28;
+    --accent-light: #a0503c;
+    --accent-warm: #c87864;
+    --text: #292929;
+    --text-muted: #8c6d5e;
+    --border: #e0d5cc;
+    --P: #b92a38; --E: #cd8a32; --S: #4a8c5c; --T: #2c8acc; --L: #7c5a96; --En: #3a8c78;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: "M PLUS 1p", "Noto Sans JP", "Hiragino Kaku Gothic ProN", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+  }
+
+  header {
+    background: linear-gradient(135deg, #783c28 0%, #a0503c 50%, #c87864 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 20px 32px;
+    padding-top: max(20px, env(safe-area-inset-top));
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #ffffff;
+  }
+  header h1 { font-size: 1.3rem; font-weight: 700; color: #ffffff; cursor: pointer; }
+  header h1 span { color: #ffe8d7; }
+  .header-sub { font-size: 0.75rem; color: #ffe8d7; margin-top: 2px; opacity: 0.85; }
+  .header-actions { display: flex; gap: 8px; align-items: center; }
+
+  .btn {
+    padding: 8px 16px; border: 1px solid var(--border); border-radius: 8px;
+    background: var(--card); color: var(--text); font-size: 0.8rem; cursor: pointer;
+    transition: all 0.15s; text-decoration: none; display: inline-block;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent-light); }
+  .btn-accent { background: var(--accent); border-color: var(--accent); color: white; }
+  .btn-accent:hover { background: var(--accent-light); }
+
+  .container { max-width: 860px; margin: 0 auto; padding: 32px 24px 48px; }
+
+  .page-title { font-size: 1.5rem; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+  .page-intro { font-size: 0.9rem; color: var(--text-muted); line-height: 1.8; margin-bottom: 36px; }
+
+  .section { margin-bottom: 40px; }
+  .section-title {
+    font-size: 1.1rem; font-weight: 700; color: var(--text);
+    padding-bottom: 8px; border-bottom: 2px solid var(--border); margin-bottom: 20px;
+  }
+
+  .steps-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px; margin-bottom: 8px;
+  }
+  .step-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px;
+  }
+  .step-number {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--accent); color: white;
+    font-size: 0.8rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 10px;
+  }
+  .step-card h3 { font-size: 0.9rem; font-weight: 600; margin-bottom: 6px; }
+  .step-card p { font-size: 0.8rem; color: var(--text-muted); line-height: 1.7; }
+
+  .feature-block { margin-bottom: 28px; }
+  .feature-block h3 {
+    font-size: 0.95rem; font-weight: 600; color: var(--text); margin-bottom: 8px;
+  }
+  .feature-block p {
+    font-size: 0.85rem; color: var(--text); line-height: 1.8; margin-bottom: 8px;
+  }
+  .feature-block ul {
+    font-size: 0.82rem; color: var(--text-muted); line-height: 1.8;
+    padding-left: 20px; margin-top: 4px;
+  }
+
+  .info-box {
+    background: var(--card-hover); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 18px; margin-top: 10px;
+  }
+  .info-box p { font-size: 0.8rem; color: var(--text-muted); line-height: 1.7; }
+  .info-box .info-title { font-size: 0.82rem; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+
+  .pestle-tags {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;
+  }
+  .pestle-tag {
+    font-size: 0.72rem; font-weight: 600; padding: 3px 10px;
+    border-radius: 4px; color: white;
+  }
+
+  .tip-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px 20px; margin-bottom: 12px;
+  }
+  .tip-card h4 { font-size: 0.88rem; font-weight: 600; margin-bottom: 4px; }
+  .tip-card p { font-size: 0.8rem; color: var(--text-muted); line-height: 1.7; }
+
+  .cta-section {
+    text-align: center; padding: 32px 0 8px;
+  }
+  .cta-section p {
+    font-size: 0.85rem; color: var(--text-muted); margin-bottom: 16px;
+  }
+  .cta-section .btn-accent {
+    padding: 12px 32px; font-size: 0.9rem; border-radius: 10px;
+  }
+  .cta-sub {
+    font-size: 0.75rem; color: var(--text-muted); margin-top: 12px;
+  }
+  .cta-sub a { color: var(--accent); text-decoration: underline; }
+  .cta-sub a:hover { color: var(--accent-light); }
+
+  .footer {
+    text-align: center; padding: 20px; font-size: 0.75rem; color: var(--text-muted);
+    border-top: 1px solid var(--border);
+  }
+  .footer a { color: var(--accent); text-decoration: underline; }
+  .footer a:hover { color: var(--accent-light); }
+
+  @media (max-width: 900px) {
+    header { flex-direction: column; gap: 10px; padding: 16px 20px; text-align: center; }
+    .header-actions { justify-content: center; }
+    .container { padding: 24px 16px 40px; }
+  }
+  @media (max-width: 480px) {
+    .page-title { font-size: 1.25rem; }
+    .steps-grid { grid-template-columns: 1fr; }
+    header h1 { font-size: 1.1rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1 onclick="location.href='app.html'"><span>&#9670;</span> Future Insight Workspace</h1>
+    <div class="header-sub">使い方ガイド</div>
+  </div>
+  <div class="header-actions">
+    <a href="app.html" class="btn" style="background:rgba(255,255,255,0.15);border-color:rgba(255,255,255,0.3);color:white;font-size:0.75rem">ワークスペースに戻る</a>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- Intro -->
+  <h2 class="page-title">使い方ガイド</h2>
+  <p class="page-intro">
+    Future Insight Workspaceは、世界中のニュースと学術論文を自動で収集・分析し、未来の変化の兆しを読み解くためのオンラインツールです。政治・経済・社会・技術・法律・環境の6つの視点（PESTLE分析）から情報を整理し、AIによる多層的な分析やシナリオプランニングを通じて、あなた自身の未来洞察を組み立てることができます。
+  </p>
+
+  <!-- Basic Flow -->
+  <div class="section">
+    <h2 class="section-title">基本の使い方 -- 3つのステップ</h2>
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-number">1</div>
+        <h3>ニュースと論文を読む</h3>
+        <p>ログインすると「概要」タブが表示されます。6カテゴリに分類されたニュースや学術論文にざっと目を通し、気になったものはブックマークに保存します。</p>
+      </div>
+      <div class="step-card">
+        <div class="step-number">2</div>
+        <h3>AIの分析で深く理解する</h3>
+        <p>「CLA分析」「シナリオ」「ウィークシグナル」の各タブで、ニュースの背景にある社会構造や将来の変化シナリオを確認します。</p>
+      </div>
+      <div class="step-card">
+        <div class="step-number">3</div>
+        <h3>自分の問いから未来洞察を得る</h3>
+        <p>「未来洞察アドバイス」タブで自分の問題意識を入力し、AIが生成する未来洞察レポートを受け取ります。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detailed Features -->
+  <div class="section">
+    <h2 class="section-title">各機能の詳しい使い方</h2>
+
+    <div class="feature-block">
+      <h3>概要タブ</h3>
+      <p>ログイン後に最初に表示される画面です。画面の上部には、収集されたニュースの総数や学術論文の数、ニュースソース数といった統計情報がカードで表示されます。その下には「未来洞察アドバイス」へのショートカットバナーがあり、すぐにAIへの問いかけに進むこともできます。</p>
+      <p>画面の中央には、PESTLEの6カテゴリごとにニュースの概要がコンパクトにまとめられています。各カテゴリのカードにはニュースのタイトルと短い要約が表示され、クリックすると詳細を確認できます。画面の右側には「新兆候アラート」パネルがあり、過去の蓄積データと比較して検出された新たな変化の兆候が表示されます。</p>
+    </div>
+
+    <div class="feature-block">
+      <h3>PESTLEニュースタブ</h3>
+      <p>6つのカテゴリごとに、収集されたニュースを一覧で確認できるタブです。画面上部にある検索バーでキーワード検索ができるほか、「最新（当日）」「1週間」「1ヶ月」「全期間」のプルダウンで表示期間を切り替えることができます。</p>
+      <div class="pestle-tags">
+        <span class="pestle-tag" style="background:var(--P)">Political</span>
+        <span class="pestle-tag" style="background:var(--E)">Economic</span>
+        <span class="pestle-tag" style="background:var(--S)">Social</span>
+        <span class="pestle-tag" style="background:var(--T)">Technological</span>
+        <span class="pestle-tag" style="background:var(--L)">Legal</span>
+        <span class="pestle-tag" style="background:var(--En)">Environmental</span>
+      </div>
+      <p style="margin-top:10px">カテゴリ別のフィルターボタンも用意されており、たとえば「技術」と「社会」だけに絞って表示することも可能です。各ニュースカードにはタイトル、要約、出典、関連度スコアが表示されます。英語のニュースには日本語訳を表示するボタンがついているので、海外のニュースも問題なく読むことができます。</p>
+    </div>
+
+    <div class="feature-block">
+      <h3>学術論文タブ</h3>
+      <p>PESTLEの各テーマに関連する学術論文が、分野別（人文学・社会科学・自然科学・工学・芸術）に整理されています。検索バーとAI検索ボタンがあり、AI検索では「気候変動が農業に与える影響に関する最新の研究」のような自然な文章で論文を検索することができます。</p>
+      <p>右側の「新たな研究文脈アラート」パネルには、新しい研究の流れや分野横断的な動向が表示されます。論文は個別に保存でき、メモを追加したり、保存した論文をJSON・CSV・Markdown形式でエクスポートすることもできます。</p>
+    </div>
+
+    <div class="feature-block">
+      <h3>CLA分析タブ</h3>
+      <p>CLA（因果階層分析）は、未来学者ソハイル・イナヤトゥラが提唱したフレームワークで、出来事を4つの層で分析します。このタブでは、PESTLEの各カテゴリについて、以下の4つの層での分析結果が表示されます。</p>
+      <ul>
+        <li><strong>Layer 1 リタニー（表層）:</strong> ニュースで報じられている事実そのもの</li>
+        <li><strong>Layer 2 社会的・システム的原因:</strong> その出来事を引き起こしている社会構造やシステム</li>
+        <li><strong>Layer 3 世界観・ディスコース:</strong> 背景にある考え方や価値観</li>
+        <li><strong>Layer 4 神話・メタファー:</strong> 最も深い層にある、社会の無意識的な前提や物語</li>
+      </ul>
+      <p>それぞれの層が色分けされた枠で表示されるので、表層から深層まで一目で構造を把握できます。さらに、各カテゴリには「テンション（矛盾点）」が示されており、表層と深層の間にあるギャップを理解するヒントになります。</p>
+    </div>
+
+    <div class="feature-block">
+      <h3>シナリオタブ</h3>
+      <p>PESTLE分析とCLA分析の結果から導き出された、4つの未来シナリオが2x2のマトリクス形式で表示されます。画面上部には焦点課題、時間軸、ドライビングフォース（変化を駆動する要因）の数が示されます。</p>
+      <p>マトリクスの各象限をクリックすると、そのシナリオの詳細が表示されます。詳細には、シナリオのナラティブ（物語）、CLA分析、キーイベント、戦略的含意、サインポスト（早期警戒指標）、ワイルドカード（想定外の出来事）が含まれます。</p>
+      <div class="info-box">
+        <p class="info-title">軸のカスタマイズ</p>
+        <p>「軸をカスタマイズ」機能を使えば、ドライビングフォースの中から好きな2つを選んで、独自のシナリオを再生成できます。自分の事業や関心に関係の深い要因を軸に設定することで、より実践的なシナリオが得られます。</p>
+      </div>
+    </div>
+
+    <div class="feature-block">
+      <h3>ウィークシグナルタブ</h3>
+      <p>将来大きな変化をもたらす可能性があるにもかかわらず、まだ広く注目されていない兆候を一覧で確認できます。各シグナルカードには、名前、説明、インパクトの大きさ（高・中・低）、出現する時間軸が表示されます。ニュースと学術論文の両方から抽出されたシグナルが含まれており、分野横断的な変化の兆候を捉えるのに適しています。</p>
+    </div>
+
+    <div class="feature-block">
+      <h3>未来洞察アドバイスタブ</h3>
+      <p>あなた自身の問題意識やテーマに基づいて、AIが未来洞察レポートを生成する機能です。4つのステップで進みます。</p>
+      <p>まず「1. 問題意識・質問」の欄に、考えたい問いを入力します。たとえば「AIの急速な普及が雇用構造にどのような影響を与えるか？」のような形です。「質問を整える」ボタンを押すと、AIが問いの表現を整理してくれます。</p>
+      <p>次に「2. 参考情報」として、URLやテキストを追加できます。NotionページやWebページのリンクを入力すると、その内容を取り込んで分析に活用します。この手順は任意なので、質問だけでも先に進めます。</p>
+      <p>「3. 文脈の解析」では、追加した参考情報をAIが読み解き、問いの背景を整理します。最後に「4. 回答を生成」ボタンを押すと、CLA分析やシナリオのデータを踏まえた未来洞察レポートが生成されます。過去に生成したレポートは履歴として残り、いつでも見返すことができます。</p>
+    </div>
+
+    <div class="feature-block">
+      <h3>未来洞察構築タブ</h3>
+      <p>ブックマークに保存したニュースや学術論文を素材として、あなた独自の未来洞察を組み立てる機能です。「未来洞察アドバイス」が質問ベースであるのに対し、こちらは保存した情報をもとにAIが新たな分析を行います。</p>
+      <p>ブックマークタブで保存した記事が自動的にソースデータとして読み込まれます。「ウィークシグナル抽出」「CLA分析」「シナリオ構築」の中から構築したい分析をチェックボックスで選び、任意で「フォーカステーマ」を入力して「未来洞察を構築」ボタンを押すと、30秒から60秒ほどでAIが分析結果を生成します。</p>
+    </div>
+
+    <div class="feature-block">
+      <h3>検索タブ</h3>
+      <p>ニュースと学術論文を横断して検索できる機能です。キーワードだけでなく、「AIが社会に与える影響」のような自然な文章でも検索できます。検索結果はニュースと論文の両方から表示されるため、あるテーマに関する情報を網羅的に把握したいときに便利です。</p>
+    </div>
+
+    <div class="feature-block">
+      <h3>ブックマークタブ</h3>
+      <p>各タブで保存した記事やシグナルの一覧を確認できます。ブックマークは「未来洞察構築」のソースデータとしても使われるため、気になった情報はこまめに保存しておくことをおすすめします。「ブックマーク一覧をシェア」ボタンを押すと、保存した内容をまとめて共有することもできます。</p>
+    </div>
+  </div>
+
+  <!-- Tips -->
+  <div class="section">
+    <h2 class="section-title">より効果的に使うためのコツ</h2>
+
+    <div class="tip-card">
+      <h4>まずブックマークを貯めてから「未来洞察構築」を使う</h4>
+      <p>未来洞察構築の機能は、ブックマークに保存された記事をソースデータとして使います。PESTLEニュースや学術論文タブで気になった情報を10件ほど保存してから構築を実行すると、より具体的で質の高い分析結果が得られます。テーマが異なる記事を幅広く保存しておくと、分野横断的なシグナルが抽出されやすくなります。</p>
+    </div>
+
+    <div class="tip-card">
+      <h4>新兆候アラートを定期的にチェックする</h4>
+      <p>概要タブの右側と学術論文タブに表示される「新兆候アラート」は、過去のデータとの比較で自動検出された変化の兆しです。「初出」は新たに出現したキーワード、「急増」は急に出現頻度が増えたトピック、「横断」は複数カテゴリにまたがる動きを示しています。毎日チェックするだけでも、世の中の変化を素早く捉える習慣が身につきます。</p>
+    </div>
+
+    <div class="tip-card">
+      <h4>シナリオの「軸カスタマイズ」で自分の関心に合わせる</h4>
+      <p>シナリオタブの「軸をカスタマイズ」機能では、ドライビングフォースから任意の2つを選んでシナリオを再生成できます。自分の事業や関心に関係の深い要因を軸に設定することで、より実践的なシナリオが得られます。独自のドライビングフォースを追加することも可能です。</p>
+    </div>
+
+    <div class="tip-card">
+      <h4>「未来洞察アドバイス」では参考情報を添えると精度が上がる</h4>
+      <p>問いだけでもレポートは生成できますが、関連するNotionページのURLやWebページの情報、会議メモなどのテキストを参考情報として追加すると、あなたの状況や文脈に即した、より具体的な回答が返ってきます。参考情報は整理されている必要はありません。</p>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-section">
+    <p>さっそくFuture Insight Workspaceで未来洞察を始めましょう。</p>
+    <a href="app.html" class="btn btn-accent">ワークスペースを開く</a>
+    <p class="cta-sub"><a href="index.html">ログインページに戻る</a></p>
+  </div>
+
+</div>
+
+<div class="footer">
+  <p>Future Insight Workspace -- Powered by MIRATUKU</p>
+</div>
+
+</body>
+</html>
