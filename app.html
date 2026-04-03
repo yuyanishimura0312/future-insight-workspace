@@ -91,68 +91,123 @@
 
   /* PESTLE Grid */
   .pestle-grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(min(420px, 100%), 1fr));
-    gap: 16px; margin-bottom: 24px;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(clamp(320px, 30vw, 480px), 1fr));
+    gap: 20px; margin-bottom: 24px;
   }
 
   .pestle-section {
-    background: var(--card); border: 1px solid var(--border); border-radius: 12px;
-    overflow: hidden; transition: box-shadow 0.15s;
+    background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+    overflow: hidden; transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s;
+    display: flex; flex-direction: column;
+    animation: pestle-card-in 0.3s ease both;
   }
-  .pestle-section:hover { box-shadow: 0 4px 16px rgba(120,60,40,0.08); }
+  .pestle-section:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(120,60,40,0.10); border-color: rgba(120,60,40,0.15); }
+  @keyframes pestle-card-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
   .pestle-header {
-    padding: 14px 18px; font-weight: 700; font-size: 0.9rem;
+    padding: 14px 18px; font-weight: 700; font-size: 0.85rem;
     display: flex; align-items: center; gap: 10px;
-    border-bottom: 1px solid var(--border);
-    color: #fff;
+    color: #fff; letter-spacing: 0.02em;
+    position: sticky; top: 0; z-index: 2;
   }
   .pestle-badge {
-    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
-    background: rgba(255,255,255,0.8);
+    width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+    background: rgba(255,255,255,0.85);
   }
   .pestle-count {
-    margin-left: auto; font-size: 0.75rem; color: rgba(255,255,255,0.85); font-weight: 400;
+    margin-left: auto; font-size: 0.72rem; font-weight: 500;
+    background: rgba(255,255,255,0.18); padding: 2px 10px; border-radius: 4px;
+    color: rgba(255,255,255,0.92); font-variant-numeric: tabular-nums;
+  }
+
+  /* PESTLE filter toolbar */
+  .pestle-toolbar {
+    display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: center;
+  }
+  .pestle-search-wrap {
+    position: relative; flex: 1; min-width: 200px;
+  }
+  .pestle-search-wrap svg {
+    position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+    width: 14px; height: 14px; color: var(--text-muted); pointer-events: none;
+  }
+  .pestle-search-wrap input {
+    width: 100%; padding: 9px 14px 9px 36px; border: 1px solid var(--border);
+    border-radius: 10px; background: var(--card); font-size: 0.85rem;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .pestle-search-wrap input:focus {
+    outline: none; border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(120,60,40,0.1);
+  }
+  .pestle-period-tabs {
+    display: flex; background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; overflow: hidden;
+  }
+  .pestle-period-btn {
+    padding: 7px 14px; font-size: 0.78rem; font-weight: 500; cursor: pointer;
+    border: none; background: transparent; color: var(--text-muted);
+    transition: all 0.15s; border-right: 1px solid var(--border);
+  }
+  .pestle-period-btn:last-child { border-right: none; }
+  .pestle-period-btn.active { background: var(--accent); color: #fff; }
+  .pestle-period-btn:not(.active):hover { background: var(--card-hover); color: var(--text); }
+  .pestle-total-count {
+    font-size: 0.78rem; color: var(--text-muted); font-variant-numeric: tabular-nums;
+    white-space: nowrap;
   }
 
   /* PESTLE dimension filter */
-  .pestle-dim-filters { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .pestle-dim-filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
   .pestle-dim-btn {
-    padding: 5px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 600;
-    cursor: pointer; transition: all 0.15s; border: 2px solid;
+    padding: 6px 16px; border-radius: 99px; font-size: 0.78rem; font-weight: 600;
+    cursor: pointer; transition: all 0.18s ease; border: 2px solid; user-select: none;
   }
-  .pestle-dim-btn.active { color: #fff; }
-  .pestle-dim-btn:not(.active) { background: var(--card); }
+  .pestle-dim-btn:active { transform: scale(0.95); }
+  .pestle-dim-btn.active { color: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
+  .pestle-dim-btn:not(.active) { background: var(--card); opacity: 0.7; }
+  .pestle-dim-btn:not(.active):hover { opacity: 1; background: var(--card-hover); }
 
-  .article-list { max-height: 400px; overflow-y: auto; }
+  .article-list { max-height: 420px; overflow-y: auto; flex: 1; scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
   .article-item {
-    padding: 10px 18px; border-bottom: 1px solid var(--border);
-    cursor: pointer; transition: background 0.1s;
+    padding: 12px 18px; border-bottom: 1px solid var(--border);
+    cursor: pointer; transition: background 0.12s, transform 0.12s; position: relative;
   }
   .article-item:hover { background: var(--card-hover); }
+  .article-item:hover .article-title { transform: translateX(3px); }
   .article-item:last-child { border-bottom: none; }
-  .article-title { font-size: 0.82rem; font-weight: 500; line-height: 1.4; }
+  .article-title {
+    font-size: 0.84rem; font-weight: 600; line-height: 1.45; color: var(--text);
+    transition: transform 0.15s ease;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
   .article-snippet {
-    font-size: 0.73rem; color: var(--text-muted); margin-top: 3px;
-    line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2;
+    font-size: 0.73rem; color: var(--text-muted); margin-top: 4px;
+    line-height: 1.55; display: -webkit-box; -webkit-line-clamp: 2;
     -webkit-box-orient: vertical; overflow: hidden;
   }
   .article-meta {
-    font-size: 0.7rem; color: var(--text-muted); margin-top: 3px;
-    display: flex; gap: 8px; align-items: center;
+    font-size: 0.7rem; color: var(--text-muted); margin-top: 5px;
+    display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
   }
-  .article-source { color: var(--accent); font-weight: 500; }
-  .article-relevance {
-    display: inline-flex; align-items: center; gap: 3px;
-    font-size: 0.65rem; color: var(--text-muted);
+  .article-source { font-weight: 600; flex-shrink: 0; }
+  .article-relevance-dot {
+    width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
   }
-  .article-relevance-bar {
-    width: 40px; height: 4px; border-radius: 2px; background: var(--border); overflow: hidden;
+  .article-actions {
+    position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+    display: flex; gap: 4px; opacity: 0; transition: opacity 0.15s;
   }
-  .article-relevance-fill { height: 100%; border-radius: 2px; }
+  .article-item:hover .article-actions { opacity: 1; }
   .lang-badge {
     font-size: 0.6rem; padding: 1px 5px; border-radius: 3px;
     background: #ffe8d7; color: var(--accent);
   }
+  .pestle-empty {
+    padding: 40px 20px; text-align: center; color: var(--text-muted);
+    font-size: 0.85rem;
+  }
+  .pestle-empty-icon { font-size: 2rem; opacity: 0.3; margin-bottom: 8px; }
 
   /* Papers */
   .papers-stats-grid {
@@ -517,18 +572,23 @@
 
   /* Detail Modal */
   .modal-overlay {
-    display: none; position: fixed; inset: 0; background: rgba(41,29,23,0.5);
+    display: none; position: fixed; inset: 0; background: rgba(41,29,23,0.45);
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
     z-index: 1000; justify-content: center; align-items: center; padding: 20px;
   }
   .modal-overlay.active { display: flex; }
   .modal {
-    background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+    background: var(--card); border: 1px solid var(--border); border-radius: 20px;
     max-width: 640px; width: 100%; max-height: 80vh; overflow-y: auto; padding: 28px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.18);
+    animation: modal-in 0.2s ease;
   }
-  .modal h2 { font-size: 1.1rem; margin-bottom: 16px; color: var(--accent); }
-  .modal-field { margin-bottom: 12px; }
-  .modal-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 2px; }
-  .modal-value { font-size: 0.85rem; }
+  @keyframes modal-in { from { opacity: 0; transform: scale(0.96) translateY(8px); } to { opacity: 1; transform: none; } }
+  .modal h2 { font-size: 1.1rem; margin-bottom: 16px; color: var(--accent); line-height: 1.5; }
+  .modal-field { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+  .modal-field:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .modal-label { font-size: 0.68rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; margin-bottom: 4px; }
+  .modal-value { font-size: 0.88rem; line-height: 1.65; }
   .modal-value a { color: #2c8acc; text-decoration: none; }
   .modal-value a:hover { text-decoration: underline; }
   .modal-close {
@@ -633,9 +693,9 @@
 
   /* Alert badge on PESTLE headers */
   .pestle-alert-badge {
-    font-size: 0.6rem; padding: 1px 6px; border-radius: 8px;
-    background: rgba(255,255,255,0.9); color: var(--highlight); font-weight: 600;
-    animation: alert-pulse 2s ease-in-out infinite;
+    font-size: 0.58rem; padding: 2px 7px; border-radius: 4px;
+    background: rgba(255,255,255,0.92); color: var(--highlight); font-weight: 700;
+    animation: alert-pulse 2s ease-in-out infinite; letter-spacing: 0.02em;
   }
   @keyframes alert-pulse {
     0%, 100% { opacity: 1; }
@@ -680,17 +740,22 @@
       background: var(--accent); color: white;
       border-color: var(--accent); border-bottom-color: var(--accent);
     }
-    .pestle-grid, .papers-grid, .cla-grid, .signals-grid { grid-template-columns: 1fr; gap: 10px; }
+    .pestle-grid, .papers-grid, .cla-grid, .signals-grid { grid-template-columns: 1fr; gap: 12px; }
     .stats-row { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 16px; }
     .stat-card { padding: 10px 12px; border-radius: 8px; }
     .stat-value { font-size: 1.2rem; }
     .stat-label { font-size: 0.65rem; }
-    .pestle-section { border-radius: 10px; }
-    .pestle-header { padding: 12px 14px; font-size: 0.85rem; }
-    .article-list { max-height: 300px; }
+    .pestle-section { border-radius: 12px; }
+    .pestle-header { padding: 12px 14px; font-size: 0.82rem; }
+    .article-list { max-height: 320px; }
     .article-item { padding: 12px 14px; min-height: 44px; }
     .article-title { font-size: 0.82rem; line-height: 1.5; }
     .article-meta { font-size: 0.68rem; margin-top: 4px; }
+    .article-actions { opacity: 1; position: static; transform: none; margin-top: 6px; }
+    .pestle-toolbar { gap: 8px; }
+    .pestle-search-wrap { min-width: 100%; }
+    .pestle-period-tabs { width: 100%; }
+    .pestle-period-btn { flex: 1; text-align: center; font-size: 0.72rem; padding: 8px 6px; }
     .papers-stats-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 14px; }
     .papers-stat-card { padding: 10px 12px; }
     .papers-stat-value { font-size: 1.1rem; }
@@ -1190,16 +1255,26 @@
 
   <!-- ===== PESTLE ===== -->
   <div class="tab-panel" id="tab-pestle">
-    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
-      <input class="search-input" id="pestleSearch" data-i18n-placeholder="search_news" placeholder="ニュースを検索..." oninput="renderPestle()" style="flex:1;min-width:180px">
-      <select id="pestleYearFilter" onchange="renderPestle()" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card);font-size:0.85rem">
-        <option value="latest" data-i18n="pestle_today">最新（当日）</option>
-        <option value="1week" data-i18n="pestle_1week">1週間</option>
-        <option value="1month" data-i18n="pestle_1month">1ヶ月</option>
-        <option value="all" data-i18n="pestle_all">全期間</option>
-      </select>
-      <span id="pestleTotalCount" style="font-size:0.78rem;color:var(--text-muted)"></span>
+    <div class="pestle-toolbar">
+      <div class="pestle-search-wrap">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/></svg>
+        <input id="pestleSearch" data-i18n-placeholder="search_news" placeholder="ニュースを検索..." oninput="renderPestle()">
+      </div>
+      <div class="pestle-period-tabs" id="pestlePeriodTabs">
+        <button class="pestle-period-btn active" data-period="latest" onclick="setPestlePeriod(this)">最新</button>
+        <button class="pestle-period-btn" data-period="1week" onclick="setPestlePeriod(this)">1週間</button>
+        <button class="pestle-period-btn" data-period="1month" onclick="setPestlePeriod(this)">1ヶ月</button>
+        <button class="pestle-period-btn" data-period="all" onclick="setPestlePeriod(this)">全期間</button>
+      </div>
+      <span class="pestle-total-count" id="pestleTotalCount"></span>
     </div>
+    <!-- Hidden select for year filter compat (dynamically populated) -->
+    <select id="pestleYearFilter" style="display:none">
+      <option value="latest">最新</option>
+      <option value="1week">1週間</option>
+      <option value="1month">1ヶ月</option>
+      <option value="all">全期間</option>
+    </select>
     <div class="pestle-dim-filters" id="pestleDimFilters" style="margin-bottom:16px"></div>
     <div class="pestle-grid" id="pestleGrid"></div>
   </div>
@@ -1738,13 +1813,21 @@ const PESTLE_META = {
 
 let pestleDimVisible = { Political: true, Economic: true, Social: true, Technological: true, Legal: true, Environmental: true };
 function togglePestleDim(dim) { pestleDimVisible[dim] = !pestleDimVisible[dim]; renderPestleDimFilters(); renderPestle(); }
+function setPestlePeriod(btn) {
+  document.querySelectorAll('.pestle-period-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const period = btn.dataset.period;
+  const sel = document.getElementById('pestleYearFilter');
+  if (sel) sel.value = period;
+  renderPestle();
+}
 function renderPestleDimFilters() {
   const container = document.getElementById('pestleDimFilters');
   if (!container) return;
   let html = '';
   for (const [cat, meta] of Object.entries(PESTLE_META)) {
     const active = pestleDimVisible[cat];
-    html += `<button class="pestle-dim-btn ${active ? 'active' : ''}" style="border-color:${meta.color};${active ? 'background:' + meta.color : 'color:' + meta.color}" onclick="togglePestleDim('${cat}')">${meta.ja}</button>`;
+    html += `<button class="pestle-dim-btn ${active ? 'active' : ''}" style="border-color:${meta.color};${active ? 'background:' + meta.color : 'color:' + meta.color}" onclick="togglePestleDim('${cat}')" aria-pressed="${active}">${meta.icon} ${meta.ja}</button>`;
   }
   container.innerHTML = html;
 }
@@ -1838,13 +1921,18 @@ function showArticle(category, idx) {
   const displayTitle = localizedTitle(a, category, idx);
   const displaySummary = localizedSummary(a, category, idx);
   openModal(displayTitle, `
-    <div class="modal-field"><div class="modal-label">${t('category')}</div><div class="modal-value" style="color:${meta.color}">${meta.ja} (${category})</div></div>
-    <div class="modal-field"><div class="modal-label">${t('source')}</div><div class="modal-value">${esc(a.source)} ${a.lang === 'ja' ? '\ud83c\uddef\ud83c\uddf5' : '\ud83c\udf10'}</div></div>
-    ${a.published ? `<div class="modal-field"><div class="modal-label">${t('published')}</div><div class="modal-value">${esc(a.published)}</div></div>` : ''}
-    <div class="modal-field"><div class="modal-label">${t('summary')}</div><div class="modal-value">${esc(displaySummary)}</div></div>
-    ${a.lang === 'en' && LANG === 'ja' ? `<div class="modal-field"><div class="modal-label">原文</div><div class="modal-value" style="font-size:0.78rem;color:var(--text-muted)">${esc(a.title)}<br>${esc(a.summary)}</div></div>` : ''}
-    <div class="modal-field"><div class="modal-label">${t('link')}</div><div class="modal-value"><a href="${esc(a.url)}" target="_blank">${esc(a.url)}</a></div></div>
-    <div class="modal-field"><div class="modal-label">${t('relevance')}</div><div class="modal-value">${a.relevance_score}</div></div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
+      <span style="display:inline-block;width:4px;height:20px;border-radius:2px;background:${meta.color}"></span>
+      <span style="font-size:0.78rem;font-weight:700;color:${meta.color}">${meta.icon} ${meta.ja}</span>
+      <span style="font-size:0.72rem;color:var(--text-muted)">${esc(a.source)} ${a.lang === 'ja' ? '\ud83c\uddef\ud83c\uddf5' : '\ud83c\udf10'}</span>
+      ${a.published ? `<span style="font-size:0.72rem;color:var(--text-muted)">${esc(a.published)}</span>` : ''}
+    </div>
+    <div class="modal-field"><div class="modal-label">${t('summary')}</div><div class="modal-value" style="font-size:0.9rem;line-height:1.8">${esc(displaySummary)}</div></div>
+    ${a.lang === 'en' && LANG === 'ja' ? `<details style="margin-bottom:16px"><summary style="font-size:0.72rem;color:var(--text-muted);cursor:pointer;padding:4px 0">原文を表示</summary><div style="font-size:0.78rem;color:var(--text-muted);margin-top:8px;line-height:1.6">${esc(a.title)}<br><br>${esc(a.summary)}</div></details>` : ''}
+    <div style="display:flex;gap:10px;align-items:center;padding-top:12px;border-top:1px solid var(--border)">
+      <a href="${esc(a.url)}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:10px 20px;background:${meta.color};color:#fff;border-radius:10px;font-size:0.85rem;font-weight:600;text-decoration:none;transition:opacity 0.15s" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">&#8599; ${t('link')}</a>
+      <button class="bookmark-btn-inline ${isBookmarked('news',category,idx) ? 'active' : ''}" onclick="toggleBookmark('news','${category}',${idx},'${esc(displayTitle).replace(/'/g,"\\'")}','${esc(a.url||'').replace(/'/g,"\\'")}',this)" style="padding:8px 16px;border-radius:8px;font-size:0.82rem">${isBookmarked('news',category,idx) ? '&#10003; 保存済' : '&#9734; 保存'}</button>
+    </div>
   `);
 }
 
@@ -2274,17 +2362,49 @@ async function renderPestle() {
   if ((yearFilter === 'latest' || Object.keys(pestleData).length === 0) && NEWS_DATA) { pestleData = {}; for (const [cat, info] of Object.entries(NEWS_DATA.pestle)) { pestleData[cat] = (info.articles || []); } }
   renderPestleDimFilters();
   let totalCount = 0; let html = '';
+  let cardIdx = 0;
   for (const [cat, meta] of Object.entries(PESTLE_META)) {
     if (!pestleDimVisible[cat]) continue;
     let articles = pestleData[cat] || [];
     if (q) articles = articles.filter(a => ((a.title||'') + (a.summary||'') + (a.source||'')).toLowerCase().includes(q));
     totalCount += articles.length;
     articles.sort((a, b) => ((b.published_date||'').localeCompare(a.published_date||'')));
-    html += `<div class="pestle-section"><div class="pestle-header" style="background:linear-gradient(135deg, ${meta.color} 0%, ${meta.color}cc 100%)"><div class="pestle-badge"></div>${meta.icon} <strong>${meta.ja}</strong><span class="pestle-count">${articles.length.toLocaleString()}件</span></div><div class="article-list">${articles.slice(0, 100).map((a, i) => { const title = (yearFilter === 'latest') ? localizedTitle(a, cat, i) : (a.title_ja || a.title_translated || a.title); const summary = (yearFilter === 'latest') ? localizedSummary(a, cat, i) : (a.summary_ja || a.summary_translated || a.summary || ''); const snippet = (summary || '').substring(0, 120); const relScore = a.relevance_score || 0; const relPct = Math.min(relScore / 10 * 100, 100); return `<div class="article-item" ${yearFilter === 'latest' ? `onclick="showArticle('${cat}', ${i})"` : (a.url ? `onclick="window.open('${esc(a.url)}','_blank')" style="cursor:pointer"` : '')}><div class="article-title">${esc(title)}</div>${snippet ? `<div class="article-snippet">${esc(snippet)}${summary.length > 120 ? '...' : ''}</div>` : ''}<div class="article-meta"><span class="article-source">${esc(a.source)}</span>${(a.published_date || a.published) ? `<span>${esc(formatPubDate(a.published_date || a.published))}</span>` : ''}${relScore ? `<span class="article-relevance"><span class="article-relevance-bar"><span class="article-relevance-fill" style="width:${relPct}%;background:${meta.color}"></span></span>${relScore}</span>` : ''}</div><div style="display:flex;gap:6px;margin-top:4px"><button class="bookmark-btn-inline ${isBookmarked('news',cat,i) ? 'active' : ''}" onclick="event.stopPropagation();toggleBookmark('news','${cat}',${i},'${esc(title).replace(/'/g,"\\'")}','${esc(a.url||'').replace(/'/g,"\\'")}',this)">${isBookmarked('news',cat,i) ? '保存済' : '保存'}</button><button class="share-btn-inline" onclick="event.stopPropagation();shareItem('${esc(title).replace(/'/g,"\\'")}','${esc(a.url||'').replace(/'/g,"\\'")}')">シェア</button></div></div>`; }).join('')}${articles.length > 50 ? `<div style="padding:10px;text-align:center;color:var(--text-muted);font-size:0.8rem">他 ${(articles.length - 50).toLocaleString()}件</div>` : ''}</div></div>`;
+
+    const articleListHtml = articles.length === 0
+      ? `<div class="pestle-empty"><div class="pestle-empty-icon">${meta.icon}</div>該当するニュースがありません</div>`
+      : articles.slice(0, 100).map((a, i) => {
+          const title = (yearFilter === 'latest') ? localizedTitle(a, cat, i) : (a.title_ja || a.title_translated || a.title);
+          const summary = (yearFilter === 'latest') ? localizedSummary(a, cat, i) : (a.summary_ja || a.summary_translated || a.summary || '');
+          const snippet = (summary || '').substring(0, 120);
+          const relScore = a.relevance_score || 0;
+          const relOpacity = relScore ? Math.max(0.3, relScore / 10) : 0;
+          return `<div class="article-item" ${yearFilter === 'latest' ? `onclick="showArticle('${cat}', ${i})"` : (a.url ? `onclick="window.open('${esc(a.url)}','_blank')" style="cursor:pointer"` : '')}>` +
+            `<div class="article-title">${esc(title)}</div>` +
+            (snippet ? `<div class="article-snippet">${esc(snippet)}${summary.length > 120 ? '...' : ''}</div>` : '') +
+            `<div class="article-meta">` +
+              `<span class="article-source" style="color:${meta.color}">${esc(a.source)}</span>` +
+              ((a.published_date || a.published) ? `<span>${esc(formatPubDate(a.published_date || a.published))}</span>` : '') +
+              (relScore ? `<span class="article-relevance-dot" style="background:${meta.color};opacity:${relOpacity}" title="関連度 ${relScore}"></span>` : '') +
+            `</div>` +
+            `<div class="article-actions">` +
+              `<button class="bookmark-btn-inline ${isBookmarked('news',cat,i) ? 'active' : ''}" onclick="event.stopPropagation();toggleBookmark('news','${cat}',${i},'${esc(title).replace(/'/g,"\\'")}','${esc(a.url||'').replace(/'/g,"\\'")}',this)">${isBookmarked('news',cat,i) ? '&#10003;' : '&#9734;'}</button>` +
+              `<button class="share-btn-inline" onclick="event.stopPropagation();shareItem('${esc(title).replace(/'/g,"\\'")}','${esc(a.url||'').replace(/'/g,"\\'")}')">&#8599;</button>` +
+            `</div>` +
+          `</div>`;
+        }).join('') + (articles.length > 100 ? `<div style="padding:10px;text-align:center;color:var(--text-muted);font-size:0.78rem">他 ${(articles.length - 100).toLocaleString()}件</div>` : '');
+
+    html += `<div class="pestle-section" style="animation-delay:${cardIdx * 0.05}s">` +
+      `<div class="pestle-header" style="background:linear-gradient(135deg, ${meta.color} 0%, ${meta.color}dd 100%)">` +
+        `<div class="pestle-badge"></div><strong>${meta.icon} ${meta.ja}</strong>` +
+        `<span class="pestle-count">${articles.length.toLocaleString()}件</span>` +
+      `</div>` +
+      `<div class="article-list">${articleListHtml}</div>` +
+    `</div>`;
+    cardIdx++;
   }
   const countEl = document.getElementById('pestleTotalCount');
   if (countEl) countEl.textContent = `計 ${totalCount.toLocaleString()}件`;
-  document.getElementById('pestleGrid').innerHTML = html;
+  document.getElementById('pestleGrid').innerHTML = html || '<div class="pestle-empty">表示する記事がありません。フィルターを確認してください。</div>';
 }
 
 let _papersSort = 'relevance'; let _papersShowCount = {};
