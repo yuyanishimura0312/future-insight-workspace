@@ -2460,7 +2460,9 @@ function renderPapers() {
   const fieldFilter = document.getElementById('papersField').value;
   const langFilter = document.getElementById('papersLang').value;
   const byField = {}; let totalShown = 0;
+  const _today = new Date().toISOString().slice(0, 10);
   PAPERS_DATA.forEach((p, i) => {
+    if ((p.published_date || '') > _today) return;
     if (q) { const tr = PAPERS_TRANS[i]; const searchable = (p.title + ' ' + (p.summary || '') + ' ' + (p.authors || '') + ' ' + p.field + ' ' + (p.subfield || '') + ' ' + (p.title_ja || '') + ' ' + (p.summary_ja || '') + (tr ? ' ' + (tr.title_ja || '') + ' ' + (tr.summary_ja || '') : '')).toLowerCase(); if (!searchable.includes(q)) return; }
     if (fieldFilter && p.field !== fieldFilter) return;
     if (langFilter && (p.language || 'en') !== langFilter) return;
