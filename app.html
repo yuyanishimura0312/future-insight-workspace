@@ -1338,8 +1338,8 @@
           <option value="ja" data-i18n="papers_lang_ja">日本語</option>
         </select>
         <button class="papers-sort-btn" id="papersTransFilter" onclick="toggleTransFilter()" data-i18n="papers_ja_only">日本語訳のみ</button>
-        <button class="papers-sort-btn active" id="papersSortRelevance" onclick="setPapersSort('relevance')">関連度順</button>
-        <button class="papers-sort-btn" id="papersSortDate" onclick="setPapersSort('date')" data-i18n="papers_sort_date">新しい順</button>
+        <button class="papers-sort-btn" id="papersSortRelevance" onclick="setPapersSort('relevance')">関連度順</button>
+        <button class="papers-sort-btn active" id="papersSortDate" onclick="setPapersSort('date')" data-i18n="papers_sort_date">新しい順</button>
         <button class="papers-sort-btn" id="papersSortTitle" onclick="setPapersSort('title')" data-i18n="papers_sort_title">タイトル順</button>
         <!-- Saved Papers Export -->
         <div class="paper-export-bar" id="paperExportBar" style="display:none;margin-left:auto">
@@ -2416,7 +2416,7 @@ async function renderPestle() {
   document.getElementById('pestleGrid').innerHTML = html || '<div class="pestle-empty">表示する記事がありません。フィルターを確認してください。</div>';
 }
 
-let _papersSort = 'relevance'; let _papersShowCount = {};
+let _papersSort = 'date'; let _papersShowCount = {};
 function onPapersSearchInput() { const q = document.getElementById('papersSearch').value; const clearBtn = document.getElementById('papersSearchClear'); if (clearBtn) clearBtn.classList.toggle('show', q.length > 0); renderPapers(); }
 function clearPapersSearch() { document.getElementById('papersSearch').value = ''; document.getElementById('papersSearchClear').classList.remove('show'); renderPapers(); }
 function setPapersSort(mode) { _papersSort = mode; document.getElementById('papersSortDate').classList.toggle('active', mode === 'date'); document.getElementById('papersSortTitle').classList.toggle('active', mode === 'title'); document.getElementById('papersSortRelevance').classList.toggle('active', mode === 'relevance'); renderPapers(); }
