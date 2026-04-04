@@ -40,6 +40,31 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
       allow create: if request.auth != null;
     }
+    // === Miratuku News App Collections ===
+    // Comments on news articles — all authenticated users can read; owners can CUD
+    match /news_comments/{commentId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+    // Bookmarks — private per user
+    match /news_bookmarks/{bookmarkId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+    // Foresight queries — private per user, read and create only
+    match /foresight_queries/{queryId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    }
+    // Media sources — admins can manage; all authenticated can read
+    match /media_sources/{sourceId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
     // Config: public-read items (mythReport) vs admin-only (api keys)
     match /config/mythReport {
       allow read: if request.auth != null;
