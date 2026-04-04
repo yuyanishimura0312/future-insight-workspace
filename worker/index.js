@@ -9,6 +9,24 @@
 // Vars (set in wrangler.toml):
 //   ALLOWED_ORIGIN - CORS origin
 
+// === Foresight rate limiter (stricter: 5 req/min) ===
+const foresightRateLimits = new Map();
+const FORESIGHT_RATE_WINDOW = 60 * 1000;
+const FORESIGHT_RATE_MAX = 5;
+
+function checkForesightRateLimit(userId) {
+  const now = Date.now();
+  const key = `foresight_${userId || 'anonymous'}`;
+  const entry = foresightRateLimits.get(key);
+  if (!entry || now - entry.windowStart > FORESIGHT_RATE_WINDOW) {
+    foresightRateLimits.set(key, { windowStart: now, count: 1 });
+    return true;
+  }
+  if (entry.count >= FORESIGHT_RATE_MAX) return false;
+  entry.count++;
+  return true;
+}
+
 // Simple in-memory rate limiter (per-worker instance)
 const rateLimits = new Map();
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
@@ -59,6 +77,11 @@ export default {
 
     // Clean up rate limits occasionally
     cleanupRateLimits();
+    // Clean foresight rate limits
+    const now = Date.now();
+    for (const [key, entry] of foresightRateLimits) {
+      if (now - entry.windowStart > FORESIGHT_RATE_WINDOW * 2) foresightRateLimits.delete(key);
+    }
 
     try {
       // Route: /api/notion - Notion page fetcher
@@ -76,7 +99,17 @@ export default {
         return handleFetchUrl(request, env, url, corsHeaders);
       }
 
-      return new Response(JSON.stringify({ error: 'Not found', routes: ['/api/notion', '/api/anthropic', '/api/fetch-url'] }), {
+      // Route: /api/foresight - Foresight question (Miratuku News)
+      if (path === '/api/foresight') {
+        return handleForesight(request, env, corsHeaders);
+      }
+
+      // Route: /api/foresight-builder - Build insight from bookmarks (Miratuku News)
+      if (path === '/api/foresight-builder') {
+        return handleForesightBuilder(request, env, corsHeaders);
+      }
+
+      return new Response(JSON.stringify({ error: 'Not found', routes: ['/api/notion', '/api/anthropic', '/api/fetch-url', '/api/foresight', '/api/foresight-builder'] }), {
         status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     } catch (e) {
@@ -215,6 +248,139 @@ async function handleNotion(request, env, url, corsHeaders) {
   }).filter(line => line !== '');
 
   return new Response(JSON.stringify({ title, text: lines.join('\n'), block_count: allBlocks.length }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+  });
+}
+
+// === Foresight Question Handler (Miratuku News) ===
+async function handleForesight(request, env, corsHeaders) {
+  if (request.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'POST required' }), {
+      status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
+  if (!env.ANTHROPIC_API_KEY) {
+    return new Response(JSON.stringify({ error: 'ANTHROPIC_API_KEY not configured' }), {
+      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
+  const userId = request.headers.get('X-User-Id') || 'unknown';
+  if (!checkForesightRateLimit(userId)) {
+    return new Response(JSON.stringify({ error: 'Rate limit exceeded (max 5/min).' }), {
+      status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
+  let body;
+  try { body = await request.json(); } catch {
+    return new Response(JSON.stringify({ error: 'Invalid JSON' }), {
+      status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
+  const { question, claContext, signalsContext, newsContext } = body;
+  if (!question || typeof question !== 'string' || !question.trim()) {
+    return new Response(JSON.stringify({ error: 'question is required' }), {
+      status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
+  const prompt = `あなたは未来洞察の専門家です。以下のデータを基に、ユーザーの問いかけに対して深い洞察を提供してください。
+
+## 基盤データ
+${claContext || '（CLA分析データなし）'}
+${signalsContext || '（シグナルデータなし）'}
+${newsContext || '（ニュースデータなし）'}
+
+## ユーザーの問いかけ
+${question.trim().slice(0, 2000)}
+
+## 回答指針
+- 因果階層分析の4層（リタニー、社会的原因、ディスコース、神話/メタファー）の観点から回答
+- 注目すべきシグナルとの関連を示す
+- 未来の可能性について複数のシナリオを提示
+- 日本語で回答`;
+
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': env.ANTHROPIC_API_KEY,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 8000, messages: [{ role: 'user', content: prompt }] }),
+  });
+  const data = await resp.json();
+  if (!resp.ok) {
+    return new Response(JSON.stringify({ error: 'Anthropic API error', detail: data }), {
+      status: resp.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
+  const answer = data.content?.map(b => b.text || '').join('') || '';
+  return new Response(JSON.stringify({ answer, model: data.model, usage: data.usage }), {
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+  });
+}
+
+// === Foresight Builder (Miratuku News) ===
+async function handleForesightBuilder(request, env, corsHeaders) {
+  if (request.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'POST required' }), {
+      status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
+  if (!env.ANTHROPIC_API_KEY) {
+    return new Response(JSON.stringify({ error: 'ANTHROPIC_API_KEY not configured' }), {
+      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
+  const userId = request.headers.get('X-User-Id') || 'unknown';
+  if (!checkForesightRateLimit(userId)) {
+    return new Response(JSON.stringify({ error: 'Rate limit exceeded (max 5/min).' }), {
+      status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
+  let body;
+  try { body = await request.json(); } catch {
+    return new Response(JSON.stringify({ error: 'Invalid JSON' }), {
+      status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
+  const { bookmarks } = body;
+  if (!Array.isArray(bookmarks) || bookmarks.length === 0) {
+    return new Response(JSON.stringify({ error: 'bookmarks array required' }), {
+      status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
+  const list = bookmarks.slice(0, 50).map((b, i) => `${i + 1}. [${b.category || 'N/A'}] ${b.title}`).join('\n');
+  const prompt = `あなたは未来洞察の専門家であり、因果階層分析（CLA）のスペシャリストです。
+以下のブックマークされた資料群を基に、横断的な未来洞察を生成してください。
+
+## ブックマークされた資料
+${list}
+
+## タスク
+1. CLA対比分析: 4層（リタニー、社会的原因、ディスコース、神話/メタファー）で整理
+2. 横断テーマ: 共通する深層テーマやパターンを抽出
+3. 注目シグナル: 弱いシグナルや新興トレンドを提案
+4. シナリオ: 2-3の未来シナリオを描写
+
+日本語で回答してください。`;
+
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': env.ANTHROPIC_API_KEY,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 8000, messages: [{ role: 'user', content: prompt }] }),
+  });
+  const data = await resp.json();
+  if (!resp.ok) {
+    return new Response(JSON.stringify({ error: 'Anthropic API error', detail: data }), {
+      status: resp.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
+  const insight = data.content?.map(b => b.text || '').join('') || '';
+  return new Response(JSON.stringify({ insight, model: data.model, usage: data.usage, bookmarkCount: bookmarks.length }), {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' }
   });
 }
