@@ -2077,11 +2077,15 @@ function renderOverview() {
     }
     return NEWS_DATA.date;
   })();
+  const todayNews = totalNews;
+  const displayNewsTotal = historyTotal > todayNews ? historyTotal : todayNews;
+  const fieldEntries = Object.entries(PAPERS_STATS?.by_field || fields);
+  const fieldCount = fieldEntries.length;
   document.getElementById('overviewStats').innerHTML = `
-    <div class="stat-card"><div class="stat-label">${t('stat_news')}</div><div class="stat-value">${totalNews.toLocaleString()}</div><div class="stat-sub">全${NEWS_DATA.total_fetched ? NEWS_DATA.total_fetched.toLocaleString() + '件から' : ''}${totalNews}件選定（6分野）</div></div>
-    <div class="stat-card"><div class="stat-label">${t('stat_papers')}</div><div class="stat-value">${papersTotal.toLocaleString()}</div><div class="stat-sub">${Object.keys(PAPERS_STATS?.by_field || fields).length} 分野</div></div>
+    <div class="stat-card"><div class="stat-label">${t('stat_news')}</div><div class="stat-value">${displayNewsTotal.toLocaleString()}</div><div class="stat-sub">${historyTotal > todayNews ? `累計${displayNewsTotal.toLocaleString()}件（本日${todayNews.toLocaleString()}件）` : `${NEWS_DATA.feeds_count || ''}ソースから${todayNews.toLocaleString()}件選定（6分野）`}</div></div>
+    <div class="stat-card"><div class="stat-label">${t('stat_papers')}</div><div class="stat-value">${papersTotal.toLocaleString()}</div><div class="stat-sub">${fieldCount > 0 ? fieldCount + ' 分野' : '学術論文データベース'}</div></div>
     <div class="stat-card"><div class="stat-label">${t('stat_sources')}</div><div class="stat-value">${sources.size}</div><div class="stat-sub">${t('stat_sub_sources')}</div></div>
-    <div class="stat-card"><div class="stat-label">${t('stat_fields')}</div><div class="stat-value">${Object.keys(PAPERS_STATS?.by_field || fields).length}</div><div class="stat-sub">${Object.entries(PAPERS_STATS?.by_field || fields).map(([f,n]) => f + ':' + n.toLocaleString()).join(', ')}</div></div>
+    <div class="stat-card"><div class="stat-label">${t('stat_fields')}</div><div class="stat-value">${fieldCount > 0 ? fieldCount : PESTLE_HISTORY?._quarterCount || '-'}</div><div class="stat-sub">${fieldCount > 0 ? fieldEntries.map(([f,n]) => f + ':' + n.toLocaleString()).join(', ') : `${PESTLE_HISTORY?._quarterCount || ''}四半期のPESTLEデータ`}</div></div>
     <div class="stat-card"><div class="stat-label">${t('stat_date')}</div><div class="stat-value" style="font-size:1rem">${pestleDateRange}</div><div class="stat-sub">最終更新: ${NEWS_DATA.date}</div></div>`;
 
   // === Research Pickup (top section) ===
