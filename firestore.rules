@@ -53,10 +53,27 @@ service cloud.firestore {
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
       allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
-    // Foresight queries — private per user, read and create only
+    // Foresight queries — private per user
     match /foresight_queries/{queryId} {
       allow read: if request.auth != null && resource.data.userId == request.auth.uid;
       allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+    // User-generated reports — private per user
+    match /user_reports/{reportId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+    // Insight report admin config
+    match /insight_report_config/{docId} {
+      allow read, write: if request.auth != null;
+    }
+    match /insight_report_status/{docId} {
+      allow read, write: if request.auth != null;
+    }
+    match /insight_report_edits/{docId} {
+      allow read, write: if request.auth != null;
     }
     // Media sources — admins can manage; all authenticated can read
     match /media_sources/{sourceId} {
