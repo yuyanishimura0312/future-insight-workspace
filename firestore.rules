@@ -82,6 +82,18 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
+    // Pipeline management — authenticated users can read and create commands
+    match /pipeline_commands/{docId} {
+      allow read, write: if request.auth != null;
+    }
+    // Pipeline status/logs — read-only from client (daemon writes via admin SDK)
+    match /pipeline_status/{docId} {
+      allow read: if request.auth != null;
+    }
+    match /pipeline_logs/{docId} {
+      allow read: if request.auth != null;
+    }
+
     // CLA historical data — all authenticated users can read/write
     match /cla_historical/{period} {
       allow read, write: if request.auth != null;
