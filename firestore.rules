@@ -82,6 +82,15 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
+    // CLA historical data — all authenticated users can read/write
+    match /cla_historical/{period} {
+      allow read, write: if request.auth != null;
+    }
+    // CLA meta analysis reports
+    match /cla_meta/{region} {
+      allow read, write: if request.auth != null;
+    }
+
     // Config: public-read items (mythReport) vs admin-only (api keys)
     match /config/mythReport {
       allow read: if request.auth != null;
