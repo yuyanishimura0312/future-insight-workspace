@@ -1,7 +1,7 @@
 {
   "indexes": [
     {
-      "collectionGroup": "foresight_queries",
+      "collectionGroup": "user_reports",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "userId", "order": "ASCENDING" },
@@ -9,7 +9,7 @@
       ]
     },
     {
-      "collectionGroup": "user_reports",
+      "collectionGroup": "foresight_queries",
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "userId", "order": "ASCENDING" },
