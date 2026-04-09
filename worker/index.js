@@ -109,7 +109,12 @@ export default {
         return handleForesightBuilder(request, env, corsHeaders);
       }
 
-      return new Response(JSON.stringify({ error: 'Not found', routes: ['/api/notion', '/api/anthropic', '/api/fetch-url', '/api/foresight', '/api/foresight-builder'] }), {
+      // Route: /api/regenerate-report - Regenerate insight report with structured JSON (Miratuku News)
+      if (path === '/api/regenerate-report') {
+        return handleRegenerateReport(request, env, corsHeaders);
+      }
+
+      return new Response(JSON.stringify({ error: 'Not found', routes: ['/api/notion', '/api/anthropic', '/api/fetch-url', '/api/foresight', '/api/foresight-builder', '/api/regenerate-report'] }), {
         status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     } catch (e) {
@@ -383,6 +388,107 @@ ${list}
   return new Response(JSON.stringify({ insight, model: data.model, usage: data.usage, bookmarkCount: bookmarks.length }), {
     headers: { ...corsHeaders, 'Content-Type': 'application/json' }
   });
+}
+
+// === Regenerate Insight Report (Miratuku News) ===
+async function handleRegenerateReport(request, env, corsHeaders) {
+  if (request.method !== 'POST') {
+    return new Response(JSON.stringify({ error: 'POST required' }), {
+      status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
+  if (!env.ANTHROPIC_API_KEY) {
+    return new Response(JSON.stringify({ error: 'ANTHROPIC_API_KEY not configured' }), {
+      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
+  const userId = request.headers.get('X-User-Id') || 'unknown';
+  if (!checkForesightRateLimit(userId)) {
+    return new Response(JSON.stringify({ error: 'Rate limit exceeded (max 5/min).' }), {
+      status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
+  let body;
+  try { body = await request.json(); } catch {
+    return new Response(JSON.stringify({ error: 'Invalid JSON' }), {
+      status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
+  const { article, existingReport, category } = body;
+  if (!article && !existingReport) {
+    return new Response(JSON.stringify({ error: 'article or existingReport is required' }), {
+      status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
+
+  const prompt = `あなたは因果階層分析（CLA）を専門とする未来洞察の専門家です。以下のニュース記事について、インサイトレポートを生成してください。
+
+## 記事情報
+タイトル: ${article?.title || ''}
+${article?.title_ja ? '日本語タイトル: ' + article.title_ja : ''}
+出典: ${article?.source || ''} (${article?.published_date || ''})
+要約: ${article?.summary || ''}
+PESTLEカテゴリ: ${category || article?.pestle_category || ''}
+
+${existingReport ? '## 既存レポート（改善・刷新の対象）\n' + existingReport.substring(0, 3000) + '\n' : ''}
+
+## 出力要件
+必ず以下のJSON形式のみを出力してください（他のテキストは不要です）：
+
+{
+  "title": "レポートタイトル（日本語、40字以内）",
+  "summary": "要約（日本語、150字以内、読者の関心を引くリード文）",
+  "full_report": "本文（日本語、2000〜4000字、散文形式、マークダウン可。CLA4層の視点から深層分析）",
+  "historical_context": "歴史的経緯（マークダウン可、500〜1000字）",
+  "future_signals": "未来へのシグナル分析（マークダウン可、500〜1000字）",
+  "watch_points": "今後ウォッチすべきポイント（マークダウン可、300〜500字）",
+  "related_myth": "関連する神話・メタファー（1文）",
+  "myth_relation": "strengthens または changes",
+  "timeline": [{"year": "年", "event": "出来事", "significance": "意義"}],
+  "related_research": [{"title": "論文/書籍名", "author": "著者", "comment": "この記事との関連を説明するコメント"}]
+}
+
+## 注意事項
+- 読者は経営者・コンサルタント。知的かつ実用的な洞察を提供
+- full_reportは散文形式（箇条書きのみは不可）
+- timelineは3〜6件、related_researchは2〜3件
+- JSONのみを出力。マークダウンのコードブロックで囲まないこと`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': env.ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 8000, messages: [{ role: 'user', content: prompt }] }),
+    });
+    const data = await resp.json();
+    if (!resp.ok) {
+      return new Response(JSON.stringify({ error: 'Anthropic API error', detail: data }), {
+        status: resp.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+    const answerText = data.content?.map(b => b.text || '').join('') || '';
+
+    // Try to parse as structured JSON
+    let parsed = null;
+    try {
+      const cleaned = answerText.replace(/^```(?:json)?\s*/, '').replace(/\s*```$/, '').trim();
+      parsed = JSON.parse(cleaned);
+    } catch {
+      parsed = null;
+    }
+
+    return new Response(JSON.stringify({ report: parsed, rawText: answerText, model: data.model, usage: data.usage }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  } catch (e) {
+    return new Response(JSON.stringify({ error: 'Failed to call Anthropic API', detail: e.message }), {
+      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+    });
+  }
 }
 
 // === URL Content Fetcher (replaces CORS proxies) ===
