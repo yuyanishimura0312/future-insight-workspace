@@ -1541,6 +1541,103 @@ let currentUser = null;
 let userData = null;
 const DATA_BASE_URL = 'https://yuyanishimura0312.github.io/future-insight-app/';
 
+// --- IndexedDB cache for stale-while-revalidate ---
+const IDB_NAME = 'fiw-cache';
+const IDB_STORE = 'json-data';
+const IDB_VERSION = 1;
+const CACHE_MAX_AGE_MS = 5 * 60 * 1000;
+
+let _idb = null;
+function openIDB() {
+  if (_idb) return Promise.resolve(_idb);
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDB_NAME, IDB_VERSION);
+    req.onupgradeneeded = () => { req.result.createObjectStore(IDB_STORE); };
+    req.onsuccess = () => { _idb = req.result; resolve(_idb); };
+    req.onerror = () => { resolve(null); };
+  });
+}
+async function idbGet(key) {
+  try {
+    const db = await openIDB();
+    if (!db) return null;
+    return new Promise(resolve => {
+      const tx = db.transaction(IDB_STORE, 'readonly');
+      const req = tx.objectStore(IDB_STORE).get(key);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => resolve(null);
+    });
+  } catch { return null; }
+}
+async function idbSet(key, value) {
+  try {
+    const db = await openIDB();
+    if (!db) return;
+    const tx = db.transaction(IDB_STORE, 'readwrite');
+    tx.objectStore(IDB_STORE).put(value, key);
+  } catch {}
+}
+
+const dataCache = {};
+function cacheBust() { return '?v=' + Date.now(); }
+
+async function fetchJSON(filename) {
+  if (dataCache[filename]) return dataCache[filename];
+  const cached = await idbGet(filename);
+  const now = Date.now();
+  if (cached && cached.data) {
+    dataCache[filename] = cached.data;
+    if (cached.ts && (now - cached.ts) < CACHE_MAX_AGE_MS) {
+      return cached.data;
+    }
+    _revalidate(filename, cached.etag, cached.lastMod);
+    return cached.data;
+  }
+  return _fetchAndCache(filename);
+}
+
+async function _fetchAndCache(filename) {
+  try {
+    const res = await fetch(DATA_BASE_URL + filename + cacheBust());
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    dataCache[filename] = data;
+    idbSet(filename, {
+      data: data,
+      ts: Date.now(),
+      etag: res.headers.get('etag') || '',
+      lastMod: res.headers.get('last-modified') || ''
+    });
+    return data;
+  } catch (e) { console.error('Failed to fetch ' + filename + ':', e); return null; }
+}
+
+function _revalidate(filename, etag, lastMod) {
+  const headers = {};
+  if (etag) headers['If-None-Match'] = etag;
+  if (lastMod) headers['If-Modified-Since'] = lastMod;
+  fetch(DATA_BASE_URL + filename + cacheBust(), { headers: headers })
+    .then(res => {
+      if (res.status === 304) {
+        idbGet(filename).then(c => {
+          if (c) { c.ts = Date.now(); idbSet(filename, c); }
+        });
+        return;
+      }
+      if (!res.ok) return;
+      return res.json().then(data => {
+        dataCache[filename] = data;
+        idbSet(filename, {
+          data: data,
+          ts: Date.now(),
+          etag: res.headers.get('etag') || '',
+          lastMod: res.headers.get('last-modified') || ''
+        });
+      });
+    })
+    .catch(() => {});
+}
+
 // Check if trial has expired (admin users have no trial limit)
 function isTrialExpired(data) {
   if (data.role === 'admin') return false;
@@ -1946,8 +2043,8 @@ async function showPaper(idx) {
   if (!PAPERS_FULL) {
     openModal(localizedPaperTitle(p, idx), `<div style="padding:20px;color:var(--text-muted)"><div style="display:flex;align-items:center;gap:8px;"><span style="display:inline-block;width:16px;height:16px;border:2px solid var(--accent);border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite"></span>${LANG === 'ja' ? '詳細データを読み込み中...' : 'Loading details...'}</div><style>@keyframes spin{to{transform:rotate(360deg)}}</style></div>`);
     try {
-      const resp = await fetch(DATA_BASE_URL + 'data/papers.json?v=' + Date.now());
-      PAPERS_FULL = await resp.json();
+      PAPERS_FULL = await fetchJSON('data/papers.json');
+      if (!PAPERS_FULL) throw new Error('Failed to load papers');
     } catch (e) {
       openModal(localizedPaperTitle(p, idx), `<div style="padding:20px"><div class="modal-field"><div class="modal-label">${t('field')}</div><div class="modal-value">${esc(p.field)}</div></div><div class="modal-field"><div class="modal-label">${t('authors')}</div><div class="modal-value">${esc(p.authors || t('unknown'))}</div></div><div class="modal-field"><div class="modal-label">${t('link')}</div><div class="modal-value"><a href="${esc(p.source_url)}" target="_blank" style="word-break:break-all">${esc(p.source_url)}</a></div></div></div>`);
       return;
@@ -2331,7 +2428,7 @@ function renderPapersPagePickup() {
 
 async function ensurePestleHistoryLoaded() {
   if (_pestleHistoryLoaded) return;
-  try { const resp = await fetch(DATA_BASE_URL + 'data/pestle_history.json?v=' + Date.now()); const full = await resp.json(); PESTLE_HISTORY = { ...PESTLE_HISTORY, ...full }; _pestleHistoryLoaded = true; } catch (e) { console.warn('Failed to load history:', e); }
+  try { const full = await fetchJSON('data/pestle_history.json'); if (full) { PESTLE_HISTORY = { ...PESTLE_HISTORY, ...full }; _pestleHistoryLoaded = true; } } catch (e) { console.warn('Failed to load history:', e); }
 }
 
 async function renderPestle() {
@@ -2494,7 +2591,7 @@ function renderPapers() {
 }
 
 let semanticEmbeddings = null; let semanticModel = null; let semanticSearchRunning = false;
-async function loadSemanticEmbeddings() { if (semanticEmbeddings) return semanticEmbeddings; try { const resp = await fetch(DATA_BASE_URL + 'data/embeddings.json'); semanticEmbeddings = await resp.json(); return semanticEmbeddings; } catch (e) { return null; } }
+async function loadSemanticEmbeddings() { if (semanticEmbeddings) return semanticEmbeddings; try { semanticEmbeddings = await fetchJSON('data/embeddings.json'); return semanticEmbeddings; } catch (e) { return null; } }
 async function loadSemanticModel() { if (semanticModel) return semanticModel; const { pipeline } = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3'); semanticModel = await pipeline('feature-extraction', 'Xenova/multilingual-e5-small', { dtype: 'q8' }); return semanticModel; }
 
 async function runGlobalSemanticSearch() {
@@ -3022,18 +3119,18 @@ let _papersAiMode = false;
 
 async function loadDailyPapers() {
   try {
-    const [dpResp, paResp] = await Promise.allSettled([
-      fetch(DATA_BASE_URL + 'data/daily_papers.json?v=' + Date.now()),
-      fetch(DATA_BASE_URL + 'data/paper_alerts.json?v=' + Date.now()),
+    const [dpResult, paResult] = await Promise.allSettled([
+      fetchJSON('data/daily_papers.json'),
+      fetchJSON('data/paper_alerts.json'),
     ]);
-    if (dpResp.status === 'fulfilled') {
-      DAILY_PAPERS = await dpResp.value.json();
+    if (dpResult.status === 'fulfilled' && dpResult.value) {
+      DAILY_PAPERS = dpResult.value;
       renderDailyPapers();
       renderPapersTopbar();
       renderPapersPagePickup();
     }
-    if (paResp.status === 'fulfilled') {
-      PAPER_ALERTS = await paResp.value.json();
+    if (paResult.status === 'fulfilled' && paResult.value) {
+      PAPER_ALERTS = paResult.value;
       renderPaperAlerts();
     }
   } catch (e) { console.warn('Daily papers load error:', e); }
@@ -3541,40 +3638,39 @@ function shareAllSavedPapers() {
 
 // Phase 1: Load only lightweight data for initial render (~1MB total)
 async function loadData() {
-  const v = Date.now();
-  const [newsResp, aiResp, statsResp, alertsResp, scResp] = await Promise.allSettled([
-    fetch(DATA_BASE_URL + 'data/latest.json?v=' + v),
-    fetch(DATA_BASE_URL + 'data/ai_analysis.json?v=' + v),
-    fetch(DATA_BASE_URL + 'data/papers_stats.json?v=' + v),
-    fetch(DATA_BASE_URL + 'data/alerts.json?v=' + v),
-    fetch(DATA_BASE_URL + 'data/scenarios.json?v=' + v),
+  const [newsResult, aiResult, statsResult, alertsResult, scResult] = await Promise.allSettled([
+    fetchJSON('data/latest.json'),
+    fetchJSON('data/ai_analysis.json'),
+    fetchJSON('data/papers_stats.json'),
+    fetchJSON('data/alerts.json'),
+    fetchJSON('data/scenarios.json'),
   ]);
-  if (newsResp.status === 'fulfilled') { NEWS_DATA = await newsResp.value.json(); document.getElementById('lastUpdated').textContent = `${t('last_updated')}: ${NEWS_DATA.date}`; }
-  if (aiResp.status === 'fulfilled') { AI_DATA = await aiResp.value.json(); _contextKeywordsCache = null; }
-  if (statsResp.status === 'fulfilled') PAPERS_STATS = await statsResp.value.json();
-  if (alertsResp.status === 'fulfilled') try { ALERTS_DATA = await alertsResp.value.json(); } catch(e) {}
-  if (scResp.status === 'fulfilled') try { SCENARIOS_DATA = await scResp.value.json(); } catch(e) {}
+  if (newsResult.status === 'fulfilled' && newsResult.value) { NEWS_DATA = newsResult.value; document.getElementById('lastUpdated').textContent = `${t('last_updated')}: ${NEWS_DATA.date}`; }
+  if (aiResult.status === 'fulfilled' && aiResult.value) { AI_DATA = aiResult.value; _contextKeywordsCache = null; }
+  if (statsResult.status === 'fulfilled' && statsResult.value) PAPERS_STATS = statsResult.value;
+  if (alertsResult.status === 'fulfilled' && alertsResult.value) try { ALERTS_DATA = alertsResult.value; } catch(e) {}
+  if (scResult.status === 'fulfilled' && scResult.value) try { SCENARIOS_DATA = scResult.value; } catch(e) {}
   applyI18n(); renderOverview(); renderAlerts(); renderPestle(); renderCLA(); renderScenarios(); renderSignals(); renderPapers(); renderPapersTopbar(); restoreTabFromHash();
   // Load daily curated papers (lightweight, ~200KB)
   loadDailyPapers();
   // Phase 2: Load heavy data in background after initial render
-  loadHeavyData(v);
+  loadHeavyData();
 }
 
 // Phase 2: papers_light (37MB), translations (5.5MB), pestle_index - loaded in background
 let _heavyDataLoaded = false;
-async function loadHeavyData(v) {
+async function loadHeavyData() {
   if (_heavyDataLoaded) return;
   _heavyDataLoaded = true;
   try {
-    const [papersResp, trResp, idxResp] = await Promise.allSettled([
-      fetch(DATA_BASE_URL + 'data/papers_light.json?v=' + v),
-      fetch(DATA_BASE_URL + 'data/papers_translations.json?v=' + v),
-      fetch(DATA_BASE_URL + 'data/pestle_index.json?v=' + v),
+    const [papersResult, trResult, idxResult] = await Promise.allSettled([
+      fetchJSON('data/papers_light.json'),
+      fetchJSON('data/papers_translations.json'),
+      fetchJSON('data/pestle_index.json'),
     ]);
-    if (papersResp.status === 'fulfilled') { PAPERS_DATA = await papersResp.value.json(); renderPapers(); renderOverview(); }
-    if (trResp.status === 'fulfilled') { const trArr = await trResp.value.json(); trArr.forEach(tr => { if (tr && tr.index != null) PAPERS_TRANS[tr.index] = tr; }); renderPapers(); renderOverview(); }
-    if (idxResp.status === 'fulfilled') { const idx = await idxResp.value.json(); if (!PESTLE_HISTORY) PESTLE_HISTORY = {}; PESTLE_HISTORY._index = idx; PESTLE_HISTORY._quarterCount = Object.keys(idx).length; renderOverview(); }
+    if (papersResult.status === 'fulfilled' && papersResult.value) { PAPERS_DATA = papersResult.value; renderPapers(); renderOverview(); }
+    if (trResult.status === 'fulfilled' && trResult.value) { const trArr = trResult.value; trArr.forEach(tr => { if (tr && tr.index != null) PAPERS_TRANS[tr.index] = tr; }); renderPapers(); renderOverview(); }
+    if (idxResult.status === 'fulfilled' && idxResult.value) { const idx = idxResult.value; if (!PESTLE_HISTORY) PESTLE_HISTORY = {}; PESTLE_HISTORY._index = idx; PESTLE_HISTORY._quarterCount = Object.keys(idx).length; renderOverview(); }
   } catch (e) { console.warn('Heavy data load error:', e); }
 }
 
