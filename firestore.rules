@@ -40,6 +40,69 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
       allow create: if request.auth != null;
     }
+    // === Miratuku News App Collections ===
+    // Comments on news articles — all authenticated users can read; owners can CUD
+    match /news_comments/{commentId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+    // Bookmarks — private per user
+    match /news_bookmarks/{bookmarkId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+    // Foresight queries — private per user
+    match /foresight_queries/{queryId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+    // User-generated reports — private per user
+    match /user_reports/{reportId} {
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+    }
+    // Insight report admin config
+    match /insight_report_config/{docId} {
+      allow read, write: if request.auth != null;
+    }
+    match /insight_report_status/{docId} {
+      allow read, write: if request.auth != null;
+    }
+    match /insight_report_edits/{docId} {
+      allow read, write: if request.auth != null;
+    }
+    // Media sources — admins can manage; all authenticated can read
+    match /media_sources/{sourceId} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Pipeline management — authenticated users can read and create commands
+    match /pipeline_commands/{docId} {
+      allow read, write: if request.auth != null;
+    }
+    // Pipeline status/logs — read-only from client (daemon writes via admin SDK)
+    match /pipeline_status/{docId} {
+      allow read: if request.auth != null;
+    }
+    match /pipeline_logs/{docId} {
+      allow read: if request.auth != null;
+    }
+
+    // CLA historical data — all authenticated users can read/write
+    match /cla_historical/{period} {
+      allow read, write: if request.auth != null;
+    }
+    // CLA meta analysis reports
+    match /cla_meta/{region} {
+      allow read, write: if request.auth != null;
+    }
+
     // Config: public-read items (mythReport) vs admin-only (api keys)
     match /config/mythReport {
       allow read: if request.auth != null;
